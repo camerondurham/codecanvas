@@ -137,6 +137,3 @@ git push --delete origin tagname
 ### High Level Architecture Diagram
 
 ![](assets/runner-diagram-details-bg.png)
-
-
-test PR
