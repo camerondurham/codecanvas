@@ -1,14 +1,13 @@
 package runtime
 
 import (
-  "bytes"
-  "fmt"
-  "syscall"
-  "os/exec"
-  "io"
+	"bytes"
+	"fmt"
+	"io"
+	"os/exec"
+
 	"github.com/runner-x/runner-x/util/print"
 )
-
 
 // RunCommandList synchronously runs a list of commands
 func RunCmdList(runprops []RunProps) ([]*RunOutput, error) {
@@ -17,6 +16,7 @@ func RunCmdList(runprops []RunProps) ([]*RunOutput, error) {
 
 	for _, runprop := range runprops {
 		commandArgs := timedCommand(runprop.Timeout, runprop.RunArgs)
+		print.DebugPrintf("(runtime) commandArgs: %v", commandArgs)
 		output, err := runCommand(RunProps{
 			RunArgs:     commandArgs,
 			Timeout:     runprop.Timeout,
@@ -25,7 +25,6 @@ func RunCmdList(runprops []RunProps) ([]*RunOutput, error) {
 		outputArr = append(outputArr, output)
 		if err != nil {
 			print.DebugPrintf("error running command: \"%v\"\n\t%v", commandArgs, err)
-			// return outputArr, err
 		}
 	}
 
@@ -45,7 +44,7 @@ func RunCmd(runprops RunProps) (*RunOutput, error) {
 }
 
 func timedCommand(timeout int, cmds []string) []string {
-	return append([]string{"timeout", "--signal=" + syscall.SIGKILL.String(), fmt.Sprintf("%d", timeout)}, cmds...)
+	return append([]string{"timeout", "--signal=SIGKILL", fmt.Sprintf("%d", timeout)}, cmds...)
 }
 
 // runCommand executes a command, returns output and is lowercase so private function is not exposed outside the module
@@ -109,4 +108,3 @@ func getWriterChannelOutput(pipeReadCloser io.ReadCloser) chan string {
 
 	return outChannel
 }
-

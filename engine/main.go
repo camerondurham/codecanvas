@@ -3,29 +3,42 @@ package main
 import (
 	"fmt"
 
-	"github.com/runner-x/runner-x/engine/runtime"
+	"github.com/runner-x/runner-x/engine/codehandler"
 )
 
 func main() {
 
 	// TODO: this interface is trash, should make it easier to run a bunch of commands with the same timeout
-	runOutputArr, err := runtime.RunCmdList([]runtime.RunProps{
-		{
-			RunArgs: []string{"sleep", "3"},
-			Timeout: 1,
-		},
-		{
-			RunArgs: []string{"clang++", "test/test.cpp", "-o", "test/bin/test"},
-			Timeout: 1,
-		},
-		{
-			RunArgs: []string{"./test/bin/test"},
-			Timeout: 1,
-		},
-	})
+	// runOutputArr, err := runtime.RunCmdList([]runtime.RunProps{
+	// 	{
+	// 		RunArgs: []string{"sleep", "3"},
+	// 		Timeout: 1,
+	// 	},
+	// 	{
+	// 		RunArgs: []string{"clang++", "test/test.cpp", "-o", "test/bin/test"},
+	// 		Timeout: 1,
+	// 	},
+	// 	{
+	// 		RunArgs: []string{"./test/bin/test"},
+	// 		Timeout: 1,
+	// 	},
+	// })
 
-	for _, out := range runOutputArr {
-		fmt.Printf("\ncommand output: %v command error: [%v] func error: [%v]", out.Stdout, out.CommandError, err)
+	// for _, out := range runOutputArr {
+	// 	fmt.Printf("\ncommand output: %v command error: [%v] func error: [%v]", out.Stdout, out.CommandError, err)
+	// }
+
+	fmt.Println()
+
+	sourcecode := `#!/bin/bash
+	echo "hello world"
+	sleep 2
+	`
+	shellRunProps := codehandler.RunnerProps{
+		Source: sourcecode,
+		Lang:   codehandler.SHELL,
 	}
+	runnerOutput := codehandler.Handle(shellRunProps)
+	fmt.Println(runnerOutput)
 
 }

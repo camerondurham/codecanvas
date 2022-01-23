@@ -1,8 +1,8 @@
 package print
 
 import (
-  "fmt"
-  "os"
+	"fmt"
+	"os"
 )
 
 // DebugPrintf prints message if DEBUG environment variable is set

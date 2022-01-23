@@ -8,6 +8,7 @@ type RunProps struct {
 	ExecutePath string   `json:"execute_path"` // path in the filesystem to execute commands in
 }
 
+// TODO: do we need this or can we just use the codehandler types?
 type RunOutput struct {
 	Stdout       string `json:"stdout"`
 	Stderr       string `json:"stderr"`
