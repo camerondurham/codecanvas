@@ -6,22 +6,51 @@ Implementation details and notes for development.
 
 ![](assets/runner-diagram-details-bg.png)
 
-Components:
+### Components
+
+#### backend
+
+1. runtime engine: executes the user's code on the server, handles security, compiles, and return code output
+2. internal server api: handles job execution 'scheduling', pre/post hooks and transforming input into language specific compile commands
+3. external api: the api that can be accessed externally where user provides (ideally) just the language and snippet of code to run
+
+For #2, there are some different options to consider:
+
+**Monolithic Architecture:** internal server API can be another module
+
+Pros:
+
+- monoliths *can be* much faster since tight integration can help toward optimizing for performance (citaion: [stackoverflow.com scaling](https://www.infoq.com/news/2015/06/scaling-stack-overflow/))
+- easier to implement and debug
+- simpler to reason about
+
+Cons:
+
+- tight integration means small changes can break/disrupt everyones work
+- higher possibility of merge conflicts
+- cannot horizontally scale, must replace the monolith with bigger VM/containers to scale up
+
+**Microservice Architecture:** internal server API is a separate service, another container.
+
+Pros:
+
+- external server can be any language and communicate with simple REST interface (will use internal private network with minimal noise/traffic)
+- can be easily placed behind a load balancer and scale horizontally
+- distinct modules in codebase minimize merge conflicts and make it easier to test each unit individually
+
+Cons:
+
+- more difficult to reason about, more moving pieces
+- adding 2-layers of network calls may introduce other unknown complexities
+- possibly harder to implement and debug
+
+#### frontend
+
+1. [PRIORITY] command line interface: CLIs make this somewhat easier to test end-2-end
+2. [PRIORITY] browser: would like to have a nice looking website to show this off!
+3. VSCode extension: let users write code and pass it off to our server to acually run it, this might be a stretch goal
 
 
-1. backend
-    1. executor/engine: executes the user's code on the server, handles security, compiles, and return code output
-    2. internal server api: exposes a full API for the executor's instructions, possibly not needed if we build this more like a monolith
-    3. external api: the api that can be accessed externally where user provides (ideally) just the language and snippet of code to run
-2. integrations (frontend):
-    1. [PRIORITY] command line interface: CLIs make this somewhat easier to test end-2-end
-    2. [PRIORITY] browser: would like to have a nice looking website to show this off!
-    3. VSCode extension: let users write code and pass it off to our server to acually run it, this might be a stretch goal
-
-
-
-We should decide on the API design first, quickly, then implement API functionality.
-After API design is finished, smaller groups can mock API response and be able to plug in easily.
 
 ### Daemon API Design
 
