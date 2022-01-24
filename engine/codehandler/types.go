@@ -1,13 +1,21 @@
 package codehandler
 
-type Language int
+type Language string
 
 const (
 	// iota: https://github.com/golang/go/wiki/Iota
 
 	// Languages for now, though we should really not support shell code, these two will make it easy to use for testing
-	PYTHON3 Language = iota
-	SHELL
+	PYTHON3 = Language("python3")
+	SHELL   = Language("bash")
+	CPP11   = Language("c++11")
+)
+
+var (
+	// supported languages exposed to user
+	Languages = []Language{
+		PYTHON3,
+	}
 )
 
 type RunnerProps struct {

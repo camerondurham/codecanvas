@@ -8,37 +8,52 @@ import (
 
 func main() {
 
-	// TODO: this interface is trash, should make it easier to run a bunch of commands with the same timeout
-	// runOutputArr, err := runtime.RunCmdList([]runtime.RunProps{
-	// 	{
-	// 		RunArgs: []string{"sleep", "3"},
-	// 		Timeout: 1,
-	// 	},
-	// 	{
-	// 		RunArgs: []string{"clang++", "test/test.cpp", "-o", "test/bin/test"},
-	// 		Timeout: 1,
-	// 	},
-	// 	{
-	// 		RunArgs: []string{"./test/bin/test"},
-	// 		Timeout: 1,
-	// 	},
-	// })
-
-	// for _, out := range runOutputArr {
-	// 	fmt.Printf("\ncommand output: %v command error: [%v] func error: [%v]", out.Stdout, out.CommandError, err)
-	// }
-
-	fmt.Println()
-
 	sourcecode := `#!/bin/bash
 	echo "hello world"
-	sleep 2
+	sleep 4
 	`
 	shellRunProps := codehandler.RunnerProps{
 		Source: sourcecode,
 		Lang:   codehandler.SHELL,
 	}
-	runnerOutput := codehandler.Handle(shellRunProps)
+	runnerOutput, err := codehandler.Handle(&shellRunProps)
+	fmt.Println(err)
 	fmt.Println(runnerOutput)
+
+	pythonsource := `
+mylist = ["hello", "world", "from", "python"]
+for item in mylist:
+	print(item)
+	`
+	pythonRunProps := codehandler.RunnerProps{
+		Source: pythonsource,
+		Lang:   codehandler.PYTHON3,
+	}
+
+	pyRunnerOutput, err := codehandler.Handle(&pythonRunProps)
+	fmt.Println(err)
+	fmt.Println(pyRunnerOutput)
+
+	// TODO: implement c++11 source test
+	_ = `
+	#include<iostream>
+	#include<algorithm>
+
+	typedef unsigned int uint;
+
+	using namespace std;
+
+	int main() {
+		string inp = "hello world";
+
+		if(inp.length() > 1){
+
+			for(uint start = 0, end = inp.length() - 1; start < end; start++, end--){
+				std::swap(inp[start], inp[end]);
+			}
+		}
+		std::cout<< inp;
+	}
+	`
 
 }

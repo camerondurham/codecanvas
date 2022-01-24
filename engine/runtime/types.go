@@ -2,6 +2,13 @@ package runtime
 
 import "errors"
 
+type RuntimeError error
+
+var (
+	ErrDoesNotExist  RuntimeError = errors.New("does not exist")
+	ErrProcessKilled RuntimeError = errors.New("process killed")
+)
+
 type RunProps struct {
 	RunArgs     []string `json:"run_args"`     // program arguments
 	Timeout     int      `json:"timeout"`      // timeout before program is killed
@@ -10,11 +17,7 @@ type RunProps struct {
 
 // TODO: do we need this or can we just use the codehandler types?
 type RunOutput struct {
-	Stdout       string `json:"stdout"`
-	Stderr       string `json:"stderr"`
-	CommandError error  `json:"error"`
+	Stdout string       `json:"stdout"`
+	Stderr string       `json:"stderr"`
+	Error  RuntimeError `json:"error"`
 }
-
-var (
-	ErrDoesNotExist = errors.New("does not exist")
-)

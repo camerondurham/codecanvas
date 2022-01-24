@@ -34,7 +34,6 @@ func RunCmdList(runprops []RunProps) ([]*RunOutput, error) {
 // RunCommand wraps commands from user in a timeout duration specified in RunProps
 func RunCmd(runprops RunProps) (*RunOutput, error) {
 	commandArgs := timedCommand(runprops.Timeout, runprops.RunArgs)
-	// append([]string{TIMEOUT_EXECUTABLE, TIMEOUT_SIGKILL_FLAG, fmt.Sprintf("%d", runprops.Timeout)}, runprops.RunArgs...)
 	input := RunProps{
 		RunArgs:     commandArgs,
 		Timeout:     runprops.Timeout,
@@ -82,14 +81,13 @@ func runCommand(runprops RunProps) (*RunOutput, error) {
 	stderrAsString := <-stderrChannel
 
 	if err != nil {
-		// this will show error result from `timeout` if applicable
-		fmt.Printf("error running command: %v\n", err)
+		print.DebugPrintf("(runCommand) error from running command: %v", err)
 	}
 
 	return &RunOutput{
-		Stdout:       stdoutAsString,
-		Stderr:       stderrAsString,
-		CommandError: err, // TODO: convert to engine error
+		Stdout: stdoutAsString,
+		Stderr: stderrAsString,
+		Error:  err, // TODO: make this error more meaningful
 	}, err
 }
 
