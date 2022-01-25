@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/runner-x/runner-x/engine/codehandler"
+	codehandler "github.com/runner-x/runner-x/engine/coderunner"
 )
 
 func main() {
@@ -16,7 +16,7 @@ func main() {
 		Source: sourcecode,
 		Lang:   codehandler.SHELL,
 	}
-	runnerOutput, err := codehandler.Handle(&shellRunProps)
+	runnerOutput, err := codehandler.Run(&shellRunProps)
 	fmt.Println(err)
 	fmt.Println(runnerOutput)
 
@@ -30,7 +30,7 @@ for item in mylist:
 		Lang:   codehandler.PYTHON3,
 	}
 
-	pyRunnerOutput, err := codehandler.Handle(&pythonRunProps)
+	pyRunnerOutput, err := codehandler.Run(&pythonRunProps)
 	fmt.Println(err)
 	fmt.Println(pyRunnerOutput)
 

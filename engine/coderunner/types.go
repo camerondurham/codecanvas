@@ -1,10 +1,8 @@
-package codehandler
+package coderunner
 
 type Language string
 
 const (
-	// iota: https://github.com/golang/go/wiki/Iota
-
 	// Languages for now, though we should really not support shell code, these two will make it easy to use for testing
 	PYTHON3 = Language("python3")
 	SHELL   = Language("bash")
@@ -17,6 +15,10 @@ var (
 		PYTHON3,
 	}
 )
+
+// Runner contains any state needed while Runner is initialized
+type Runner struct {
+}
 
 type RunnerProps struct {
 	Source string   `json:"source"`

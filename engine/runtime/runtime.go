@@ -18,9 +18,8 @@ func RunCmdList(runprops []RunProps) ([]*RunOutput, error) {
 		commandArgs := timedCommand(runprop.Timeout, runprop.RunArgs)
 		print.DebugPrintf("(runtime) commandArgs: %v", commandArgs)
 		output, err := runCommand(RunProps{
-			RunArgs:     commandArgs,
-			Timeout:     runprop.Timeout,
-			ExecutePath: runprop.ExecutePath,
+			RunArgs: commandArgs,
+			Timeout: runprop.Timeout,
 		})
 		outputArr = append(outputArr, output)
 		if err != nil {
@@ -32,12 +31,15 @@ func RunCmdList(runprops []RunProps) ([]*RunOutput, error) {
 }
 
 // RunCommand wraps commands from user in a timeout duration specified in RunProps
-func RunCmd(runprops RunProps) (*RunOutput, error) {
+func RunCmd(runprops *RunProps) (*RunOutput, error) {
+	if runprops == nil {
+		return nil, nil
+	}
+
 	commandArgs := timedCommand(runprops.Timeout, runprops.RunArgs)
 	input := RunProps{
-		RunArgs:     commandArgs,
-		Timeout:     runprops.Timeout,
-		ExecutePath: "",
+		RunArgs: commandArgs,
+		Timeout: runprops.Timeout,
 	}
 	return runCommand(input)
 }
@@ -87,7 +89,6 @@ func runCommand(runprops RunProps) (*RunOutput, error) {
 	return &RunOutput{
 		Stdout: stdoutAsString,
 		Stderr: stderrAsString,
-		Error:  err, // TODO: make this error more meaningful
 	}, err
 }
 

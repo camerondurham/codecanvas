@@ -2,40 +2,74 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"time"
 
-	"github.com/runner-x/runner-x/engine/codehandler"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/runner-x/runner-x/engine/coderunner"
 )
 
 const (
-	API_PORT = ":8080"
+	API_PORT               = ":8080"
+	SERVER_REQUEST_TIMEOUT = 10
 )
 
-type languages struct {
-	Languages []codehandler.Language `json:"languages"`
+type LanguagesResponse struct {
+	Languages []coderunner.Language `json:"languages"`
+}
+
+func languagesHandler(w http.ResponseWriter, r *http.Request) {
+	langs := LanguagesResponse{
+		Languages: coderunner.Languages,
+	}
+	json.NewEncoder(w).Encode(langs)
+}
+
+type RunResponse struct {
+	Stdout string `json:"stdout"`
+	Stderr string `json:"stderr"`
+}
+
+func runHandler(w http.ResponseWriter, r *http.Request) {
+	// TODO: parse request body
+
+	// TODO: transform request body into runner engine input
+
+	// TODO: let code runner run the code
+
+	// TODO: replace hard-coded reponse with transformed runner output
+	output := RunResponse{
+		Stdout: "hello world",
+		Stderr: "",
+	}
+
+	json.NewEncoder(w).Encode(output)
 }
 
 func main() {
-	http.HandleFunc("/api/v1/languages", func(w http.ResponseWriter, r *http.Request) {
-		langs := languages{
-			Languages: codehandler.Languages,
-		}
-		json.NewEncoder(w).Encode(langs)
-	})
+	r := chi.NewRouter()
 
-	http.HandleFunc("/api/v1/run", func(w http.ResponseWriter, r *http.Request) {
-		// TODO: handle function call and retrieve output
-		output := codehandler.RunnerOutput{
-			Stdout:       "hello world",
-			Stderr:       "",
-			CommandError: nil,
-		}
+	// use request ID to help with Recoverer and debugging logs
+	r.Use(middleware.RequestID)
 
-		json.NewEncoder(w).Encode(output)
-	})
+	// logger should come before recoverer
+	r.Use(middleware.Logger)
 
-	err := http.ListenAndServe(API_PORT, nil)
+	// use Recoverer to try to recover server health if a panic occurs
+	// uses request ID if available
+	r.Use(middleware.Recoverer)
+
+	// use middleware to set a timeout to avoid saturating the server
+	r.Use(middleware.Timeout(SERVER_REQUEST_TIMEOUT * time.Second))
+
+	r.Get("/api/v1/languages", languagesHandler)
+	r.Post("/api/v1/run", runHandler)
+
+	err := http.ListenAndServe(API_PORT, r)
 	if err != nil {
+		fmt.Printf("error starting server: %v", err)
 		return
 	}
 }
