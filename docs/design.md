@@ -2,9 +2,6 @@
 
 Implementation details and notes for development.
 
-## code engine
-
-![](assets/runner-diagram-details-bg.png)
 
 ### Components
 
@@ -91,4 +88,4 @@ Provides execute access into code runner container.
 
 ## whiteboarding
 
-![](assets/runner-scratch.png)
+![](../assets/runner-diagram-details-bg.png)
