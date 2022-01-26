@@ -45,13 +45,39 @@ Docker:
 We will likely end up using Docker and include instructions here. For now, you
 can install [Docker Desktop](https://www.docker.com/get-started) if you like.
 
+### Server and Engine Setup
+
+Installing `mockgen` to create mocks from interfaces:
+
+```bash
+go install github.com/golang/mock/mockgen@v1.6.0
+```
+
+Using Mockgen to create new mocks for testing:
+
+Basic command structure:
+
+```
+mockgen -source ./path/to/file/with/filename.go -destinaion ./path/to/write/mocks/filename.go InterfaceName
+```
+
+Example:
+
+In `engine/runtime/types.go` there is the interface `Runtime` that we would like to mock for unit tests.
+
+We can organize mocks in a submodule by making the `engine/runtime/mocks` directory and provide that and a filename to write the mocked classes.
+
+```
+mockgen -source ./engine/runtime/types.go -package=mocks -destination ./engine/runtime/mocks/Runtime.go Runtime
+```
+
 ### CLI Setup
 
 CLI stands for command line interface.
 
 #### Adding New Commands
 
-Install cobra dependencies: (required to generate new commands)
+Install cobra dependencies: (required to generate new CLI commands)
 
 ```
 go install github.com/spf13/cobra/cobra@v1.3.0
@@ -59,13 +85,49 @@ go install github.com/spf13/cobra/cobra@v1.3.0
 
 Add new cobra command
 
-```shell script
+```bash
+# change directories into the CLI sourcecode
+cd cli/runner
+
 # add new subcommand
-cobra add <child command> -p <parent command>
+cobra add <CHILD_COMMAND> -p <PARENT_COMMAND>
+
+# example:
 cobra add childCommand -p 'parentCommand'
 ```
 
-Add or adjust `~/.cobra.yaml` file for your name, license, year, etc. [Docs](https://github.com/spf13/cobra/blob/master/cobra/README.md)
+The [Cobra CLI Docs](https://github.com/spf13/cobra/blob/master/cobra/README.md) are a great reference too.
+
+### Running the Server
+
+During CLI or even server development, you will likely want to run the server during testing.
+
+In the root directory `runner`, you can run the API a couple ways:
+
+```bash
+# 1. use the Makefile
+make run-api
+
+# 2. just use the go command
+go run api/main.go
+```
+
+Usually you'll want to run the server in the background to you can do other
+things with your terminal. However, you'd need to kill the process running on port `8080`
+once you're done. You can use the `api/kill_server.sh` script for this.
+
+```bash
+# 1. run the API in the background
+go run api/main.go &
+
+# 2. once you are done, use the script to shut down processes on port 8080
+./api/kill_server.sh
+
+```
+
+You can also use the `api/kill_server.sh` script if you see this error:
+
+> error starting server: listen tcp :8080: bind: address already in use
 
 
 ### Go Tips
@@ -97,36 +159,10 @@ When writing instructions for users and in the README, please follow syntax reco
 
 #### Change package name (just in case)
 
-```shell script
+```
 # change module name in all files
  find . -type f \( -name '*.go' -o -name '*.mod' \) -exec sed -i -e "s;container-helper;ch;g" {} +
 ```
-
-#### Releasing New Versions
-
-> Note: This is mainly a reminder for me since
-> I can't remember how on Earth to git tag stuff sometimes!
-
-
-```shell
-# releasing a new version
-git tag -a v1.4 -m "Version notes here"
-```
-
-To delete tagging mistakes locally:
-
-```shell
-# delete local tag
-git tag -d tagname
-```
-
-To delete remote tags:
-
-```shell
-# delete a tag already pushed to github
-git push --delete origin tagname
-```
-
 
 ### Concepts
 
