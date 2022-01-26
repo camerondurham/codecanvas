@@ -27,3 +27,6 @@ jobs:
 
       - name: Test
         run: go test ./...
+
+      - name: Test Server Starts
+        run: cd api && ./test_server_startup.sh
