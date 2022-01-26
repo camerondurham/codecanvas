@@ -1,5 +1,7 @@
 package coderunner
 
+import "github.com/runner-x/runner-x/engine/runtime"
+
 type Language string
 
 const (
@@ -16,8 +18,10 @@ var (
 	}
 )
 
-// Runner contains any state needed while Runner is initialized
-type Runner struct {
+// CodeRunner contains any state needed while CodeRunner is initialized
+type CodeRunner struct {
+	runner      runtime.Runtime
+	workdirPath string
 }
 
 type RunnerProps struct {

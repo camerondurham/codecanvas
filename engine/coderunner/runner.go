@@ -13,25 +13,9 @@ const (
 	TIMEOUT_DEFAULT = 3
 )
 
-func fileExtensionMap() map[Language]string {
-	return map[Language]string{
-		PYTHON3: "py",
-		SHELL:   "sh",
-	}
-}
-
-// TODO: refactor these into a module and handle with pre-run hooks
-func getRunCmds(filename string, lang Language) []string {
-	var cmds []string
-	switch lang {
-	case PYTHON3:
-		cmds = []string{"python3", filename}
-	case SHELL:
-		cmds = []string{"bash", filename}
-	default:
-		panic(fmt.Sprintf("lang [%v] not supported", lang))
-	}
-	return cmds
+func NewCodeRunner(id, dir string) *CodeRunner {
+	r := runtime.NewTimeoutRuntime(id)
+	return &CodeRunner{runner: r, workdirPath: dir}
 }
 
 func DebugPrintRunOutput(out runtime.RunOutput) {
@@ -39,14 +23,14 @@ func DebugPrintRunOutput(out runtime.RunOutput) {
 	print.DebugPrintf("\n[stderr]: %s", out.Stderr)
 }
 
-func Run(props *RunnerProps) (*RunnerOutput, error) {
+func (cr *CodeRunner) Run(props *RunnerProps) (*RunnerOutput, error) {
 	// TODO: error handling
 
 	// TODO: add intermediate step to allow multiple code runs concurrently
 
 	// TODO: create parent directory to create temp dirs in
 	// create temporary directory
-	dir, err := os.MkdirTemp("", "runner")
+	dir, err := os.MkdirTemp(cr.workdirPath, "runner")
 	if err != nil {
 		panic(err)
 	}
@@ -66,7 +50,8 @@ func Run(props *RunnerProps) (*RunnerOutput, error) {
 	print.DebugPrintf("source path: %s", writePath)
 	err = os.WriteFile(writePath, []byte(props.Source), 0644)
 	if err != nil {
-		panic(err)
+		print.DebugPrintf("error writing to path: [%v], aborting", err)
+		return nil, err
 	}
 
 	// runner compiles with timeout
@@ -74,7 +59,7 @@ func Run(props *RunnerProps) (*RunnerOutput, error) {
 
 	// runner runs with timeout
 	runCmds := getRunCmds(writePath, props.Lang)
-	runOutput, err := runtime.RunCmd(&runtime.RunProps{
+	runOutput, err := cr.runner.RunCmd(&runtime.RunProps{
 		RunArgs: runCmds,
 		Timeout: TIMEOUT_DEFAULT,
 	})
@@ -87,4 +72,25 @@ func Run(props *RunnerProps) (*RunnerOutput, error) {
 		runOutput.Stderr,
 		err,
 	}, nil
+}
+
+func fileExtensionMap() map[Language]string {
+	return map[Language]string{
+		PYTHON3: "py",
+		SHELL:   "sh",
+	}
+}
+
+// TODO: refactor these into a module and handle with pre-run hooks
+func getRunCmds(filename string, lang Language) []string {
+	var cmds []string
+	switch lang {
+	case PYTHON3:
+		cmds = []string{"python3", filename}
+	case SHELL:
+		cmds = []string{"bash", filename}
+	default:
+		panic(fmt.Sprintf("lang [%v] not supported", lang))
+	}
+	return cmds
 }

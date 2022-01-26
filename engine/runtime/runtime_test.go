@@ -11,6 +11,8 @@ func Test_RunCmd(t *testing.T) {
 		props *RunProps
 	}
 
+	runtimeAgent := NewTimeoutRuntime("test")
+
 	tests := []struct {
 		name    string
 		args    args
@@ -53,7 +55,7 @@ func Test_RunCmd(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := RunCmd(tt.args.props)
+			got, err := runtimeAgent.RunCmd(tt.args.props)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RunCmd() error = %v, wantErr = %v", err, tt.wantErr)
 			}

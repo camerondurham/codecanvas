@@ -8,6 +8,8 @@ import (
 
 func main() {
 
+	handler := codehandler.NewCodeRunner("integ-test", "")
+
 	sourcecode := `#!/bin/bash
 	echo "hello world"
 	sleep 4
@@ -16,7 +18,7 @@ func main() {
 		Source: sourcecode,
 		Lang:   codehandler.SHELL,
 	}
-	runnerOutput, err := codehandler.Run(&shellRunProps)
+	runnerOutput, err := handler.Run(&shellRunProps)
 	fmt.Println(err)
 	fmt.Println(runnerOutput)
 
@@ -30,7 +32,7 @@ for item in mylist:
 		Lang:   codehandler.PYTHON3,
 	}
 
-	pyRunnerOutput, err := codehandler.Run(&pythonRunProps)
+	pyRunnerOutput, err := handler.Run(&pythonRunProps)
 	fmt.Println(err)
 	fmt.Println(pyRunnerOutput)
 

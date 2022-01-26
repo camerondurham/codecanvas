@@ -9,29 +9,12 @@ import (
 	"github.com/runner-x/runner-x/util/print"
 )
 
-// RunCommandList synchronously runs a list of commands
-func RunCmdList(runprops []RunProps) ([]*RunOutput, error) {
-
-	var outputArr []*RunOutput
-
-	for _, runprop := range runprops {
-		commandArgs := timedCommand(runprop.Timeout, runprop.RunArgs)
-		print.DebugPrintf("(runtime) commandArgs: %v", commandArgs)
-		output, err := runCommand(RunProps{
-			RunArgs: commandArgs,
-			Timeout: runprop.Timeout,
-		})
-		outputArr = append(outputArr, output)
-		if err != nil {
-			print.DebugPrintf("error running command: \"%v\"\n\t%v", commandArgs, err)
-		}
-	}
-
-	return outputArr, nil
+func NewTimeoutRuntime(id string) *RuntimeAgent {
+	return &RuntimeAgent{id}
 }
 
 // RunCommand wraps commands from user in a timeout duration specified in RunProps
-func RunCmd(runprops *RunProps) (*RunOutput, error) {
+func (r *RuntimeAgent) RunCmd(runprops *RunProps) (*RunOutput, error) {
 	if runprops == nil {
 		return nil, nil
 	}
@@ -41,15 +24,11 @@ func RunCmd(runprops *RunProps) (*RunOutput, error) {
 		RunArgs: commandArgs,
 		Timeout: runprops.Timeout,
 	}
-	return runCommand(input)
-}
-
-func timedCommand(timeout int, cmds []string) []string {
-	return append([]string{"timeout", "--signal=SIGKILL", fmt.Sprintf("%d", timeout)}, cmds...)
+	return r.runCommand(input)
 }
 
 // runCommand executes a command, returns output and is lowercase so private function is not exposed outside the module
-func runCommand(runprops RunProps) (*RunOutput, error) {
+func (r *RuntimeAgent) runCommand(runprops RunProps) (*RunOutput, error) {
 	var cmd *exec.Cmd
 
 	numArgs := len(runprops.RunArgs)
@@ -92,6 +71,11 @@ func runCommand(runprops RunProps) (*RunOutput, error) {
 	}, err
 }
 
+func timedCommand(timeout int, cmds []string) []string {
+	return append([]string{"timeout", "--signal=SIGKILL", fmt.Sprintf("%d", timeout)}, cmds...)
+}
+
+// TODO: this may belong in util
 func getWriterChannelOutput(pipeReadCloser io.ReadCloser) chan string {
 	outChannel := make(chan string)
 

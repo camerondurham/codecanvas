@@ -1,5 +1,13 @@
 package runtime
 
+type Runtime interface {
+	RunCmd(runprops *RunProps) (*RunOutput, error)
+}
+
+type RuntimeAgent struct {
+	id string
+}
+
 type RunProps struct {
 	RunArgs []string `json:"run_args"` // program arguments
 	Timeout int      `json:"timeout"`  // timeout before program is killed
