@@ -7,7 +7,7 @@ set -x
 
 go run main.go &
 
-sleep 1
+sleep 5
 
 # child process process id
 server_pid=$!
@@ -22,5 +22,5 @@ fi
 echo "received a response from /api/v1/languages: $response"
 
 kill -9 $server_pid
-sleep 1
+sleep 5
 exit 0
