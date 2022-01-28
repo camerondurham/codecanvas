@@ -7,18 +7,22 @@ to have any compiler on their machine. This is a work in progress project for TC
 
 ### High Level Architecture Diagram
 
-These components live in the following paths:
-- browser front-end: does not exist *yet*
-- command-line interface: `cli/runner/`
-- API Server: `api/`
-- CodeRunner: `engine/coderunner`
-- Runner Containers: `engine/runtime`
+![runner project high level diagram](assets/runner-diagram-details-bg.png)
 
-![](assets/runner-diagram-details-bg.png)
+### Repository Structure
+
+These components live in the following paths:
+
+- browser front-end: does not exist _yet_
+- command-line interface: [`cli/runner/`](https://github.com/camerondurham/runner/tree/main/cli/runner)
+- API Server: [`api/`](https://github.com/camerondurham/runner/tree/main/api)
+- CodeRunner: [`engine/coderunner`](https://github.com/camerondurham/runner/tree/main/engine/coderunner)
+- Runner Containers: [`engine/runtime`](https://github.com/camerondurham/runner/tree/main/engine/runtime)
 
 ## Dev Environment
 
 Editors:
+
 - [Visual Studio Code](https://code.visualstudio.com/Download)
 - [GoLand](https://www.jetbrains.com/go/) from Jetbrains for free with an [educational license](https://www.jetbrains.com/community/education/#students)
 
@@ -32,58 +36,35 @@ Recommended extensions (VSCode):
 Search for these extension ids in VSCode and feel free to
 add your personal favs:
 
-- `golang.go`
-   for running and debugging Go
-- `ms-vscode-remote.remote-wsl`
+1. `golang.go`
+   for running and debugging Go (see [vscode-go debugging docs](https://github.com/golang/vscode-go/blob/master/docs/debugging.md))
+1. `eamodio.gitlens`
+   git lens (pro tip, enable editor heat map in upper right corner)
+1. `ms-vscode-remote.remote-wsl`
    for Windows WSL users
-- `yzhang.markdown-all-in-one`
+1. `yzhang.markdown-all-in-one`
    for writing docs
-- `waderyan.gitblame`
-   to figure out who wrote that bad code
-
 
 Docker:
 
 We will likely end up using Docker and include instructions here. For now, you
 can install [Docker Desktop](https://www.docker.com/get-started) if you like.
 
-### Server and Engine Setup
-
-Installing `mockgen` to create mocks from interfaces:
-
-```bash
-go install github.com/golang/mock/mockgen@v1.6.0
-```
-
-Using Mockgen to create new mocks for testing:
-
-Basic command structure:
-
-```
-mockgen -source ./path/to/file/with/filename.go -destinaion ./path/to/write/mocks/filename.go InterfaceName
-```
-
-Example:
-
-In `engine/runtime/types.go` there is the interface `Runtime` that we would like to mock for unit tests.
-
-We can organize mocks in a submodule by making the `engine/runtime/mocks` directory and provide that and a filename to write the mocked classes.
-
-```
-mockgen -source ./engine/runtime/types.go -package=mocks -destination ./engine/runtime/mocks/Runtime.go Runtime
-```
+## Development
 
 ### CLI Setup
 
 CLI stands for command line interface.
 
-#### Adding New Commands
+#### Installing the `cobra` CLI to help with codegen
 
 Install cobra dependencies: (required to generate new CLI commands)
 
-```
+```bash
 go install github.com/spf13/cobra/cobra@v1.3.0
 ```
+
+#### Adding New Commands
 
 Add new cobra command
 
@@ -98,8 +79,14 @@ cobra add <CHILD_COMMAND> -p <PARENT_COMMAND>
 cobra add childCommand -p 'parentCommand'
 ```
 
-The [Cobra CLI Docs](https://github.com/spf13/cobra/blob/master/cobra/README.md) are a great reference too.
+#### Other Resources
 
+- Where the CLI code lives in this repo: [cli/runner](https://github.com/camerondurham/runner/tree/main/cli/runner)
+- [Docs: Cobra Concepts](https://cobra.dev/#concepts)
+- [Docs: Getting Started](https://cobra.dev/#getting-started)
+- Examples:
+  - [adding a command line flag to CLI](https://github.com/camerondurham/ch/blob/4bb750335485169e469bdb191c8ca29bb107b358/cmd/create.go#L171)
+  - [reading what user set flag to](https://github.com/camerondurham/ch/blob/4bb750335485169e469bdb191c8ca29bb107b358/cmd/create.go#L75)
 ### Running the Server
 
 During CLI or even server development, you will likely want to run the server during testing.
@@ -131,7 +118,6 @@ You can also use the `api/kill_server.sh` script if you see this error:
 
 > error starting server: listen tcp :8080: bind: address already in use
 
-
 ### Go Tips
 
 #### Working with Go Modules
@@ -152,22 +138,81 @@ go mod tidy
 go mod edit -dropreplace github.com/go-chi/chi
 ```
 
-### Documentation
+## Testing
+
+### Unit Tests
+
+**What are unit tests and why do we use them?**
+
+Unit testing is used to help us make sure smaller "units" of the code
+work as expected and handle all expected error cases. This project will end up being pretty
+large and we want to use unit tests to verify individual components before
+piecing everything together.
+
+In [runner_test.go](https://github.com/camerondurham/runner/blob/b594c4e023009d06109eb206c2f3e288dddd5e4c/engine/coderunner/runner_test.go#L25-L38),
+we mock the response of the runtime to isolate what we are testing and produce
+consist results without actually calling our "real code" in the `runtime`
+module.
+
+More about unit tests: [Definition of a Unit Test](https://www.artofunittesting.com/definition-of-a-unit-test).
+
+**How to generate mocks:**
+
+Install the Go CLI `mockgen` to create mocks from [Go interfaces](https://gobyexample.com/interfaces):
+
+```bash
+go install github.com/golang/mock/mockgen@v1.6.0
+```
+
+Using Mockgen to create new mocks for testing:
+
+Basic command structure:
+
+```bash
+mockgen -source ./path/to/file/with/filename.go -destinaion ./path/to/write/mocks/filename.go InterfaceName
+```
+
+Example:
+
+In `engine/runtime/types.go` there is the interface `Runtime` that we would like to mock for unit tests:
+
+```go
+type Runtime interface {
+  RunCmd(runprops *RunProps) (*RunOutput, error)
+}
+```
+
+The command below will create a mock-able `Runtime` interface, helper functions to implement
+`Runtime` that you can call `RunCmd` on.
+
+We can organize mocks in a submodule by making the `engine/runtime/mocks` directory and provide that and a filename to write the mocked classes.
+
+```bash
+mockgen -source ./engine/runtime/types.go -package=mocks -destination ./engine/runtime/mocks/Runtime.go Runtime
+```
+
+You can see an example [here](https://github.com/camerondurham/runner/blob/b594c4e023009d06109eb206c2f3e288dddd5e4c/engine/coderunner/runner_test.go#L25-L38)
+of how to actually use mocks in a unit test.
+
+> Note: The command above has been added to the `Makefile`. If you are creating mocks
+> you want for a new file or interface, feel free to add those commands to the
+> `gen-mocks` target so these are generated when you run `make gen-mocks`.
+
+## Integration Testing
+
+Will add more about this later! Here's some [reading](https://martinfowler.com/bliki/IntegrationTest.html) from Martin Fowler for now!
+
+There aren't examples of integration testing in the repo yet.
+
+## Documentation
 
 When writing instructions for users and in the README, please follow syntax recommended by [google developer docs](https://developers.google.com/style/code-syntax)
 
+## Other things
 
-### Other things
+### Change package name (just in case)
 
-#### Change package name (just in case)
-
-```
+```bash
 # change module name in all files
- find . -type f \( -name '*.go' -o -name '*.mod' \) -exec sed -i -e "s;container-helper;ch;g" {} +
+ find . -type f \( -name '*.go' -o -name '*.mod' \) -exec sed -i -e "s;runner-x;runner;g" {} +
 ```
-
-### Concepts
-
-- **Systems Design:** The service involves designing a 3+ part application to handle the user-interface, API server, and remote code runner.
-- **Containers:** Each part of the service will be run in a container, at least for local testing. Container primitives like filesystem and namespace/process isolation will also be used to protect the host system from each process running the user's code.
-- **Basic Multi-Tenant Design & Security:** Remote code can be extremely malicious. This project must handle a basic set of attacks for its first iteration.
