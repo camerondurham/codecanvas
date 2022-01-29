@@ -10,13 +10,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-/*
-	Example Usage:
-	runner run source.py
-	runner run -l source.py # HAS CLI CHECK FOR LANGUAGE
-
-*/
-
 // runCmd represents the run command
 var runCmd = &cobra.Command{
 	Use:   "run",

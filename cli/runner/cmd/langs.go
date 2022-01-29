@@ -24,16 +24,15 @@ var langsCmd = &cobra.Command{
 	Short: "query the server for supported languages",
 	Run: func(cmd *cobra.Command, args []string) {
 		// implement CLI subcommand logic here
-		var res Langs
-		if err := getLangListJSON(server, LANG_ENDPOINT, &res); err != "" {
+		resp, err := getLangListJSON(server, LANG_ENDPOINT)
+		if err.Error() != "" {
 			fmt.Println(err)
 			return
 		}
 		fmt.Print("Currently supported languages: ")
-		for _, lang := range res.Languages {
+		for _, lang := range resp.Languages {
 			fmt.Printf("%s ", lang)
 		}
-		//fmt.Println("langs called")
 	},
 }
 
