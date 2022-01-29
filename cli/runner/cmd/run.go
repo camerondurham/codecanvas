@@ -10,12 +10,21 @@ import (
 	"github.com/spf13/cobra"
 )
 
+/*
+	Example Usage:
+	runner run source.py
+	runner run -l source.py # HAS CLI CHECK FOR LANGUAGE
+
+*/
+
 // runCmd represents the run command
 var runCmd = &cobra.Command{
 	Use:   "run",
-	Short: "A brief description of your command",
+	Short: "runs the supplied code loaded in from a file.",
 	Run: func(cmd *cobra.Command, args []string) {
+		//TODO: check for explicit-lang flag and
 		// implement CLI subcommand logic here
+
 		fmt.Println("run called")
 	},
 }
@@ -32,4 +41,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// runCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	runCmd.Flags().BoolP("lang-check", "l", false, "check if the language is supported before the API call")
 }
