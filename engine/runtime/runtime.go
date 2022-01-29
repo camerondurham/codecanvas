@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
+	"context"
+	"time"
 
 	"github.com/runner-x/runner-x/util/print"
 )
@@ -13,32 +15,25 @@ func NewTimeoutRuntime(id string) *RuntimeAgent {
 	return &RuntimeAgent{id}
 }
 
-// RunCommand wraps commands from user in a timeout duration specified in RunProps
 func (r *RuntimeAgent) RunCmd(runprops *RunProps) (*RunOutput, error) {
 	if runprops == nil {
 		return nil, nil
 	}
 
-	commandArgs := timedCommand(runprops.Timeout, runprops.RunArgs)
-	input := RunProps{
-		RunArgs: commandArgs,
-		Timeout: runprops.Timeout,
-	}
-	return r.runCommand(input)
-}
+	// Create a new context and add a timeout to it
+	timeout, _ := time.ParseDuration(fmt.Sprintf("%ds", runprops.Timeout))
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
 
-// runCommand executes a command, returns output and is lowercase so private function is not exposed outside the module
-func (r *RuntimeAgent) runCommand(runprops RunProps) (*RunOutput, error) {
 	var cmd *exec.Cmd
 
 	numArgs := len(runprops.RunArgs)
-
 	if numArgs < 1 {
 		return nil, nil
 	} else if numArgs == 1 {
-		cmd = exec.Command(runprops.RunArgs[0])
+		cmd = exec.CommandContext(ctx,runprops.RunArgs[0])
 	} else {
-		cmd = exec.Command(runprops.RunArgs[0], runprops.RunArgs[1:]...)
+		cmd = exec.CommandContext(ctx,runprops.RunArgs[0], runprops.RunArgs[1:]...)
 	}
 
 	stdoutPipe, stdoutErr := cmd.StdoutPipe()
@@ -61,6 +56,14 @@ func (r *RuntimeAgent) runCommand(runprops RunProps) (*RunOutput, error) {
 	stdoutAsString := <-stdoutChannel
 	stderrAsString := <-stderrChannel
 
+	if ctx.Err() == context.DeadlineExceeded {
+		fmt.Println("Command timed out")
+		return &RunOutput{
+			Stdout: stdoutAsString,
+			Stderr: stderrAsString,
+		}, err
+	}
+
 	if err != nil {
 		print.DebugPrintf("(runCommand) error from running command: %v", err)
 	}
@@ -69,10 +72,6 @@ func (r *RuntimeAgent) runCommand(runprops RunProps) (*RunOutput, error) {
 		Stdout: stdoutAsString,
 		Stderr: stderrAsString,
 	}, err
-}
-
-func timedCommand(timeout int, cmds []string) []string {
-	return append([]string{"timeout", "--signal=SIGKILL", fmt.Sprintf("%d", timeout)}, cmds...)
 }
 
 // TODO: this may belong in util
