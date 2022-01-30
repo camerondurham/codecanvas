@@ -6,4 +6,4 @@ set -x
 cd $(git rev-parse --show-toplevel)
 
 unformatted_code=$(go fmt ./...)
-[ ! -z "$unformatted_code" ] && echo "found unformatted code in repository, exiting..." && exit 1
+[ -n "$unformatted_code" ] && echo "found unformatted code in repository, exiting..." && exit 1
