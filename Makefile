@@ -6,13 +6,21 @@
 
 all:
 	@echo "runner Makefile targets"
+	@echo ""
 	@echo "  gen-mocks: create/recreate mocks for unit testing"
+	@echo ""
 	@echo "  run-api: run the API server"
+	@echo ""
 	@echo "  run-api-bg: run the API server in the background"
+	@echo ""
 	@echo "  kill-api: kill the API server"
+	@echo ""
 	@echo "  test: run all unit tests in the repo"
+	@echo ""
 	@echo "  fmt: run go fmt on the repository"
+	@echo ""
 	@echo "  install-hooks: install git-hooks in the cloned repo .git directory"
+	@echo ""
 
 gen-mocks:
 	mockgen -source ./engine/runtime/types.go -package=mocks -destination ./engine/runtime/mocks/Runtime.go Runtime

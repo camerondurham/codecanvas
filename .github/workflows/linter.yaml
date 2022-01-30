@@ -25,9 +25,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Gofmt
-        run: |
-          unformatted_code=$(go fmt ./...)
-          [ ! -z "$unformatted_code" ] && exit 1
+        run: ./hack/check_unformatted.sh
 
       - name: Vet
         run: go vet ./...
