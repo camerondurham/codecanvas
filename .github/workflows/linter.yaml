@@ -26,7 +26,7 @@ jobs:
 
       - name: Gofmt
         run: |
-          unformatted_code=$(gofmt -e -d ./*/*.go)
+          unformatted_code=$(go fmt ./...)
           [ ! -z "$unformatted_code" ] && exit 1
 
       - name: Vet
