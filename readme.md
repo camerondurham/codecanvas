@@ -1,5 +1,9 @@
 # 401X runner project
 
+[![Unit Tests](https://github.com/camerondurham/runner/workflows/Unit%20Test/badge.svg?branch=main)](https://github.com/camerondurham/runner/actions?query=workflow%3A%22Unit+Test%22)
+
+[![Go Lint](https://github.com/camerondurham/runner/workflows/Go%20Lint/badge.svg?branch=main)](https://github.com/camerondurham/runner/actions?query=workflow%3A%22Go+Lint%22)
+
 ## Intro
 
 The runner project is to create an interface for users to run their code remotely without having
