@@ -19,17 +19,16 @@ func getLangListJSON(server string, endpoint string) (*Langs, error) {
 	var jsonLangs Langs
 	resp, err := http.Get(server + endpoint)
 	if err != nil {
-		return nil, fmt.Errorf("Bad API call")
+		return nil, err
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	defer resp.Body.Close()
-	//all of these error checks get pretty redundant,
-	//maybe there's a way to make this better in the future
+
+	//should I just avoid the status code check and just have one single error check here?
 	if resp.StatusCode > 299 {
 		return nil, fmt.Errorf("Response failed with status code: %d\n", resp.StatusCode)
-	}
-	if err != nil {
+	} else if err != nil {
 		return nil, err
 	}
 	json.Unmarshal(body, &jsonLangs)
