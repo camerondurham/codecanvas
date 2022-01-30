@@ -52,6 +52,14 @@ can install [Docker Desktop](https://www.docker.com/get-started) if you like.
 
 ## Development
 
+This repository is primarily written in Go and the Makefile has a helper
+commands to make development easier and more consistent.
+
+> Note: before you start development, please run `make install-hooks`
+> to install [Git Hooks](https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks)
+> in your repository's `.git/hooks` directory. This will install a pre-commit
+> hook that automatically formats your code with [gofmt](https://go.dev/blog/gofmt).
+
 ### CLI Setup
 
 CLI stands for command line interface.

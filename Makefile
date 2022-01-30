@@ -4,11 +4,35 @@
 # Debian/Ubuntu including WSL2: sudo apt-get install build-essential
 # Windows (non-WSL2): choco install make or http://gnuwin32.sourceforge.net/install.html
 
+all:
+	@echo "runner Makefile targets"
+	@echo "  gen-mocks: create/recreate mocks for unit testing"
+	@echo "  run-api: run the API server"
+	@echo "  run-api-bg: run the API server in the background"
+	@echo "  kill-api: kill the API server"
+	@echo "  test: run all unit tests in the repo"
+	@echo "  fmt: run go fmt on the repository"
+	@echo "  install-hooks: install git-hooks in the cloned repo .git directory"
+
 gen-mocks:
 	mockgen -source ./engine/runtime/types.go -package=mocks -destination ./engine/runtime/mocks/Runtime.go Runtime
 
 run-api:
 	go run api/main.go
 
+run-api-bg:
+	go run api/main.go &
+
+kill-api:
+	./hack/kill_server.sh
+
 test:
 	go test ./...
+
+fmt:
+	go fmt ./...
+
+install-hooks:
+	@echo "installing git hooks"
+	cp ./hack/hooks/* .git/hooks/
+	@echo "done"

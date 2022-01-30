@@ -2,10 +2,10 @@ package runtime
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"os/exec"
-	"context"
 	"time"
 
 	"github.com/runner-x/runner-x/util/print"
@@ -31,9 +31,9 @@ func (r *RuntimeAgent) RunCmd(runprops *RunProps) (*RunOutput, error) {
 	if numArgs < 1 {
 		return nil, nil
 	} else if numArgs == 1 {
-		cmd = exec.CommandContext(ctx,runprops.RunArgs[0])
+		cmd = exec.CommandContext(ctx, runprops.RunArgs[0])
 	} else {
-		cmd = exec.CommandContext(ctx,runprops.RunArgs[0], runprops.RunArgs[1:]...)
+		cmd = exec.CommandContext(ctx, runprops.RunArgs[0], runprops.RunArgs[1:]...)
 	}
 
 	stdoutPipe, stdoutErr := cmd.StdoutPipe()
