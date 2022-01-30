@@ -10,7 +10,8 @@ on:
 
 
 jobs:
-  formatting:
+
+  check-formatting:
     name: Language Lints
     runs-on: ubuntu-latest
     steps:
