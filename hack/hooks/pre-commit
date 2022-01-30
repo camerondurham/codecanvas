@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# go to repository root, handle case where this is run in root directory
+cd $(git rev-parse --show-toplevel)
+
+# check go is installed
+if ! which go; then
+    echo "go not installed, cannot run precheck"
+    exit
+fi
+
+# format all go files in repository
+go fmt ./...
