@@ -1,4 +1,4 @@
-jobs:
+name: Formatting
 on:
   push:
     branches:
@@ -9,6 +9,7 @@ on:
       - main
 
 
+jobs:
   formatting:
     name: Language Lints
     runs-on: ubuntu-latest
