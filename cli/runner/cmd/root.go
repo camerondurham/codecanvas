@@ -14,6 +14,11 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "runner",
 	Short: "A CLI to interact with the runner server",
+	Long: `
+Example Usage:
+		runner run source.py
+		runner run -l source.py # Pre-check language before API call
+		runner langs`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	// Run: func(cmd *cobra.Command, args []string) { },
