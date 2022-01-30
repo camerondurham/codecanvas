@@ -23,6 +23,7 @@ func getLangListJSON(server string, endpoint string) (*Langs, error) {
 	}
 
 	body, err := io.ReadAll(resp.Body)
+	defer resp.Body.Close()
 	//all of these error checks get pretty redundant,
 	//maybe there's a way to make this better in the future
 	if resp.StatusCode > 299 {
