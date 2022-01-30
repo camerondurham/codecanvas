@@ -49,7 +49,7 @@ func Test_RunCmd(t *testing.T) {
 			want: &RunOutput{
 				Stdout: "hello world\n",
 			},
-			wantErr: false,
+			wantErr: true,
 		},
 	}
 
