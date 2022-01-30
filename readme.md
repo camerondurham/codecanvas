@@ -64,6 +64,40 @@ commands to make development easier and more consistent.
 > in your repository's `.git/hooks` directory. This will install a pre-commit
 > hook that automatically formats your code with [gofmt](https://go.dev/blog/gofmt).
 
+### Using the Makefile
+
+By now, you are probably familiar with Makefiles. If not, this
+wiki provides a great summary: [cs104/wiki/makefile](https://bytes.usc.edu/cs104/wiki/makefile/) (written by Leif Wesche).
+
+Here's a quick summary of what the targets will do:
+
+```bash
+# print out all the makefile targets
+make
+
+# create or create mocks for unit testing, helpful if you have
+# modified any of the interfaces in a `types.go` file
+make gen-mocks
+
+# run the API server (blocking, you can't use the terminal anymore)
+make run-api
+
+# run the API server in the background (you'll have to shut it down later)
+make run-api-bg
+
+# kill the server if it's running (this works by killing the process using port 8080, the API port)
+make kill-api
+
+# run all tests in the repository
+make test
+
+# run go fmt on the repository to format your code
+make fmt
+
+# install git-hooks to automatically format your code before you commit
+make install-hooks
+```
+
 ### CLI Setup
 
 CLI stands for command line interface.
