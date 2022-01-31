@@ -10,10 +10,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const (
-	LANG_ENDPOINT = "/api/v1/languages"
-)
-
 var (
 	server string = "http://localhost:8080"
 )
@@ -25,7 +21,7 @@ var langsCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		// implement CLI subcommand logic here
 		resp, err := getLangListJSON(server, LANG_ENDPOINT)
-		if err.Error() != "" {
+		if err != nil {
 			fmt.Println(err)
 			return
 		}
