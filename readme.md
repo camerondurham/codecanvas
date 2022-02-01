@@ -94,6 +94,9 @@ make test
 # run go fmt on the repository to format your code
 make fmt
 
+# run the golang-lint-ci on the package to find common mistakes or unused data structures
+make lint
+
 # install git-hooks to automatically format your code before you commit
 make install-hooks
 ```
