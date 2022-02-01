@@ -1,5 +1,3 @@
-//file to contain helper functions for different commands
-
 package cmd
 
 import (
@@ -9,22 +7,21 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"time"
 )
 
-// These are just some hardcoded constants for testing.
-// In the future we can probably do this better
 const (
 	SERVER        = "http://localhost:8080"
 	RUN_ENDPOINT  = "/api/v1/run"
 	LANG_ENDPOINT = "/api/v1/languages"
+
+	CLIENT_TIMEOUT = 5.0
 )
 
-// Simple struct to hold JSON vals from API call
 type Langs struct {
 	Languages []string `json:"languages"`
 }
 
-// Struct to hold return values from API POST request
 type StdReturn struct {
 	Stdout string `json:"stdout"`
 	Stderr string `json:"stderr"`
@@ -36,7 +33,16 @@ type StdReturn struct {
 // This function will return a pointer to the Langs struct which contains a list of the languages
 // currently supported by the API, and an error parameter in the case of failure.
 func getLangListJSON(server string, endpoint string) (*Langs, error) {
-	resp, err := http.Get(server + endpoint)
+	req, err := http.NewRequest("GET", server+endpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+	client := &http.Client{
+		Timeout: time.Second * CLIENT_TIMEOUT,
+	}
+	//Add any headers or cookies necessary here
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	} else if resp.StatusCode > 299 {
@@ -73,6 +79,7 @@ func postSourceFile(server string, endpoint string, filepath string, langCheck s
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Add("Content-Type", "application/json")
 
 	//TODO: implement CLI check language logic before adding cookie
 	cookie := http.Cookie{
@@ -81,9 +88,11 @@ func postSourceFile(server string, endpoint string, filepath string, langCheck s
 	}
 	req.AddCookie(&cookie)
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	client := &http.Client{
+		Timeout: time.Second * CLIENT_TIMEOUT,
+	}
 
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	} else if resp.StatusCode > 299 {
@@ -103,10 +112,6 @@ func postSourceFile(server string, endpoint string, filepath string, langCheck s
 	return &ret, nil
 }
 
-// Tiny helper function to make code a bit cleaner.
-// As the name implies, only call if you want to
-// check for unexpected behavior, as the function
-// can call panic and shut down the program.
 func panicCheck(err error) {
 	if err != nil {
 		panic(err)
