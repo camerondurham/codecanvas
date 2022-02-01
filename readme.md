@@ -1,7 +1,6 @@
 # 401X runner project
 
 [![Unit Tests](https://github.com/camerondurham/runner/workflows/Unit%20Test/badge.svg?branch=main)](https://github.com/camerondurham/runner/actions?query=workflow%3A%22Unit+Test%22)
-
 [![Go Lint](https://github.com/camerondurham/runner/workflows/Go%20Lint/badge.svg?branch=main)](https://github.com/camerondurham/runner/actions?query=workflow%3A%22Go+Lint%22)
 
 ## Intro
@@ -93,6 +92,9 @@ make test
 
 # run go fmt on the repository to format your code
 make fmt
+
+# run the golang-lint-ci on the package to find common mistakes or unused data structures
+make lint
 
 # install git-hooks to automatically format your code before you commit
 make install-hooks

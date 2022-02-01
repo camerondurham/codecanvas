@@ -11,11 +11,6 @@ import (
 )
 
 func TestCodeRunner_Run(t *testing.T) {
-	type fields struct {
-		runner      runtime.Runtime
-		workdirPath string
-	}
-
 	type args struct {
 		props *RunnerProps
 	}

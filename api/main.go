@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -24,7 +25,10 @@ func languagesHandler(w http.ResponseWriter, r *http.Request) {
 	langs := LanguagesResponse{
 		Languages: coderunner.Languages,
 	}
-	json.NewEncoder(w).Encode(langs)
+	err := json.NewEncoder(w).Encode(langs)
+	if err != nil {
+		log.Printf("failed to encode languages reponse: %v", err)
+	}
 }
 
 type RunResponse struct {
@@ -45,7 +49,10 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		Stderr: "",
 	}
 
-	json.NewEncoder(w).Encode(output)
+	err := json.NewEncoder(w).Encode(output)
+	if err != nil {
+		log.Printf("failed to encode run output: %v\n", err)
+	}
 }
 
 func main() {
