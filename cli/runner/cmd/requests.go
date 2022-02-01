@@ -83,13 +83,13 @@ func postSourceFile(server string, endpoint string, filepath string, langCheck s
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
-	defer resp.Body.Close()
 
 	if err != nil {
 		return nil, err
 	} else if resp.StatusCode > 299 {
 		return nil, fmt.Errorf("Request failed with status code: %d\n", resp.StatusCode)
 	}
+	defer resp.Body.Close()
 
 	respReader, readErr := io.ReadAll(resp.Body)
 	if readErr != nil {
