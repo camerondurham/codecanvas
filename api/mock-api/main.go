@@ -1,5 +1,7 @@
 package main
 
+// TODO: extend mock server, this is currently an exact copy of api/main.go
+
 import (
 	"encoding/json"
 	"fmt"
