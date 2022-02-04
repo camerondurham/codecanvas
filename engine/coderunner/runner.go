@@ -13,6 +13,14 @@ const (
 	TIMEOUT_DEFAULT = 3
 )
 
+// FileExtensionMap contains maps languages to file extensions
+// but language keys may not match the languages a user is allowed to request
+var FileExtensionMap = map[Language]string{
+	PYTHON3: "py",
+	SHELL:   "sh",
+	CPP11:   "cpp",
+}
+
 func NewCodeRunner(id, dir string) *CodeRunner {
 	r := runtime.NewTimeoutRuntime(id)
 	return &CodeRunner{runner: r, workdirPath: dir}
@@ -43,8 +51,7 @@ func (cr *CodeRunner) Run(props *RunnerProps) (*RunnerOutput, error) {
 	}(dir)
 
 	// write user input into tempdir
-	extensionMap := fileExtensionMap()
-	filename := "code." + extensionMap[props.Lang]
+	filename := "code." + FileExtensionMap[props.Lang]
 	writePath := filepath.Join(dir, filename)
 
 	print.DebugPrintf("source path: %s", writePath)
@@ -72,13 +79,6 @@ func (cr *CodeRunner) Run(props *RunnerProps) (*RunnerOutput, error) {
 		runOutput.Stderr,
 		err,
 	}, nil
-}
-
-func fileExtensionMap() map[Language]string {
-	return map[Language]string{
-		PYTHON3: "py",
-		SHELL:   "sh",
-	}
 }
 
 // TODO: refactor these into a module and handle with pre-run hooks

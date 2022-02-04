@@ -13,6 +13,10 @@ all:
 	@echo ""
 	@echo "  run-api-bg: run the API server in the background"
 	@echo ""
+	@echo "  run-mock: run the mock API server"
+	@echo ""
+	@echo "  run-mock-bg: run the mock API server in the background"
+	@echo ""
 	@echo "  kill-api: kill the API server"
 	@echo ""
 	@echo "  test: run all unit tests in the repo"
@@ -32,6 +36,12 @@ run-api:
 
 run-api-bg:
 	go run api/main.go &
+
+run-mock:
+	go run api/mock-api/main.go
+
+run-mock-bg:
+	go run api/mock-api/main.go &
 
 kill-api:
 	./hack/kill_server.sh

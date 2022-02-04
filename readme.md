@@ -31,8 +31,8 @@ Editors:
 
 Extensions setup docs:
 
-- Writing Go in VSCode: https://code.visualstudio.com/docs/languages/go
-- Debugging Go in VSCode: https://github.com/golang/vscode-go/blob/master/docs/debugging.md
+- Writing Go in VSCode: <https://code.visualstudio.com/docs/languages/go>
+- Debugging Go in VSCode: <https://github.com/golang/vscode-go/blob/master/docs/debugging.md>
 
 Recommended extensions (VSCode):
 
@@ -84,7 +84,13 @@ make run-api
 # run the API server in the background (you'll have to shut it down later)
 make run-api-bg
 
-# kill the server if it's running (this works by killing the process using port 8080, the API port)
+# run the mock API server (blocking)
+make run-mock
+
+# run the mock API server in the background (you'll have to use `make kill-api` to shut down)
+make run-mock-bg
+
+# kill the server (mock or not) if it's running (this works by killing the process using port 8080, the API port)
 make kill-api
 
 # run all tests in the repository
@@ -135,6 +141,7 @@ cobra add childCommand -p 'parentCommand'
 - Examples:
   - [adding a command line flag to CLI](https://github.com/camerondurham/ch/blob/4bb750335485169e469bdb191c8ca29bb107b358/cmd/create.go#L171)
   - [reading what user set flag to](https://github.com/camerondurham/ch/blob/4bb750335485169e469bdb191c8ca29bb107b358/cmd/create.go#L75)
+
 ### Running the Server
 
 During CLI or even server development, you will likely want to run the server during testing.
