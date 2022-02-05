@@ -1,0 +1,33 @@
+name: Verify Docker image builds
+on:
+    push:
+        branches:
+            - main
+
+    pull_request:
+        branches:
+            - main
+
+jobs:
+  build:
+    name: Build docker image
+    runs-on: ubuntu-20.04
+    steps:
+    -
+        name: Checkout repository
+        uses: actions/checkout@v2
+    -
+        name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v1
+    -
+        name: Build server image
+        run: docker buildx build -t runner-server:test -f docker/server/Dockerfile .
+    -
+        name: Build mock server image
+        run: docker buildx build -t mock-server:test -f docker/mock-server/Dockerfile .
+    -
+        name: Make target mock
+        run: make dkr-build-mock
+    -
+        name: Make target server
+        run: make dkr-build-server
