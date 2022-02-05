@@ -1,7 +1,5 @@
 package main
 
-// TODO: extend mock server, this is currently an exact copy of api/main.go
-
 import (
 	"encoding/json"
 	"fmt"
@@ -11,8 +9,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	server "github.com/runner-x/runner-x/api/server"
 	"github.com/runner-x/runner-x/engine/coderunner"
+	"github.com/runner-x/runner-x/server/api"
 )
 
 const (
@@ -21,7 +19,7 @@ const (
 )
 
 func languagesHandler(w http.ResponseWriter, r *http.Request) {
-	langs := server.LanguagesResponse{
+	langs := api.LanguagesResponse{
 		Languages: coderunner.Languages,
 	}
 	err := json.NewEncoder(w).Encode(langs)
@@ -38,7 +36,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO: let code runner run the code
 
 	// TODO: replace hard-coded reponse with transformed runner output
-	output := server.RunResponse{
+	output := api.RunResponse{
 		Stdout: "hello world",
 		Stderr: "",
 		Error:  nil,

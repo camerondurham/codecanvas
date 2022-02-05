@@ -4,6 +4,10 @@
 # Debian/Ubuntu including WSL2: sudo apt-get install build-essential
 # Windows (non-WSL2): choco install make or http://gnuwin32.sourceforge.net/install.html
 
+VERSION=v1
+MOCK_SERVER_NAME=mock-server
+SERVER_NAME=runner-server
+
 all:
 	@echo "runner Makefile targets"
 	@echo ""
@@ -27,21 +31,49 @@ all:
 	@echo ""
 	@echo "  install-hooks: install git-hooks in the cloned repo .git directory"
 	@echo ""
+	@echo "  dkr-mock: build and run mock server using Docker"
+	@echo ""
+	@echo "  dkr-server: build and run server using Docker"
+	@echo ""
+	@echo "  dkr-stop-mock: stop and remove mock container"
+	@echo ""
+	@echo "  dkr-stop-server: stop and remove server container"
+	@echo ""
+
+dkr-build-mock:
+	docker build -t ${MOCK_SERVER_NAME}:${VERSION} -f docker/mock-server/Dockerfile .
+
+dkr-mock: dkr-build-mock
+	docker run -d -p 8080:8080 --name ${MOCK_SERVER_NAME} ${MOCK_SERVER_NAME}:${VERSION}
+
+dkr-build-server:
+	docker build -t ${SERVER_NAME}:${VERSION} -f docker/server/Dockerfile .
+
+dkr-server: dkr-build-server
+	docker run -d -p 8080:8080 --name ${SERVER_NAME} ${SERVER_NAME}:${VERSION}
+
+dkr-stop-mock:
+	docker stop ${MOCK_SERVER_NAME}
+	docker rm ${MOCK_SERVER_NAME}
+
+dkr-stop-server:
+	docker stop ${SERVER_NAME}
+	docker rm ${SERVER_NAME}
 
 gen-mocks:
 	mockgen -source ./engine/runtime/types.go -package=mocks -destination ./engine/runtime/mocks/Runtime.go Runtime
 
 run-api:
-	go run api/main.go
+	go run server/main.go
 
 run-api-bg:
-	go run api/main.go &
+	go run server/main.go &
 
 run-mock:
-	go run api/mock-api/main.go
+	go run server/mock-server/main.go
 
 run-mock-bg:
-	go run api/mock-api/main.go &
+	go run server/mock-server/main.go &
 
 kill-api:
 	./hack/kill_server.sh

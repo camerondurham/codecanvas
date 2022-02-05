@@ -11,11 +11,11 @@ kports() {
     processes=$(lsof -i:"${ports}")
     if [ ! -z "$processes" ]; then
         # kill using open ports, only print PIDs
-        kill -HUP `lsof -t -i:$ports`
+        kill -HUP "$(lsof -t -i:$ports)"
     else
         echo "no processes running on port(s) $ports"
         return
     fi
 }
 
-kports
+kports "$1"
