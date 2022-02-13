@@ -69,5 +69,4 @@ for item in mylist:
 		std::cout<< inp;
 	}
 	`
-
 }

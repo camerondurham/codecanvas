@@ -51,6 +51,7 @@ func (r *RuntimeAgent) RunCmd(runprops *RunProps) (*RunOutput, error) {
 
 	print.DebugPrintf("\nrunning command with RunProps: %v\n", runprops)
 	err := cmd.Run()
+	print.DebugPrintf("\ncmd PID: [%v]\n", cmd.Process.Pid)
 
 	stdoutPipe.Close()
 	stdoutAsString := <-stdoutChannel
