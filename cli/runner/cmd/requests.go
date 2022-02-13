@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/runner-x/runner-x/engine/coderunner"
 )
 
 const (
@@ -22,10 +24,12 @@ type Langs struct {
 	Languages []string `json:"languages"`
 }
 
+/*
 type StdReturn struct {
 	Stdout string `json:"stdout"`
 	Stderr string `json:"stderr"`
 }
+*/
 
 // This function is designed to send an API call to the specified endpoint.
 // The server parameter is designed to take in a URL, such as 'http://localhost:8080'.
@@ -68,7 +72,7 @@ func getLangListJSON(server string, endpoint string) (*Langs, error) {
 // The filepath parameter contains the relative filepath to the source file
 // The explicit parameter tells us whether or not the user would like to
 // have the CLI check the language, or to have the server handle it internally
-func postSourceFile(server string, endpoint string, filepath string, langCheck string) (*StdReturn, error) {
+func postSourceFile(server string, endpoint string, filepath string, langCheck string) (*coderunner.RunnerOutput, error) {
 	source, err := os.ReadFile(filepath)
 	if err != nil {
 		return nil, err
@@ -82,6 +86,28 @@ func postSourceFile(server string, endpoint string, filepath string, langCheck s
 	req.Header.Add("Content-Type", "application/json")
 
 	//TODO: implement CLI check language logic before adding cookie
+	if langCheck == "implicit" {
+		langs, err := getLangListJSON(server, LANG_ENDPOINT)
+		if err != nil {
+			return nil, err
+		}
+		ext := extractExtension(filepath)
+
+		//loop through supported languages
+		//if file extension map at supported language == ext set langcheck
+		//else throw err
+
+		for _, j := range langs.Languages {
+			if coderunner.FileExtensionMap[coderunner.Language(j)] == ext {
+				langCheck = j
+			}
+		}
+
+		if langCheck == "implicit" {
+			return nil, fmt.Errorf("filetype not supported. for a list of supported languages, use the 'langs' command")
+		}
+	}
+
 	cookie := http.Cookie{
 		Name:  "language",
 		Value: langCheck,
@@ -105,7 +131,7 @@ func postSourceFile(server string, endpoint string, filepath string, langCheck s
 		return nil, err
 	}
 
-	var ret StdReturn
+	var ret coderunner.RunnerOutput
 	decodeErr := json.Unmarshal(respReader, &ret)
 	panicCheck(decodeErr)
 
@@ -116,4 +142,15 @@ func panicCheck(err error) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func extractExtension(filename string) string {
+	var ret string
+	f := []rune(filename)
+	for i := len(f) - 1; i >= 0; i -= 1 {
+		if f[i] == '.' {
+			return string(f[i+1:])
+		}
+	}
+	return ret
 }
