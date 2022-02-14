@@ -48,3 +48,40 @@ func (mr *MockRuntimeMockRecorder) RunCmd(runprops interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunCmd", reflect.TypeOf((*MockRuntime)(nil).RunCmd), runprops)
 }
+
+// MockLimiter is a mock of Limiter interface.
+type MockLimiter struct {
+	ctrl     *gomock.Controller
+	recorder *MockLimiterMockRecorder
+}
+
+// MockLimiterMockRecorder is the mock recorder for MockLimiter.
+type MockLimiterMockRecorder struct {
+	mock *MockLimiter
+}
+
+// NewMockLimiter creates a new mock instance.
+func NewMockLimiter(ctrl *gomock.Controller) *MockLimiter {
+	mock := &MockLimiter{ctrl: ctrl}
+	mock.recorder = &MockLimiterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockLimiter) EXPECT() *MockLimiterMockRecorder {
+	return m.recorder
+}
+
+// ApplyLimits mocks base method.
+func (m *MockLimiter) ApplyLimits(rlimits *runtime.ResourceLimits) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ApplyLimits", rlimits)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ApplyLimits indicates an expected call of ApplyLimits.
+func (mr *MockLimiterMockRecorder) ApplyLimits(rlimits interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApplyLimits", reflect.TypeOf((*MockLimiter)(nil).ApplyLimits), rlimits)
+}

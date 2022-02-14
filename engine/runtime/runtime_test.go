@@ -11,7 +11,7 @@ func Test_RunCmd(t *testing.T) {
 		props *RunProps
 	}
 
-	runtimeAgent := NewTimeoutRuntime("test")
+	runtimeAgent := NewTimeoutRuntime("test", &NilLimiter{})
 
 	tests := []struct {
 		name    string

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"golang.org/x/sys/unix"
 	"io"
 	"os/exec"
 	"time"
@@ -11,8 +12,13 @@ import (
 	"github.com/runner-x/runner-x/util/print"
 )
 
-func NewTimeoutRuntime(id string) *RuntimeAgent {
-	return &RuntimeAgent{id}
+const (
+	DEFAULT_SOFT_NPROC = 10
+	DEFAULT_HARD_NPROC = 100
+)
+
+func NewTimeoutRuntime(id string, limiter Limiter) *RuntimeAgent {
+	return &RuntimeAgent{id, limiter}
 }
 
 func (r *RuntimeAgent) RunCmd(runprops *RunProps) (*RunOutput, error) {
@@ -46,16 +52,26 @@ func (r *RuntimeAgent) RunCmd(runprops *RunProps) (*RunOutput, error) {
 		panic(stderrErr)
 	}
 
-	stdoutChannel := getWriterChannelOutput(stdoutPipe)
-	stderrChannel := getWriterChannelOutput(stderrPipe)
+	stdoutChannel := GetWriterChannelOutput(stdoutPipe)
+	stderrChannel := GetWriterChannelOutput(stderrPipe)
 
 	print.DebugPrintf("\nrunning command with RunProps: %v\n", runprops)
-	err := cmd.Run()
-	print.DebugPrintf("\ncmd PID: [%v]\n", cmd.Process.Pid)
+	done := make(chan error)
+	go func() {
+		r.limiter.ApplyLimits(&ResourceLimits{NumProcesses: &unix.Rlimit{
+			Cur: DEFAULT_SOFT_NPROC,
+			Max: DEFAULT_HARD_NPROC,
+		}})
+		err := cmd.Run()
+		done <- err
+	}()
 
-	stdoutPipe.Close()
 	stdoutAsString := <-stdoutChannel
+	_ = stdoutPipe.Close()
 	stderrAsString := <-stderrChannel
+	_ = stderrPipe.Close()
+
+	err := <-done
 
 	if ctx.Err() == context.DeadlineExceeded {
 		fmt.Println("Command timed out")
@@ -76,7 +92,7 @@ func (r *RuntimeAgent) RunCmd(runprops *RunProps) (*RunOutput, error) {
 }
 
 // TODO: this may belong in util
-func getWriterChannelOutput(pipeReadCloser io.ReadCloser) chan string {
+func GetWriterChannelOutput(pipeReadCloser io.ReadCloser) chan string {
 	outChannel := make(chan string)
 
 	// copy output to separate goroutine so printing can't block indefinitely
