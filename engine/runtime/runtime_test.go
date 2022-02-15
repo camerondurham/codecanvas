@@ -2,6 +2,7 @@ package runtime
 
 import (
 	"reflect"
+	"syscall"
 	"testing"
 )
 
@@ -33,6 +34,10 @@ func Test_RunCmd(t *testing.T) {
 				props: &RunProps{
 					RunArgs: []string{"sleep", "5"},
 					Timeout: 2,
+					Root:     "rootfs",
+					// Rlimits:  []POSIXRlimit{},
+					Rlimits:  []syscall.Rlimit{},
+					Hostname: "host",
 				},
 			},
 			want:    &RunOutput{},
@@ -44,6 +49,9 @@ func Test_RunCmd(t *testing.T) {
 				props: &RunProps{
 					RunArgs: []string{"echo", "hello", "world"},
 					Timeout: 1,
+					Root:     "rootfs",
+					Rlimits:  []syscall.Rlimit{},
+					Hostname: "host",
 				},
 			},
 			want: &RunOutput{

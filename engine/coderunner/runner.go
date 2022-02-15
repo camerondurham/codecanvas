@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"syscall"
 
 	"github.com/runner-x/runner-x/engine/runtime"
 	"github.com/runner-x/runner-x/util/print"
@@ -11,6 +12,11 @@ import (
 
 const (
 	TIMEOUT_DEFAULT = 3
+	ROOTFS_DEFAULT = "rootfs"
+	HOST_DEFAULT = "host"
+	// RLIMIT_NPROC_DEFAULT  // Maximum number of processes that the user associated with the real UID of a process may own
+	// RLIMIT_FSIZE_DEFAULT  // Maximum file size allowed
+	// RLIMIT_CPU_DEFAULT  // Maximum CPU time in milliseconds
 )
 
 // FileExtensionMap contains maps languages to file extensions
@@ -69,6 +75,11 @@ func (cr *CodeRunner) Run(props *RunnerProps) (*RunnerOutput, error) {
 	runOutput, err := cr.runner.RunCmd(&runtime.RunProps{
 		RunArgs: runCmds,
 		Timeout: TIMEOUT_DEFAULT,
+		Root:    ROOTFS_DEFAULT,
+		Rlimits:  []syscall.Rlimit{
+			{Cur: 10, Max: 10},
+		},
+		Hostname: HOST_DEFAULT,
 	})
 
 	DebugPrintRunOutput(*runOutput)

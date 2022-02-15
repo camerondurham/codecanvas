@@ -5,20 +5,40 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
+	"syscall"
 	"time"
 
 	"github.com/runner-x/runner-x/util/print"
+)
+
+const (
+	BUF_SZ = 256
 )
 
 func NewTimeoutRuntime(id string) *RuntimeAgent {
 	return &RuntimeAgent{id}
 }
 
+func throw(err error) {
+	if err!=nil {
+		panic(err)
+	}
+}
+
 func (r *RuntimeAgent) RunCmd(runprops *RunProps) (*RunOutput, error) {
 	if runprops == nil {
 		return nil, nil
 	}
+
+	// TODO: set restrictions for Rootfs, Rlimits, Hostname
+	throw(os.MkdirAll(runprops.Root, 0700))
+	throw(syscall.Chdir(runprops.Root))
+	// throw(syscall.Chroot(runprops.Root))
+    // throw(syscall.Chdir("/"))
+	// throw(syscall.Sethostname([]byte(runprops.Hostname)))
+
 
 	// Create a new context and add a timeout to it
 	timeout, _ := time.ParseDuration(fmt.Sprintf("%ds", runprops.Timeout))
