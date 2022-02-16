@@ -21,6 +21,12 @@ var FileExtensionMap = map[Language]string{
 	CPP11:   "cpp",
 }
 
+var ExtensionFileMap = map[string]Language{
+	"py":  PYTHON3,
+	"sh":  SHELL,
+	"cpp": CPP11,
+}
+
 func NewCodeRunner(id, dir string) *CodeRunner {
 	r := runtime.NewTimeoutRuntime(id)
 	return &CodeRunner{runner: r, workdirPath: dir}

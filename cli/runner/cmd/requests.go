@@ -50,7 +50,7 @@ func getLangListJSON(server string, endpoint string) (*Langs, error) {
 	if err != nil {
 		return nil, err
 	} else if resp.StatusCode > 299 {
-		return nil, fmt.Errorf("Request failed with status code: %d\n", resp.StatusCode)
+		return nil, fmt.Errorf("request failed with status code: %d", resp.StatusCode)
 	}
 	defer resp.Body.Close()
 
@@ -72,7 +72,7 @@ func getLangListJSON(server string, endpoint string) (*Langs, error) {
 // The filepath parameter contains the relative filepath to the source file
 // The explicit parameter tells us whether or not the user would like to
 // have the CLI check the language, or to have the server handle it internally
-func postSourceFile(server string, endpoint string, filepath string, langCheck string) (*coderunner.RunnerOutput, error) {
+func postSourceFile(server string, endpoint string, filepath string, langCheck coderunner.Language) (*coderunner.RunnerOutput, error) {
 	source, err := os.ReadFile(filepath)
 	if err != nil {
 		return nil, err
@@ -87,30 +87,17 @@ func postSourceFile(server string, endpoint string, filepath string, langCheck s
 
 	//TODO: implement CLI check language logic before adding cookie
 	if langCheck == "implicit" {
-		langs, err := getLangListJSON(server, LANG_ENDPOINT)
-		if err != nil {
-			return nil, err
-		}
 		ext := extractExtension(filepath)
-
-		//loop through supported languages
-		//if file extension map at supported language == ext set langcheck
-		//else throw err
-
-		for _, j := range langs.Languages {
-			if coderunner.FileExtensionMap[coderunner.Language(j)] == ext {
-				langCheck = j
-			}
-		}
-
-		if langCheck == "implicit" {
-			return nil, fmt.Errorf("filetype not supported. for a list of supported languages, use the 'langs' command")
+		if lang, found := coderunner.ExtensionFileMap[ext]; found {
+			langCheck = lang
+		} else {
+			return nil, fmt.Errorf("unrecognized file type: %s", ext)
 		}
 	}
 
 	cookie := http.Cookie{
 		Name:  "language",
-		Value: langCheck,
+		Value: string(langCheck),
 	}
 	req.AddCookie(&cookie)
 
@@ -122,7 +109,7 @@ func postSourceFile(server string, endpoint string, filepath string, langCheck s
 	if err != nil {
 		return nil, err
 	} else if resp.StatusCode > 299 {
-		return nil, fmt.Errorf("Request failed with status code: %d\n", resp.StatusCode)
+		return nil, fmt.Errorf("request failed with status code: %d", resp.StatusCode)
 	}
 	defer resp.Body.Close()
 
@@ -145,12 +132,11 @@ func panicCheck(err error) {
 }
 
 func extractExtension(filename string) string {
-	var ret string
 	f := []rune(filename)
 	for i := len(f) - 1; i >= 0; i -= 1 {
 		if f[i] == '.' {
 			return string(f[i+1:])
 		}
 	}
-	return ret
+	return filename
 }
