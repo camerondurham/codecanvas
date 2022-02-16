@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/runner-x/runner-x/engine/coderunner"
 )
 
 const (
@@ -22,10 +24,12 @@ type Langs struct {
 	Languages []string `json:"languages"`
 }
 
+/*
 type StdReturn struct {
 	Stdout string `json:"stdout"`
 	Stderr string `json:"stderr"`
 }
+*/
 
 // This function is designed to send an API call to the specified endpoint.
 // The server parameter is designed to take in a URL, such as 'http://localhost:8080'.
@@ -46,7 +50,7 @@ func getLangListJSON(server string, endpoint string) (*Langs, error) {
 	if err != nil {
 		return nil, err
 	} else if resp.StatusCode > 299 {
-		return nil, fmt.Errorf("Request failed with status code: %d\n", resp.StatusCode)
+		return nil, fmt.Errorf("request failed with status code: %d", resp.StatusCode)
 	}
 	defer resp.Body.Close()
 
@@ -68,7 +72,7 @@ func getLangListJSON(server string, endpoint string) (*Langs, error) {
 // The filepath parameter contains the relative filepath to the source file
 // The explicit parameter tells us whether or not the user would like to
 // have the CLI check the language, or to have the server handle it internally
-func postSourceFile(server string, endpoint string, filepath string, langCheck string) (*StdReturn, error) {
+func postSourceFile(server string, endpoint string, filepath string, langCheck coderunner.Language) (*coderunner.RunnerOutput, error) {
 	source, err := os.ReadFile(filepath)
 	if err != nil {
 		return nil, err
@@ -82,9 +86,18 @@ func postSourceFile(server string, endpoint string, filepath string, langCheck s
 	req.Header.Add("Content-Type", "application/json")
 
 	//TODO: implement CLI check language logic before adding cookie
+	if langCheck == "implicit" {
+		ext := extractExtension(filepath)
+		if lang, found := coderunner.ExtensionFileMap[ext]; found {
+			langCheck = lang
+		} else {
+			return nil, fmt.Errorf("unrecognized file type: %s", ext)
+		}
+	}
+
 	cookie := http.Cookie{
 		Name:  "language",
-		Value: langCheck,
+		Value: string(langCheck),
 	}
 	req.AddCookie(&cookie)
 
@@ -96,7 +109,7 @@ func postSourceFile(server string, endpoint string, filepath string, langCheck s
 	if err != nil {
 		return nil, err
 	} else if resp.StatusCode > 299 {
-		return nil, fmt.Errorf("Request failed with status code: %d\n", resp.StatusCode)
+		return nil, fmt.Errorf("request failed with status code: %d", resp.StatusCode)
 	}
 	defer resp.Body.Close()
 
@@ -105,7 +118,7 @@ func postSourceFile(server string, endpoint string, filepath string, langCheck s
 		return nil, err
 	}
 
-	var ret StdReturn
+	var ret coderunner.RunnerOutput
 	decodeErr := json.Unmarshal(respReader, &ret)
 	panicCheck(decodeErr)
 
@@ -116,4 +129,14 @@ func panicCheck(err error) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func extractExtension(filename string) string {
+	f := []rune(filename)
+	for i := len(f) - 1; i >= 0; i -= 1 {
+		if f[i] == '.' {
+			return string(f[i+1:])
+		}
+	}
+	return filename
 }

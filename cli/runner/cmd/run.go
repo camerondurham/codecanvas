@@ -7,6 +7,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/runner-x/runner-x/engine/coderunner"
 	"github.com/spf13/cobra"
 )
 
@@ -28,7 +29,7 @@ var runCmd = &cobra.Command{
 			return
 		}
 
-		ret, err := postSourceFile(SERVER, RUN_ENDPOINT, args[0], str)
+		ret, err := postSourceFile(SERVER, RUN_ENDPOINT, args[0], coderunner.Language(str))
 		if err != nil {
 			fmt.Println(err)
 		} else {
