@@ -12,6 +12,39 @@ to have any compiler on their machine. This is a work in progress project for TC
 
 ![runner project high level diagram](assets/runner-diagram-details-bg.png)
 
+### Project State
+
+Sequence diagram with rough state of the project.
+
+```mermaid
+sequenceDiagram
+Client->>Server: submits code
+loop Check
+      Server->>Server: validate request
+end
+
+Note right of Server: server logic not implemented yet
+Server-->>CodeRunner: submit code runner request
+loop Transform
+      CodeRunner->>CodeRunner: create tmp directory
+      CodeRunner->>CodeRunner: write user code
+      CodeRunner->>CodeRunner: parse language, compile
+end
+CodeRunner-->>Runtime: run user code request
+Note right of Runtime: resource limiting logic not implemented yet
+loop Limit
+    Runtime->>Runtime: make timeout context
+    Runtime->>Runtime: set resource limits
+    Runtime->>Runtime: execute user code
+end
+Runtime-->>CodeRunner: return stdout, stderr, runtime errors
+loop Cleanup
+    CodeRunner->>CodeRunner: remove tmp directory
+end
+CodeRunner-->>Server: return CodeRunnerOutput
+Server-->>Client: return server transformed response
+```
+
 ### Repository Structure
 
 These components live in the following paths:
