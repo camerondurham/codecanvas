@@ -5,9 +5,6 @@ Copyright © 2022 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"fmt"
-
-	"github.com/runner-x/runner-x/engine/coderunner"
 	"github.com/spf13/cobra"
 )
 
@@ -17,24 +14,28 @@ var runCmd = &cobra.Command{
 	Short: "runs the supplied code loaded in from a file.",
 	Run: func(cmd *cobra.Command, args []string) {
 		//TODO: implement flag logic, implement source file args parsing
-		str, err := cmd.Flags().GetString("lang")
-		panicCheck(err)
+		/*
+			cmdClient := client.NewClient()
 
-		argLen := len(args)
-		if argLen < 1 {
-			fmt.Println("No file specified for compilation; Please specify a file!")
-			return
-		} else if argLen > 1 {
-			fmt.Println("Multiple file compilation not yet supported. Please only specify a single file for compilation.")
-			return
-		}
+			str, err := cmd.Flags().GetString("lang")
+			client.PanicCheck(err)
 
-		ret, err := postSourceFile(SERVER, RUN_ENDPOINT, args[0], coderunner.Language(str))
-		if err != nil {
-			fmt.Println(err)
-		} else {
-			fmt.Printf("Stdout: %s\nStderr: %s\n", ret.Stdout, ret.Stderr)
-		}
+			argLen := len(args)
+			if argLen < 1 {
+				fmt.Println("No file specified for compilation; Please specify a file!")
+				return
+			} else if argLen > 1 {
+				fmt.Println("Multiple file compilation not yet supported. Please only specify a single file for compilation.")
+				return
+			}
+			//Need to construct an api.RunRequest here
+			//ret, err := cmdClient.Run()
+			if err != nil {
+				fmt.Println(err)
+			} else {
+				fmt.Printf("Stdout: %s\nStderr: %s\n", ret.Stdout, ret.Stderr)
+			}
+		*/
 	},
 }
 

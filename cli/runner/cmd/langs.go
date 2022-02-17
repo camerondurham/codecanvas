@@ -7,11 +7,14 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/runner-x/runner-x/cli/runner/client"
 	"github.com/spf13/cobra"
 )
 
 var (
-	server string = "http://localhost:8080"
+	server        string = "http://localhost:8080"
+	lang_endpoint string = "/api/v1/languages"
+	run_endpoint  string = "/api/v1/run"
 )
 
 // langsCmd represents the langs command
@@ -20,7 +23,8 @@ var langsCmd = &cobra.Command{
 	Short: "query the server for supported languages",
 	Run: func(cmd *cobra.Command, args []string) {
 		// implement CLI subcommand logic here
-		resp, err := getLangListJSON(server, LANG_ENDPOINT)
+		cmdClient := client.NewClient()
+		resp, err := cmdClient.Languages(lang_endpoint)
 		if err != nil {
 			fmt.Println(err)
 			return
