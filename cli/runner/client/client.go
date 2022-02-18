@@ -14,6 +14,12 @@ import (
 
 // TODO: fill in this client package as needed and create, use Client as needed in CLI commands
 
+const (
+	DEFAULT_URL   = "http://localhost:8080"
+	LANG_ENDPOINT = "/api/v1/languages"
+	RUN_ENDPOINT  = "/api/v1/run"
+)
+
 type Requester interface {
 	Run(r *api.RunRequest) (error, *api.RunResponse)
 	Languages() (error, *api.LanguagesResponse)
@@ -33,7 +39,7 @@ type Config struct {
 func NewClient() *Client {
 	// TODO: implement client with defaults like localhost url (nice to have)
 	var c Client
-	c.BaseUrl = "http://localhost:8080"
+	c.BaseUrl = DEFAULT_URL
 	c.HttpClient = http.Client{
 		Timeout: time.Second * coderunner.TIMEOUT_DEFAULT,
 	}
@@ -52,32 +58,16 @@ func NewClientFromConfig(c Config) *Client {
 	return &client
 }
 
-func (c *Client) Run(r *api.RunRequest, endpoint string) (*api.RunResponse, error) {
+func (c *Client) Run(r *api.RunRequest) (*api.RunResponse, error) {
 	// TODO: implement/refactor
 	source := r.Source
 
 	body := strings.NewReader(source)
-	req, err := http.NewRequest("POST", c.BaseUrl+endpoint, body)
+	req, err := http.NewRequest("POST", c.BaseUrl+RUN_ENDPOINT, body)
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Add("Content-Type", "application/json")
-
-	//TODO: implement CLI check language logic before adding cookie
-	//if r.Lang == "implicit" {
-	// implicit language checking
-	// relies on having the source file,
-	// but the api.RunRequest doesn't have that stored.
-	// What should I do here?
-	/*
-		ext := extractExtension(filepath)
-		if lang, found := coderunner.ExtensionFileMap[ext]; found {
-			langCheck = lang
-		} else {
-			return nil, fmt.Errorf("unrecognized file type: %s", ext)
-		}
-	*/
-	//}
 
 	cookie := http.Cookie{
 		Name:  "language",
@@ -105,9 +95,9 @@ func (c *Client) Run(r *api.RunRequest, endpoint string) (*api.RunResponse, erro
 	return &ret, nil
 }
 
-func (c *Client) Languages(endpoint string) (*api.LanguagesResponse, error) {
+func (c *Client) Languages() (*api.LanguagesResponse, error) {
 	// TODO: implement/refactor
-	req, err := http.NewRequest("GET", c.BaseUrl+endpoint, nil)
+	req, err := http.NewRequest("GET", c.BaseUrl+LANG_ENDPOINT, nil)
 	if err != nil {
 		return nil, err
 	}

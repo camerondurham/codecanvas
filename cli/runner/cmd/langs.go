@@ -11,12 +11,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	server        string = "http://localhost:8080"
-	lang_endpoint string = "/api/v1/languages"
-	run_endpoint  string = "/api/v1/run"
-)
-
 // langsCmd represents the langs command
 var langsCmd = &cobra.Command{
 	Use:   "langs",
@@ -24,7 +18,7 @@ var langsCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		// implement CLI subcommand logic here
 		cmdClient := client.NewClient()
-		resp, err := cmdClient.Languages(lang_endpoint)
+		resp, err := cmdClient.Languages()
 		if err != nil {
 			fmt.Println(err)
 			return

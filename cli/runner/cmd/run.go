@@ -5,6 +5,12 @@ Copyright © 2022 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"fmt"
+	"os"
+
+	"github.com/runner-x/runner-x/cli/runner/client"
+	"github.com/runner-x/runner-x/engine/coderunner"
+	"github.com/runner-x/runner-x/server/api"
 	"github.com/spf13/cobra"
 )
 
@@ -14,28 +20,51 @@ var runCmd = &cobra.Command{
 	Short: "runs the supplied code loaded in from a file.",
 	Run: func(cmd *cobra.Command, args []string) {
 		//TODO: implement flag logic, implement source file args parsing
-		/*
-			cmdClient := client.NewClient()
+		argLen := len(args)
+		if argLen < 1 {
+			fmt.Println("No file specified for compilation; Please specify a file!")
+			return
+		} else if argLen > 1 {
+			fmt.Println("Multiple file compilation not yet supported. Please only specify a single file for compilation.")
+			return
+		}
+		str, err := cmd.Flags().GetString("lang")
+		if err != nil {
+			panic(err)
+		}
 
-			str, err := cmd.Flags().GetString("lang")
-			client.PanicCheck(err)
-
-			argLen := len(args)
-			if argLen < 1 {
-				fmt.Println("No file specified for compilation; Please specify a file!")
-				return
-			} else if argLen > 1 {
-				fmt.Println("Multiple file compilation not yet supported. Please only specify a single file for compilation.")
-				return
-			}
-			//Need to construct an api.RunRequest here
-			//ret, err := cmdClient.Run()
-			if err != nil {
-				fmt.Println(err)
+		filename := args[0]
+		ext := extractExtension(filename)
+		var langCheck coderunner.Language
+		if str == "implicit" {
+			if lang, found := coderunner.ExtensionFileMap[ext]; found {
+				langCheck = lang
 			} else {
-				fmt.Printf("Stdout: %s\nStderr: %s\n", ret.Stdout, ret.Stderr)
+				fmt.Printf("unrecognized file type: %s", ext)
+				return
 			}
-		*/
+		}
+
+		source, err := os.ReadFile(filename)
+		if err != nil {
+			fmt.Printf("File not found: %s", filename)
+			return
+		}
+
+		cmdClient := client.NewClient()
+		r := &api.RunRequest{
+			Source: string(source[:]),
+			Lang:   langCheck,
+		}
+
+		resp, err := cmdClient.Run(r)
+		if err != nil {
+			fmt.Println(err)
+		} else if resp.Error != nil {
+			fmt.Println(resp.Error)
+		} else {
+			fmt.Printf("Stdout: %s\nStderr: %s\n", resp.Stdout, resp.Stderr)
+		}
 	},
 }
 
@@ -52,4 +81,14 @@ func init() {
 	// is called directly, e.g.:
 	// runCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	runCmd.Flags().StringP("lang", "l", "implicit", "specifies the language for the source file. If not specified, CLI will try to guess language type before making API call.")
+}
+
+func extractExtension(filename string) string {
+	f := []rune(filename)
+	for i := len(f) - 1; i >= 0; i -= 1 {
+		if f[i] == '.' {
+			return string(f[i+1:])
+		}
+	}
+	return filename
 }
