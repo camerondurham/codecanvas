@@ -17,7 +17,7 @@ var langsCmd = &cobra.Command{
 	Short: "query the server for supported languages",
 	Run: func(cmd *cobra.Command, args []string) {
 		// implement CLI subcommand logic here
-		cmdClient := client.NewClient()
+		var cmdClient client.Requester = client.NewClient()
 		resp, err := cmdClient.Languages()
 		if err != nil {
 			fmt.Println(err)
