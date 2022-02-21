@@ -21,8 +21,8 @@ const (
 )
 
 type Requester interface {
-	Run(r *api.RunRequest) (error, *api.RunResponse)
-	Languages() (error, *api.LanguagesResponse)
+	Run(r *api.RunRequest) (*api.RunResponse, error)
+	Languages() (*api.LanguagesResponse, error)
 }
 
 type Client struct {

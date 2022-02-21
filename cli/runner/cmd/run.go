@@ -51,7 +51,7 @@ var runCmd = &cobra.Command{
 			return
 		}
 
-		cmdClient := client.NewClient()
+		var cmdClient client.Requester = client.NewClient()
 		r := &api.RunRequest{
 			Source: string(source[:]),
 			Lang:   langCheck,
