@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-
 	codehandler "github.com/runner-x/runner-x/engine/coderunner"
 )
 
@@ -15,6 +14,13 @@ func printOutput(r *codehandler.RunnerOutput, err error) {
 	fmt.Printf("  stderr: %v\n", r.Stderr)
 }
 
+func helper(handler *codehandler.CodeRunner, props codehandler.RunnerProps) {
+	fmt.Println("------------")
+	fmt.Printf("running %s source:\n--------\n%s\n--------\n", props.Lang, props.Source)
+	runnerOutput, err := handler.Run(&props)
+	printOutput(runnerOutput, err)
+}
+
 func main() {
 
 	handler := codehandler.NewCodeRunner("integ-test", "")
@@ -22,16 +28,12 @@ func main() {
 	sourcecode := `#!/bin/bash
 echo "hello world"
 sleep 4
-	`
+`
 	shellRunProps := codehandler.RunnerProps{
 		Source: sourcecode,
 		Lang:   codehandler.SHELL,
 	}
-
-	fmt.Println("------------")
-	fmt.Printf("running bash source:\n--------\n%s\n--------\n", sourcecode)
-	runnerOutput, err := handler.Run(&shellRunProps)
-	printOutput(runnerOutput, err)
+	helper(handler, shellRunProps)
 
 	pythonsource := `
 mylist = ["hello", "world", "from", "python"]
@@ -42,11 +44,29 @@ for item in mylist:
 		Source: pythonsource,
 		Lang:   codehandler.PYTHON3,
 	}
+	helper(handler, pythonRunProps)
 
-	fmt.Println("------------")
-	fmt.Printf("\nrunning python source:\n--------\n%s\n--------\n", pythonsource)
-	pyRunnerOutput, err := handler.Run(&pythonRunProps)
-	printOutput(pyRunnerOutput, err)
+	bashSourcecode := `#!/bin/bash
+sleep 2 &
+sleep 2 &
+sleep 2 &
+sleep 2 &
+sleep 2 &
+sleep 2 &
+sleep 2 &
+sleep 2 &
+sleep 2 &
+sleep 2 &
+sleep 2 &
+sleep 2 &
+sleep 2 &
+sleep 2 &
+`
+	shellRunPropsNprocs := codehandler.RunnerProps{
+		Source: bashSourcecode,
+		Lang:   codehandler.SHELL,
+	}
+	helper(handler, shellRunPropsNprocs)
 
 	// TODO: implement c++11 source test
 	_ = `

@@ -32,15 +32,16 @@ func applyLimitsLinux(rlimits *ResourceLimits) error {
 	// setrlimit syscall sets resource limits for the current process
 	err := unix.Setrlimit(unix.RLIMIT_NPROC, rlimits.NumProcesses)
 	if err != nil {
-		fmt.Errorf("error setting NPROC rlimit: %v", err)
+		fmt.Printf("error setting NPROC rlimit: %v", err)
 		return err
 	}
 
 	err = unix.Setrlimit(unix.RLIMIT_FSIZE, rlimits.MaxFileSize)
 	if err != nil {
-		fmt.Errorf("error setting FSIZE rlimit: %v", err)
+		fmt.Printf("error setting FSIZE rlimit: %v", err)
 		return err
 	}
+
 	return nil
 }
 

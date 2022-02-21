@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"golang.org/x/sys/unix"
 	"io"
+	"os"
 	"os/exec"
 	"time"
 
@@ -13,8 +14,10 @@ import (
 )
 
 const (
-	DEFAULT_SOFT_NPROC = 10
-	DEFAULT_HARD_NPROC = 100
+	DEFAULT_SOFT_NPROC = 250
+	DEFAULT_HARD_NPROC = 250
+	DEFAULT_SOFT_FSIZE = 100000
+	DEFAULT_HARD_FSIZE = 250000
 )
 
 func NewTimeoutRuntime(id string, limiter Limiter) *RuntimeAgent {
@@ -56,25 +59,38 @@ func (r *RuntimeAgent) RunCmd(runprops *RunProps) (*RunOutput, error) {
 	stderrChannel := GetWriterChannelOutput(stderrPipe)
 
 	print.DebugPrintf("\nrunning command with RunProps: %v\n", runprops)
+	print.DebugPrintf("running command from PID: %v\n", os.Getpid())
 	done := make(chan error)
 	go func() {
-		r.limiter.ApplyLimits(&ResourceLimits{NumProcesses: &unix.Rlimit{
-			Cur: DEFAULT_SOFT_NPROC,
-			Max: DEFAULT_HARD_NPROC,
-		}})
-		err := cmd.Run()
+		// TODO: make goroutine into a separate function
+		err := r.limiter.ApplyLimits(&ResourceLimits{
+			NumProcesses: &unix.Rlimit{
+				Cur: DEFAULT_SOFT_NPROC,
+				Max: DEFAULT_HARD_NPROC,
+			},
+			MaxFileSize: &unix.Rlimit{
+				Cur: DEFAULT_SOFT_FSIZE,
+				Max: DEFAULT_HARD_FSIZE,
+			},
+		})
+		if err != nil {
+			print.DebugPrintf("error applying limits: %v\n", err)
+			done <- err
+			return
+		}
+		print.DebugPrintf("running processes from goroutine PID: %v\n", os.Getpid())
+		err = cmd.Run()
 		done <- err
 	}()
 
 	stdoutAsString := <-stdoutChannel
-	_ = stdoutPipe.Close()
 	stderrAsString := <-stderrChannel
-	_ = stderrPipe.Close()
 
 	err := <-done
 
 	if ctx.Err() == context.DeadlineExceeded {
-		fmt.Println("Command timed out")
+		print.DebugPrintf("command error: %v\n", err)
+		fmt.Println("command timed out")
 		return &RunOutput{
 			Stdout: stdoutAsString,
 			Stderr: stderrAsString,
@@ -92,6 +108,8 @@ func (r *RuntimeAgent) RunCmd(runprops *RunProps) (*RunOutput, error) {
 }
 
 // TODO: this may belong in util
+
+// GetWriterChannelOutput gets a string channel from read close to be converted into a string after closer is finished
 func GetWriterChannelOutput(pipeReadCloser io.ReadCloser) chan string {
 	outChannel := make(chan string)
 
