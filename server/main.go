@@ -30,19 +30,38 @@ func languagesHandler(w http.ResponseWriter, r *http.Request) {
 
 func runHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO: parse request body
+	decoder := json.NewDecoder(r.Body)
+	var res api.RunRequest
+	err := decoder.Decode(&res)
 
+	if err != nil {
+		log.Printf("failed to parse request body: %b\n", err)
+	}
 	// TODO: transform request body into runner engine input
+
+	handler := coderunner.NewCodeRunner("api-runhandler", "")
+
+	RunProps := coderunner.RunnerProps{
+		Source: res.Source,
+		Lang:   res.Lang,
+	}
 
 	// TODO: let code runner run the code
 
+	RunnerOutput, err := handler.Run(&RunProps)
+
+	if err != nil {
+		log.Printf("failed to run output: %v\n", err)
+	}
+
 	// TODO: replace hard-coded reponse with transformed runner output
 	output := api.RunResponse{
-		Stdout: "hello world",
-		Stderr: "",
+		Stdout: RunnerOutput.Stdout,
+		Stderr: RunnerOutput.Stderr,
 		Error:  nil,
 	}
 
-	err := json.NewEncoder(w).Encode(output)
+	err = json.NewEncoder(w).Encode(output)
 	if err != nil {
 		log.Printf("failed to encode run output: %v\n", err)
 	}
