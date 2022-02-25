@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"golang.org/x/sys/unix"
 	"io"
 	"os"
 	"os/exec"
+	"syscall"
 	"time"
+
+	"golang.org/x/sys/unix"
 
 	"github.com/runner-x/runner-x/util/print"
 )

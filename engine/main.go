@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	codehandler "github.com/runner-x/runner-x/engine/coderunner"
 )
 
@@ -25,8 +26,11 @@ func main() {
 
 	handler := codehandler.NewCodeRunner("integ-test", "")
 
+	// TODO: eventually this PID should **not** be the same PID as the host runner
 	sourcecode := `#!/bin/bash
 echo "hello world"
+echo $$
+echo $PPID
 sleep 4
 `
 	shellRunProps := codehandler.RunnerProps{
