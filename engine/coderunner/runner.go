@@ -60,7 +60,8 @@ func (cr *CodeRunner) Run(props *RunnerProps) (*RunnerOutput, error) {
 	filename := "code." + FileExtensionMap[props.Lang]
 	writePath := filepath.Join(dir, filename)
 
-	print.DebugPrintf("source path: %s", writePath)
+	print.DebugPrintf("\nsource path: %s\n", writePath)
+	print.DebugPrintf("\nsource code: %s\n", props.Source)
 	err = os.WriteFile(writePath, []byte(props.Source), 0644)
 	if err != nil {
 		print.DebugPrintf("error writing to path: [%v], aborting", err)

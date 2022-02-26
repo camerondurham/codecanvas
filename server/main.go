@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -32,23 +33,40 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO: parse request body
 	decoder := json.NewDecoder(r.Body)
 	var res api.RunRequest
-	err := decoder.Decode(&res)
+	var err error
+
+	for {
+		err = decoder.Decode(&res)
+		if err != nil {
+			log.Printf("error parsing request: %v\n", err)
+		}
+		if err == io.EOF {
+			break
+		}
+	}
 
 	if err != nil {
-		log.Printf("failed to parse request body: %b\n", err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Header().Set("Content-Type", "application/json")
+		resp := make(map[string]string)
+		resp["error"] = "cannot parse request"
+		jsonResp, _ := json.Marshal(resp)
+		w.Write(jsonResp)
+		return
 	}
+
 	// TODO: transform request body into runner engine input
 
 	handler := coderunner.NewCodeRunner("api-runhandler", "")
 
-	RunProps := coderunner.RunnerProps{
+	runProps := coderunner.RunnerProps{
 		Source: res.Source,
 		Lang:   res.Lang,
 	}
 
 	// TODO: let code runner run the code
 
-	RunnerOutput, err := handler.Run(&RunProps)
+	runnerOutput, err := handler.Run(&runProps)
 
 	if err != nil {
 		log.Printf("failed to run output: %v\n", err)
@@ -56,9 +74,9 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 	// TODO: replace hard-coded reponse with transformed runner output
 	output := api.RunResponse{
-		Stdout: RunnerOutput.Stdout,
-		Stderr: RunnerOutput.Stderr,
-		Error:  nil,
+		Stdout: runnerOutput.Stdout,
+		Stderr: runnerOutput.Stderr,
+		Error:  runnerOutput.CommandError,
 	}
 
 	err = json.NewEncoder(w).Encode(output)
