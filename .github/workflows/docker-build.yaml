@@ -25,3 +25,6 @@ jobs:
     -
         name: Make target server build
         run: make dkr-build-server
+    -
+        name: Make target dev build
+        run: make dkr-build-dev
