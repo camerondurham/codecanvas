@@ -35,7 +35,6 @@ func getProcessArgs(runprops *RunProps) []string {
 	}
 
 	args = []string{
-		//	"process",
 		"-nprocs=" + strconv.Itoa(DefaultSoftNproc),
 		"-fsize=" + strconv.Itoa(DefaultSoftFsize),
 		"-timeout=" + strconv.Itoa(runprops.Timeout),
