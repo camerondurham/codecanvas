@@ -7,8 +7,7 @@ type Runtime interface {
 }
 
 type RuntimeAgent struct {
-	id      string
-	limiter Limiter
+	id string
 }
 
 type RunProps struct {

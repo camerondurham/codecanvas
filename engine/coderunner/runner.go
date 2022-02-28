@@ -22,7 +22,7 @@ var FileExtensionMap = map[Language]string{
 }
 
 func NewCodeRunner(id, dir string) *CodeRunner {
-	r := runtime.NewTimeoutRuntime(id, &runtime.OnSelf{})
+	r := runtime.NewTimeoutRuntime(id)
 	return &CodeRunner{runner: r, workdirPath: dir}
 }
 

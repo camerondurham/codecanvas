@@ -1,15 +1,14 @@
 package runtime
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"strconv"
 	"time"
 
+	"github.com/runner-x/runner-x/util/iohelpers"
 	"github.com/runner-x/runner-x/util/print"
 )
 
@@ -23,8 +22,8 @@ const (
 	ProcessCommandName = "process"
 )
 
-func NewTimeoutRuntime(id string, limiter Limiter) *RuntimeAgent {
-	return &RuntimeAgent{id, limiter}
+func NewTimeoutRuntime(id string) *RuntimeAgent {
+	return &RuntimeAgent{id}
 }
 
 func getProcessArgs(runprops *RunProps) []string {
@@ -70,12 +69,6 @@ func (r *RuntimeAgent) RunCmd(runprops *RunProps) (*RunOutput, error) {
 		cmd = exec.CommandContext(ctx, ProcessCommandName, args...)
 	}
 
-	// if numArgs == 1 {
-	// 	cmd = exec.CommandContext(ctx, runprops.RunArgs[0])
-	// } else {
-	// 	cmd = exec.CommandContext(ctx, runprops.RunArgs[0], runprops.RunArgs[1:]...)
-	// }
-
 	stdoutPipe, stdoutErr := cmd.StdoutPipe()
 	if stdoutErr != nil {
 		panic(stdoutErr)
@@ -86,8 +79,8 @@ func (r *RuntimeAgent) RunCmd(runprops *RunProps) (*RunOutput, error) {
 		panic(stderrErr)
 	}
 
-	stdoutChannel := GetWriterChannelOutput(stdoutPipe)
-	stderrChannel := GetWriterChannelOutput(stderrPipe)
+	stdoutChannel := iohelpers.GetWriterChannelOutput(stdoutPipe)
+	stderrChannel := iohelpers.GetWriterChannelOutput(stderrPipe)
 
 	print.DebugPrintf("\nrunning command with RunProps: %v\n", runprops)
 	print.DebugPrintf("running command from PID: %v\n", os.Getpid())
@@ -114,23 +107,4 @@ func (r *RuntimeAgent) RunCmd(runprops *RunProps) (*RunOutput, error) {
 		Stdout: stdoutAsString,
 		Stderr: stderrAsString,
 	}, err
-}
-
-// TODO: this may belong in util
-
-// GetWriterChannelOutput gets a string channel from read close to be converted into a string after closer is finished
-func GetWriterChannelOutput(pipeReadCloser io.ReadCloser) chan string {
-	outChannel := make(chan string)
-
-	// copy output to separate goroutine so printing can't block indefinitely
-	go func() {
-		var buf bytes.Buffer
-		_, err := io.Copy(&buf, pipeReadCloser)
-		if err != nil {
-			print.DebugPrintf("error copying output: %v", err)
-		}
-		outChannel <- buf.String()
-	}()
-
-	return outChannel
 }
