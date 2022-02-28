@@ -22,11 +22,11 @@ func helper(handler *codehandler.CodeRunner, props codehandler.RunnerProps) {
 	printOutput(runnerOutput, err)
 }
 
+// this is simply for testing the runtime somewhat end-to-end
 func main() {
 
 	handler := codehandler.NewCodeRunner("integ-test", "")
 
-	// TODO: eventually this PID should **not** be the same PID as the host runner
 	sourcecode := `#!/bin/bash
 echo "hello world"
 echo $$
@@ -51,15 +51,6 @@ for item in mylist:
 	helper(handler, pythonRunProps)
 
 	bashSourcecode := `#!/bin/bash
-sleep 2 &
-sleep 2 &
-sleep 2 &
-sleep 2 &
-sleep 2 &
-sleep 2 &
-sleep 2 &
-sleep 2 &
-sleep 2 &
 sleep 2 &
 sleep 2 &
 sleep 2 &
