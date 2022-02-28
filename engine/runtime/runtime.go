@@ -7,22 +7,46 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"strconv"
 	"time"
-
-	"golang.org/x/sys/unix"
 
 	"github.com/runner-x/runner-x/util/print"
 )
 
 const (
-	DEFAULT_SOFT_NPROC = 250
-	DEFAULT_HARD_NPROC = 250
-	DEFAULT_SOFT_FSIZE = 100000
-	DEFAULT_HARD_FSIZE = 250000
+	// TODO: this is only done to allow passing during local testin
+	// should override to lower value
+	DefaultSoftNproc   = 2000
+	DefaultHardNproc   = 5000
+	DefaultSoftFsize   = 100000
+	DefaultHardFsize   = 250000
+	ProcessCommandName = "process"
 )
 
 func NewTimeoutRuntime(id string, limiter Limiter) *RuntimeAgent {
 	return &RuntimeAgent{id, limiter}
+}
+
+func getProcessArgs(runprops *RunProps) []string {
+
+	var args []string
+
+	if len(runprops.RunArgs) < 1 {
+		return args
+	}
+
+	args = []string{
+		//	"process",
+		"-nprocs=" + strconv.Itoa(DefaultSoftNproc),
+		"-fsize=" + strconv.Itoa(DefaultSoftFsize),
+		"-timeout=" + strconv.Itoa(runprops.Timeout),
+		"-cmd=" + runprops.RunArgs[0]}
+
+	if len(runprops.RunArgs) > 1 {
+		args = append(args, runprops.RunArgs[1:]...)
+	}
+
+	return args
 }
 
 func (r *RuntimeAgent) RunCmd(runprops *RunProps) (*RunOutput, error) {
@@ -40,11 +64,17 @@ func (r *RuntimeAgent) RunCmd(runprops *RunProps) (*RunOutput, error) {
 	numArgs := len(runprops.RunArgs)
 	if numArgs < 1 {
 		return nil, nil
-	} else if numArgs == 1 {
-		cmd = exec.CommandContext(ctx, runprops.RunArgs[0])
 	} else {
-		cmd = exec.CommandContext(ctx, runprops.RunArgs[0], runprops.RunArgs[1:]...)
+		args := getProcessArgs(runprops)
+		print.DebugPrintf("running command: %s %v", ProcessCommandName, args)
+		cmd = exec.CommandContext(ctx, ProcessCommandName, args...)
 	}
+
+	// if numArgs == 1 {
+	// 	cmd = exec.CommandContext(ctx, runprops.RunArgs[0])
+	// } else {
+	// 	cmd = exec.CommandContext(ctx, runprops.RunArgs[0], runprops.RunArgs[1:]...)
+	// }
 
 	stdoutPipe, stdoutErr := cmd.StdoutPipe()
 	if stdoutErr != nil {
@@ -61,33 +91,11 @@ func (r *RuntimeAgent) RunCmd(runprops *RunProps) (*RunOutput, error) {
 
 	print.DebugPrintf("\nrunning command with RunProps: %v\n", runprops)
 	print.DebugPrintf("running command from PID: %v\n", os.Getpid())
-	done := make(chan error)
-	go func() {
-		// TODO: make goroutine into a separate function
-		err := r.limiter.ApplyLimits(&ResourceLimits{
-			NumProcesses: &unix.Rlimit{
-				Cur: DEFAULT_SOFT_NPROC,
-				Max: DEFAULT_HARD_NPROC,
-			},
-			MaxFileSize: &unix.Rlimit{
-				Cur: DEFAULT_SOFT_FSIZE,
-				Max: DEFAULT_HARD_FSIZE,
-			},
-		})
-		if err != nil {
-			print.DebugPrintf("error applying limits: %v\n", err)
-			done <- err
-			return
-		}
-		print.DebugPrintf("running processes from goroutine PID: %v\n", os.Getpid())
-		err = cmd.Run()
-		done <- err
-	}()
+
+	err := cmd.Run()
 
 	stdoutAsString := <-stdoutChannel
 	stderrAsString := <-stderrChannel
-
-	err := <-done
 
 	if ctx.Err() == context.DeadlineExceeded {
 		print.DebugPrintf("command error: %v\n", err)

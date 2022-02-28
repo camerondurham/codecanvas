@@ -44,3 +44,4 @@ Cargo.lock
 engine/test/bin/*
 .idea
 .vscode
+build/
