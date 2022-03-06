@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -32,11 +33,21 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO: parse request body
 	decoder := json.NewDecoder(r.Body)
 	var res api.RunRequest
-	err := decoder.Decode(&res)
+	var err error
 
-	if err != nil {
-		log.Printf("failed to parse request body: %b\n", err)
+	// keep looping as decoder continues reading json.
+	// breaks when EOF reached
+	for {
+		err = decoder.Decode(&res)
+		if err != nil {
+			throwE400(w, "failed to parse request body")
+			return
+		}
+		if err == io.EOF {
+			break
+		}
 	}
+
 	// TODO: transform request body into runner engine input
 
 	handler := coderunner.NewCodeRunner("api-runhandler", "")
@@ -51,7 +62,8 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	RunnerOutput, err := handler.Run(&RunProps)
 
 	if err != nil {
-		log.Printf("failed to run output: %v\n", err)
+		throwE400(w, ("failed to run output: " + err.Error()))
+		return
 	}
 
 	// TODO: replace hard-coded reponse with transformed runner output
@@ -63,8 +75,19 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = json.NewEncoder(w).Encode(output)
 	if err != nil {
-		log.Printf("failed to encode run output: %v\n", err)
+		throwE400(w, ("failed to encode run output: " + err.Error()))
+		return
 	}
+}
+
+func throwE400(w http.ResponseWriter, err string) {
+	log.Printf("%v\n", err)
+	w.WriteHeader(http.StatusBadRequest)
+	w.Header().Set("Content-Type", "application/json")
+	resp := make(map[string]string) // map[key-type]val-type
+	resp["error"] = err
+	jsonResp, _ := json.Marshal(resp) // _ is a blank identifier (disregard)
+	w.Write(jsonResp)
 }
 
 func main() {
