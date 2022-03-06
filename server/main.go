@@ -58,7 +58,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	output := api.RunResponse{
 		Stdout: RunnerOutput.Stdout,
 		Stderr: RunnerOutput.Stderr,
-		Error:  nil,
+		Error:  RunnerOutput.CommandError,
 	}
 
 	err = json.NewEncoder(w).Encode(output)
