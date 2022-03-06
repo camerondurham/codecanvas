@@ -39,7 +39,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	// breaks when EOF reached
 	for {
 		err = decoder.Decode(&res)
-		if err != nil {
+		if err != nil && err != io.EOF {
 			throwE400(w, "failed to parse request body")
 			return
 		}
@@ -48,7 +48,12 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// TODO: transform request body into runner engine input
+	// verify request contains both language and source code to run
+	if len(res.Lang) == 0 || len(res.Source) == 0 {
+		// language and source code fields are required
+		throwE400(w, "\"language\" and \"source\" fields are required")
+		return
+	}
 
 	handler := coderunner.NewCodeRunner("api-runhandler", "")
 
