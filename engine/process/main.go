@@ -72,12 +72,12 @@ func main() {
 
 	cmd := exec.Command(processArgs.runcmd, processArgs.runargs...)
 
-  // TODO: determine how the host must be configured to run this
+	// TODO: determine how the host must be configured to run this
 	cmd.SysProcAttr = &unix.SysProcAttr{
 		// run child process with different uid than user
 		Credential: &syscall.Credential{
-			Uid:         uint32(*uid),
-			Gid:         uint32(*gid),
+			Uid: uint32(*uid),
+			Gid: uint32(*gid),
 		},
 	}
 
