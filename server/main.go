@@ -87,7 +87,11 @@ func throwE400(w http.ResponseWriter, err string) {
 	resp := make(map[string]string) // map[key-type]val-type
 	resp["error"] = err
 	jsonResp, _ := json.Marshal(resp) // _ is a blank identifier (disregard)
-	w.Write(jsonResp)
+	_, writeErr := w.Write(jsonResp)
+
+	if writeErr != nil {
+		fmt.Printf("failed to write 400 error")
+	}
 }
 
 func main() {
