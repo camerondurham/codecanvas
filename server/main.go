@@ -30,7 +30,6 @@ func languagesHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func runHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO: parse request body
 	decoder := json.NewDecoder(r.Body)
 	var res api.RunRequest
 	var err error
@@ -50,7 +49,6 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 	// verify request contains both language and source code to run
 	if len(res.Lang) == 0 || len(res.Source) == 0 {
-		// language and source code fields are required
 		throwE400(w, "\"language\" and \"source\" fields are required")
 		return
 	}
@@ -62,8 +60,6 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		Lang:   res.Lang,
 	}
 
-	// TODO: let code runner run the code
-
 	RunnerOutput, err := handler.Run(&RunProps)
 
 	if err != nil {
@@ -71,7 +67,6 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: replace hard-coded reponse with transformed runner output
 	output := api.RunResponse{
 		Stdout: RunnerOutput.Stdout,
 		Stderr: RunnerOutput.Stderr,
