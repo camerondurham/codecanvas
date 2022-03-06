@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/runner-x/runner-x/engine/runtime"
 	"io"
 	"log"
 	"net/http"
@@ -50,7 +51,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 	// TODO: transform request body into runner engine input
 
-	handler := coderunner.NewCodeRunner("api-runhandler", "")
+	handler := coderunner.NewCodeRunner("api-runhandler", "", &runtime.ProcessorArgsProvider{})
 
 	RunProps := coderunner.RunnerProps{
 		Source: res.Source,

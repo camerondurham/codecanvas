@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"strconv"
 	"time"
 
 	"github.com/runner-x/runner-x/util/iohelpers"
@@ -26,29 +25,6 @@ const (
 
 func NewTimeoutRuntime(id string, provider ArgProvider) *RuntimeAgent {
 	return &RuntimeAgent{id, provider}
-}
-
-func getProcessArgs(runprops *RunProps) []string {
-
-	var args []string
-
-	if len(runprops.RunArgs) < 1 {
-		return args
-	}
-
-	args = []string{
-		"-nprocs=" + strconv.Itoa(DefaultSoftNproc),
-		"-uid=" + strconv.Itoa(DefaultUid),
-		"-gid=" + strconv.Itoa(DefaultGid),
-		"-fsize=" + strconv.Itoa(DefaultSoftFsize),
-		"-timeout=" + strconv.Itoa(runprops.Timeout),
-		"-cmd=" + runprops.RunArgs[0]}
-
-	if len(runprops.RunArgs) > 1 {
-		args = append(args, runprops.RunArgs[1:]...)
-	}
-
-	return args
 }
 
 func (r *RuntimeAgent) RunCmd(runprops *RunProps) (*RunOutput, error) {
