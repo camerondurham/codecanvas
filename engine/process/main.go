@@ -1,10 +1,10 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"os"
 	"os/exec"
+	"syscall"
 	"time"
 
 	"github.com/runner-x/runner-x/engine/runtime"
@@ -32,22 +32,24 @@ const (
 
 //
 // usage:
-//     process -nprocs=80 -fsize=20000 -timeout=5 -cmd=runcmd runargs...
-//     process -nprocs=80 -fsize=20000 -timeout=5 -cmd=python3 file.py
+//     process -uid=1234 -gid=1234 -nprocs=80 -fsize=20000 -timeout=5 -cmd=runcmd runargs...
+//     process -uid=1234 -gid=1234 -nprocs=80 -fsize=20000 -timeout=5 -cmd=python3 file.py
 //
 func main() {
 	nprocs := flag.Uint("nprocs", DefaultMaxNprocs, "max number of processes")
 	fsize := flag.Uint("fsize", DefaultMaxFileSize, "max file size process can create")
 
 	timeout := flag.Uint("timeout", DefaultTimeout, "timeout to apply on command in seconds")
+	uid := flag.Uint("uid", uint(os.Getuid()), "user id to run commands with")
+	gid := flag.Uint("gid", uint(os.Getgid()), "group id to run command with")
 	runcmd := flag.String("cmd", "", "command to run")
 
 	flag.Parse()
 
 	cmdArgs := flag.Args() // other args not parsed
 
-	print.ProcDebug("parsed args: nprocs=\"%d\" fsize=\"%d\" timeout:\"%d\"  runcmd:\"%s\" cmds:%v\n",
-		*nprocs, *fsize, *timeout, *runcmd, cmdArgs)
+	print.ProcDebug("parsed args: nprocs=\"%d\" fsize=\"%d\" timeout:\"%d\"  uid:\"%d\" gid:\"%d\" runcmd:\"%s\" cmds:%v\n",
+		*nprocs, *fsize, *timeout, *uid, *gid, *runcmd, cmdArgs)
 
 	processArgs := &args{
 		nprocs:  &unix.Rlimit{Cur: uint64(*nprocs), Max: uint64(*nprocs)},
@@ -68,10 +70,16 @@ func main() {
 		os.Exit(EApplyingLimits)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), processArgs.timeout)
-	defer cancel()
+	cmd := exec.Command(processArgs.runcmd, processArgs.runargs...)
 
-	cmd := exec.CommandContext(ctx, processArgs.runcmd, processArgs.runargs...)
+  // TODO: determine how the host must be configured to run this
+	cmd.SysProcAttr = &unix.SysProcAttr{
+		// run child process with different uid than user
+		Credential: &syscall.Credential{
+			Uid:         uint32(*uid),
+			Gid:         uint32(*gid),
+		},
+	}
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
