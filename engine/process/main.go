@@ -1,3 +1,6 @@
+//go:build linux || darwin
+// +build linux darwin
+
 package main
 
 import (
@@ -30,6 +33,8 @@ const (
 	ERunningProc    = 20 // error code when running command
 )
 
+//
+// The process CLI is used to handle set limits on the current process/user
 //
 // usage:
 //     process -uid=1234 -gid=1234 -nprocs=80 -fsize=20000 -timeout=5 -cmd=runcmd runargs...

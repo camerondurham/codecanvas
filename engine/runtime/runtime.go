@@ -19,11 +19,13 @@ const (
 	DefaultHardNproc   = 5000
 	DefaultSoftFsize   = 100000
 	DefaultHardFsize   = 250000
+	DefaultUid         = 1234
+	DefaultGid         = 1234
 	ProcessCommandName = "process"
 )
 
-func NewTimeoutRuntime(id string) *RuntimeAgent {
-	return &RuntimeAgent{id}
+func NewTimeoutRuntime(id string, provider ArgProvider) *RuntimeAgent {
+	return &RuntimeAgent{id, provider}
 }
 
 func getProcessArgs(runprops *RunProps) []string {
@@ -36,6 +38,8 @@ func getProcessArgs(runprops *RunProps) []string {
 
 	args = []string{
 		"-nprocs=" + strconv.Itoa(DefaultSoftNproc),
+		"-uid=" + strconv.Itoa(DefaultUid),
+		"-gid=" + strconv.Itoa(DefaultGid),
 		"-fsize=" + strconv.Itoa(DefaultSoftFsize),
 		"-timeout=" + strconv.Itoa(runprops.Timeout),
 		"-cmd=" + runprops.RunArgs[0]}
@@ -63,9 +67,7 @@ func (r *RuntimeAgent) RunCmd(runprops *RunProps) (*RunOutput, error) {
 	if numArgs < 1 {
 		return nil, nil
 	} else {
-		args := getProcessArgs(runprops)
-		print.DebugPrintf("running command: %s %v", ProcessCommandName, args)
-		cmd = exec.CommandContext(ctx, ProcessCommandName, args...)
+		cmd = r.provider.Provide(&ctx, runprops)
 	}
 
 	stdoutPipe, stdoutErr := cmd.StdoutPipe()

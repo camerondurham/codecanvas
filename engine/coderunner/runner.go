@@ -21,8 +21,8 @@ var FileExtensionMap = map[Language]string{
 	CPP11:   "cpp",
 }
 
-func NewCodeRunner(id, dir string) *CodeRunner {
-	r := runtime.NewTimeoutRuntime(id)
+func NewCodeRunner(id, dir string, p runtime.ArgProvider) *CodeRunner {
+	r := runtime.NewTimeoutRuntime(id, p)
 	return &CodeRunner{runner: r, workdirPath: dir}
 }
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/runner-x/runner-x/engine/runtime"
 
 	codehandler "github.com/runner-x/runner-x/engine/coderunner"
 )
@@ -25,7 +26,7 @@ func helper(handler *codehandler.CodeRunner, props codehandler.RunnerProps) {
 // this is simply for testing the runtime somewhat end-to-end
 func main() {
 
-	handler := codehandler.NewCodeRunner("integ-test", "")
+	handler := codehandler.NewCodeRunner("integ-test", "", &runtime.ProcessorArgsProvider{})
 
 	sourcecode := `#!/bin/bash
 echo "hello world"
