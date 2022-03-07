@@ -108,6 +108,9 @@ can install [Docker Desktop](https://www.docker.com/get-started) if you like.
 To use a pre-built development container, you can use the VSCode and the dev container provided in `.devcontainer/devcontainer.json`.
 This approach will use a Docker container with Go, cobra, python3, and g++ pre-installed and ready to use.
 
+Here is a waay to long video with ~5 mins showing setup and total 12 mins
+demoing using the container: [runner devcontainer setup video](https://youtu.be/f9qBHyzxIlo)
+
 Steps:
 
 1. Verify that you have [Docker](https://www.docker.com/get-started) running
