@@ -50,7 +50,7 @@ dkr-build-server:
 	docker build -t ${SERVER_NAME}:${VERSION} -f docker/server/Dockerfile .
 
 dkr-server: dkr-build-server
-	docker run -d -p 8080:8080 --name ${SERVER_NAME} ${SERVER_NAME}:${VERSION}
+	docker run -d -p 8080:8080 -e DEBUG=1 --name ${SERVER_NAME} ${SERVER_NAME}:${VERSION}
 
 dkr-stop-mock:
 	docker stop ${MOCK_SERVER_NAME}
