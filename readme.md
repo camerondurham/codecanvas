@@ -91,6 +91,8 @@ add your personal favs:
    for running and debugging Go (see [vscode-go debugging docs](https://github.com/golang/vscode-go/blob/master/docs/debugging.md))
 1. `eamodio.gitlens`
    git lens (pro tip, enable editor heat map in upper right corner)
+1. `ms-vscode-remote.remote-containers`
+   develop in containers with all dependencies pre-installed
 1. `ms-vscode-remote.remote-wsl`
    for Windows WSL users
 1. `yzhang.markdown-all-in-one`
@@ -100,6 +102,24 @@ Docker:
 
 We will likely end up using Docker and include instructions here. For now, you
 can install [Docker Desktop](https://www.docker.com/get-started) if you like.
+
+### Using Dev Containers with VSCode (recommended)
+
+To use a pre-built development container, you can use the VSCode and the dev container provided in `.devcontainer/devcontainer.json`.
+This approach will use a Docker container with Go, cobra, python3, and g++ pre-installed and ready to use.
+
+Steps:
+
+1. Verify that you have [Docker](https://www.docker.com/get-started) running
+1. Open VSCode and install the **Remote - Containers** extension: `ms-vscode-remote.remote-containers`
+1. Run the dev container
+   1. Open the Command Palette (cmd + shift + P on macOS, `F1` or ctrl + shift + p on Windows/Linux)
+   1. Run `Remote-Containers: Open Folder in Container`
+   1. Select the `runner` repository folder
+1. Wait for the dev container to start up and open the VSCode Terminal as needed to run commands!
+
+Also see [Remote-Containers: open an existing folder in a container](https://code.visualstudio.com/docs/remote/containers#_quick-start-open-an-existing-folder-in-a-container).
+
 
 ## Development
 
@@ -153,22 +173,6 @@ make lint
 # install git-hooks to automatically format your code before you commit
 make install-hooks
 ```
-
-## Dev Container (recommended)
-
-To use a pre-built development container, you can use the VSCode and the dev container provided in `.devcontainer/devcontainer.json`.
-
-Steps:
-
-1. Verify that you have [Docker](https://www.docker.com/get-started) running
-1. Open VSCode and install the **Remote - Containers** extension: `ms-vscode-remote.remote-containers`
-1. Run the dev container
-   1. Open the Command Palette (cmd + shift + P on macOS, `F1` or ctrl + shift + p on Windows/Linux)
-   1. Run `Remote-Containers: Open Folder in Container`
-   1. Select the `runner` repository folder
-1. Wait for the dev container to start up and open the VSCode Terminal as needed to run commands!
-
-Also see [Remote-Containers: open an existing folder in a container](https://code.visualstudio.com/docs/remote/containers#_quick-start-open-an-existing-folder-in-a-container).
 
 ### CLI Setup
 
