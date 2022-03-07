@@ -7,6 +7,7 @@
 VERSION=v1
 MOCK_SERVER_NAME=mock-server
 SERVER_NAME=runner-server
+DEV_NAME=runner-dev
 
 all:
 	@echo "runner Makefile targets"
@@ -35,9 +36,13 @@ all:
 	@echo ""
 	@echo "  dkr-server: build and run server using Docker"
 	@echo ""
+	@echo "  dkr-dev: build and run runtime processor using Docker"
+	@echo ""
 	@echo "  dkr-stop-mock: stop and remove mock container"
 	@echo ""
 	@echo "  dkr-stop-server: stop and remove server container"
+	@echo ""
+	@echo "  dkr-stop-dev: stop and remove dev container"
 	@echo ""
 
 dkr-build-mock:
@@ -49,8 +54,14 @@ dkr-mock: dkr-build-mock
 dkr-build-server:
 	docker build -t ${SERVER_NAME}:${VERSION} -f docker/server/Dockerfile .
 
+dkr-build-dev:
+	docker build -t ${DEV_NAME}:${VERSION} -f docker/runtime-dev/Dockerfile .
+
 dkr-server: dkr-build-server
 	docker run -d -p 8080:8080 -e DEBUG=1 --name ${SERVER_NAME} ${SERVER_NAME}:${VERSION}
+
+dkr-dev: dkr-build-dev
+	docker run -it -p 8080:8080 --rm -v ${PWD}:/runner --name ${DEV_NAME} ${DEV_NAME}:${VERSION}
 
 dkr-stop-mock:
 	docker stop ${MOCK_SERVER_NAME}
@@ -59,6 +70,9 @@ dkr-stop-mock:
 dkr-stop-server:
 	docker stop ${SERVER_NAME}
 	docker rm ${SERVER_NAME}
+
+dkr-stop-dev:
+	docker stop ${DEV_NAME}
 
 gen-mocks:
 	mockgen -source ./engine/runtime/types.go -package=mocks -destination ./engine/runtime/mocks/Runtime.go Runtime
@@ -78,8 +92,13 @@ run-mock-bg:
 kill-api:
 	./hack/kill_server.sh
 
-test:
-	go test ./...
+build:
+	mkdir -p build
+	go build -v -o build/runner-server ./server/
+	go build -v -o build/process ./engine/process/
+
+test: build
+	PATH=${PATH}:${PWD}/build go test ./...
 
 fmt:
 	go fmt ./...
@@ -91,3 +110,5 @@ install-hooks:
 	@echo "installing git hooks"
 	cp ./hack/hooks/* .git/hooks/
 	@echo "done"
+
+.PHONY: build lint test

@@ -1,18 +1,30 @@
 package runtime
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"io"
+	"os"
 	"os/exec"
 	"time"
 
+	"github.com/runner-x/runner-x/util/iohelpers"
 	"github.com/runner-x/runner-x/util/print"
 )
 
-func NewTimeoutRuntime(id string) *RuntimeAgent {
-	return &RuntimeAgent{id}
+const (
+	// TODO: this is only done to allow passing during local testin
+	// should override to lower value
+	DefaultSoftNproc   = 2000
+	DefaultHardNproc   = 5000
+	DefaultSoftFsize   = 100000
+	DefaultHardFsize   = 250000
+	DefaultUid         = 1234
+	DefaultGid         = 1234
+	ProcessCommandName = "process"
+)
+
+func NewTimeoutRuntime(id string, provider ArgProvider) *RuntimeAgent {
+	return &RuntimeAgent{id, provider}
 }
 
 func (r *RuntimeAgent) RunCmd(runprops *RunProps) (*RunOutput, error) {
@@ -30,10 +42,8 @@ func (r *RuntimeAgent) RunCmd(runprops *RunProps) (*RunOutput, error) {
 	numArgs := len(runprops.RunArgs)
 	if numArgs < 1 {
 		return nil, nil
-	} else if numArgs == 1 {
-		cmd = exec.CommandContext(ctx, runprops.RunArgs[0])
 	} else {
-		cmd = exec.CommandContext(ctx, runprops.RunArgs[0], runprops.RunArgs[1:]...)
+		cmd = r.provider.Provide(&ctx, runprops)
 	}
 
 	stdoutPipe, stdoutErr := cmd.StdoutPipe()
@@ -46,18 +56,20 @@ func (r *RuntimeAgent) RunCmd(runprops *RunProps) (*RunOutput, error) {
 		panic(stderrErr)
 	}
 
-	stdoutChannel := getWriterChannelOutput(stdoutPipe)
-	stderrChannel := getWriterChannelOutput(stderrPipe)
+	stdoutChannel := iohelpers.GetWriterChannelOutput(stdoutPipe)
+	stderrChannel := iohelpers.GetWriterChannelOutput(stderrPipe)
 
 	print.DebugPrintf("\nrunning command with RunProps: %v\n", runprops)
+	print.DebugPrintf("running command from PID: %v\n", os.Getpid())
+
 	err := cmd.Run()
 
-	stdoutPipe.Close()
 	stdoutAsString := <-stdoutChannel
 	stderrAsString := <-stderrChannel
 
 	if ctx.Err() == context.DeadlineExceeded {
-		fmt.Println("Command timed out")
+		print.DebugPrintf("command error: %v\n", err)
+		fmt.Println("command timed out")
 		return &RunOutput{
 			Stdout: stdoutAsString,
 			Stderr: stderrAsString,
@@ -72,21 +84,4 @@ func (r *RuntimeAgent) RunCmd(runprops *RunProps) (*RunOutput, error) {
 		Stdout: stdoutAsString,
 		Stderr: stderrAsString,
 	}, err
-}
-
-// TODO: this may belong in util
-func getWriterChannelOutput(pipeReadCloser io.ReadCloser) chan string {
-	outChannel := make(chan string)
-
-	// copy output to separate goroutine so printing can't block indefinitely
-	go func() {
-		var buf bytes.Buffer
-		_, err := io.Copy(&buf, pipeReadCloser)
-		if err != nil {
-			print.DebugPrintf("error copying output: %v", err)
-		}
-		outChannel <- buf.String()
-	}()
-
-	return outChannel
 }
