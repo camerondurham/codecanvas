@@ -55,7 +55,7 @@ dkr-build-server:
 	docker build -t ${SERVER_NAME}:${VERSION} -f docker/server/Dockerfile .
 
 dkr-build-dev:
-	docker build -t ${DEV_NAME}:${VERSION} -f docker/runtime-dev/Dockerfile .
+	docker build -t ${DEV_NAME}:${VERSION} -f .devcontainer/Dockerfile .
 
 dkr-server: dkr-build-server
 	docker run -d -p 8080:8080 -e DEBUG=1 --name ${SERVER_NAME} ${SERVER_NAME}:${VERSION}

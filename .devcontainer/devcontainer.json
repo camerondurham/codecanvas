@@ -1,0 +1,11 @@
+{
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+	"extensions": [
+		"golang.go"
+	],
+	"forwardPorts": [
+		8080
+	],
+}
