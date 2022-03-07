@@ -2,6 +2,7 @@
 
 [![Unit Tests](https://github.com/camerondurham/runner/workflows/Unit%20Test/badge.svg?branch=main)](https://github.com/camerondurham/runner/actions?query=workflow%3A%22Unit+Test%22)
 [![Go Lint](https://github.com/camerondurham/runner/workflows/Go%20Lint/badge.svg?branch=main)](https://github.com/camerondurham/runner/actions?query=workflow%3A%22Go+Lint%22)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/camerondurham/runner)](https://img.shields.io/github/go-mod/go-version/camerondurham/runner)
 
 ## Intro
 
@@ -24,7 +25,6 @@ loop Check
       Server->>Server: validate request
 end
 
-Note right of Server: server logic not implemented yet
 Server-->>CodeRunner: submit code runner request
 
 loop Transform
@@ -35,13 +35,21 @@ end
 
 CodeRunner-->>Runtime: run user code request
 
-Note right of Runtime: resource limiting logic not implemented yet
 loop Limit
     Runtime->>Runtime: make timeout context
-    Runtime->>Runtime: set resource limits
-    Runtime->>Runtime: execute user code
+    Runtime->>Runtime: attach to stdout, stderr of command
 end
 
+Runtime->>Process: execute processor binary
+
+Note right of Process: runtime creates a new process to avoid any resource limits affecting the runner server
+loop Process
+    Process->>Process: set resource limits
+    Process->>Process: set non-root uid and gid for user code
+    Process->>Process: execute user code
+end
+
+Process-->>Runtime: exits with error code or 0 meaning no error
 Runtime-->>CodeRunner: return stdout, stderr, runtime errors
 
 loop Cleanup
@@ -146,9 +154,27 @@ make lint
 make install-hooks
 ```
 
+## Dev Container (recommended)
+
+To use a pre-built development container, you can use the VSCode and the dev container provided in `.devcontainer/devcontainer.json`.
+
+Steps:
+
+1. Verify that you have [Docker](https://www.docker.com/get-started) running
+1. Open VSCode and install the **Remote - Containers** extension: `ms-vscode-remote.remote-containers`
+1. Run the dev container
+   1. Open the Command Palette (cmd + shift + P on macOS, `F1` or ctrl + shift + p on Windows/Linux)
+   1. Run `Remote-Containers: Open Folder in Container`
+   1. Select the `runner` repository folder
+1. Wait for the dev container to start up and open the VSCode Terminal as needed to run commands!
+
+Also see [Remote-Containers: open an existing folder in a container](https://code.visualstudio.com/docs/remote/containers#_quick-start-open-an-existing-folder-in-a-container).
+
 ### CLI Setup
 
 CLI stands for command line interface.
+
+> Note: this step is **not** needed if you are using the [dev container](#dev-container-recommended) since `cobra` is pre-installed in the container.
 
 #### Installing the `cobra` CLI to help with codegen
 
