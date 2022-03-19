@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"sync"
 	"time"
 
 	"github.com/runner-x/runner-x/util/iohelpers"
@@ -12,8 +13,6 @@ import (
 )
 
 const (
-	// TODO: this is only done to allow passing during local testin
-	// should override to lower value
 	DefaultSoftNproc   = 2000
 	DefaultHardNproc   = 5000
 	DefaultSoftFsize   = 100000
@@ -24,7 +23,18 @@ const (
 )
 
 func NewTimeoutRuntime(id string, provider ArgProvider) *RuntimeAgent {
-	return &RuntimeAgent{id, provider}
+	return &RuntimeAgent{Id: id, Provider: provider, Uid: DefaultUid, Gid: DefaultGid}
+}
+
+func NewRuntimeAgentWithIds(idStr string, id int, provider ArgProvider) *RuntimeAgent {
+	return &RuntimeAgent{
+		Id:       idStr,
+		Provider: provider,
+		Uid:      id,
+		Gid:      id,
+		state:    Ready,
+		rwmutex:  sync.RWMutex{},
+	}
 }
 
 func (r *RuntimeAgent) RunCmd(runprops *RunProps) (*RunOutput, error) {
@@ -43,7 +53,7 @@ func (r *RuntimeAgent) RunCmd(runprops *RunProps) (*RunOutput, error) {
 	if numArgs < 1 {
 		return nil, nil
 	} else {
-		cmd = r.provider.Provide(&ctx, runprops)
+		cmd = r.Provider.Provide(&ctx, runprops)
 	}
 
 	stdoutPipe, stdoutErr := cmd.StdoutPipe()
@@ -84,4 +94,11 @@ func (r *RuntimeAgent) RunCmd(runprops *RunProps) (*RunOutput, error) {
 		Stdout: stdoutAsString,
 		Stderr: stderrAsString,
 	}, err
+}
+
+func (r *RuntimeAgent) IsReady() bool {
+	r.rwmutex.RLock() // acquire the lock to read to reading while agent is trying to write to the state
+
+	defer r.rwmutex.RUnlock() // make sure we unlock when we're done
+	return r.state == Ready
 }

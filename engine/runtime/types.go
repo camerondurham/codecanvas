@@ -4,16 +4,36 @@ import (
 	"context"
 	"golang.org/x/sys/unix"
 	"os/exec"
+	"sync"
 )
 
 type Runtime interface {
+	// RunCmd will try to run the command immediately
 	RunCmd(runprops *RunProps) (*RunOutput, error)
+
+	// SafeRunCmd should verify no other command is being run by the agent/worker
+	SafeRunCmd(props *RunProps) (*RunOutput, error)
+	IsReady() bool
 }
 
+// RuntimeAgent struct stores metadata to execute user code with restricted host resources
 type RuntimeAgent struct {
-	id       string
-	provider ArgProvider
+	Id       string
+	Provider ArgProvider
+	Uid      int
+	Gid      int
+
+	// rwmutex restricts access to running code with the RuntimeAgent
+	rwmutex sync.RWMutex
+	state   State
 }
+
+type State string
+
+var (
+	Ready   = State("Ready")
+	Running = State("Running")
+)
 
 type RunProps struct {
 	RunArgs []string `json:"run_args"` // program arguments
