@@ -13,7 +13,7 @@ type Controller interface {
 }
 
 type AsyncController struct {
-	agents map[int]*agentData
+	agents map[uint]*agentData
 }
 
 // State represents whether the worker is ready for another job or not
@@ -34,23 +34,23 @@ type agentData struct {
 	agent   runtime.RuntimeAgent
 }
 
-func NewAsyncControllerWithMap(a map[int]*agentData) *AsyncController {
+func NewAsyncControllerWithMap(a map[uint]*agentData) *AsyncController {
 	return &AsyncController{agents: a}
 }
 
-func NewAsyncController(size int) *AsyncController {
-	m := make(map[int]*agentData)
+func NewAsyncController(size uint) *AsyncController {
+	m := make(map[uint]*agentData)
 
-	for i := int(0); i < size; i++ {
-		key := int(i + 1)
+	for i := uint(0); i < size; i++ {
+		key := uint(i + 1)
 		m[key] = &agentData{
 			state:   Ready,
 			rwmutex: sync.RWMutex{},
 			agent: runtime.RuntimeAgent{
 				Id:       "agent_" + strconv.FormatInt(int64(key), 10),
 				Provider: &runtime.ProcessorArgsProvider{},
-				Uid:      key,
-				Gid:      key,
+				Uid:      int(key),
+				Gid:      int(key),
 			},
 		}
 	}
