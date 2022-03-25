@@ -20,7 +20,6 @@ type AsyncController struct {
 type State string
 
 const (
-
 	// Ready means ready to run another job and no other jobs are currently running
 	Ready = State("ready")
 
