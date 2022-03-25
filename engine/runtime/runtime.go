@@ -102,3 +102,7 @@ func (r *RuntimeAgent) IsReady() bool {
 	defer r.rwmutex.RUnlock() // make sure we unlock when we're done
 	return r.state == Ready
 }
+
+func (r *RuntimeAgent) SafeRunCmd(props *RunProps) (*RunOutput, error) {
+	panic("not implemented yet")
+}

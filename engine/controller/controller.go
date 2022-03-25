@@ -16,6 +16,18 @@ type AsyncController struct {
 	agents map[int]*agentData
 }
 
+// State represents whether the worker is ready for another job or not
+type State string
+
+const (
+
+	// Ready means ready to run another job and no other jobs are currently running
+	Ready = State("ready")
+
+	// NotReady means not ready to run another job since agent is running request or cleaning up from a finished job
+	NotReady = State("notready")
+)
+
 type agentData struct {
 	state   State
 	rwmutex sync.RWMutex

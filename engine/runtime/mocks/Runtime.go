@@ -5,6 +5,8 @@
 package mocks
 
 import (
+	context "context"
+	exec "os/exec"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -34,6 +36,20 @@ func (m *MockRuntime) EXPECT() *MockRuntimeMockRecorder {
 	return m.recorder
 }
 
+// IsReady mocks base method.
+func (m *MockRuntime) IsReady() bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsReady")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsReady indicates an expected call of IsReady.
+func (mr *MockRuntimeMockRecorder) IsReady() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsReady", reflect.TypeOf((*MockRuntime)(nil).IsReady))
+}
+
 // RunCmd mocks base method.
 func (m *MockRuntime) RunCmd(runprops *runtime.RunProps) (*runtime.RunOutput, error) {
 	m.ctrl.T.Helper()
@@ -47,6 +63,58 @@ func (m *MockRuntime) RunCmd(runprops *runtime.RunProps) (*runtime.RunOutput, er
 func (mr *MockRuntimeMockRecorder) RunCmd(runprops interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunCmd", reflect.TypeOf((*MockRuntime)(nil).RunCmd), runprops)
+}
+
+// SafeRunCmd mocks base method.
+func (m *MockRuntime) SafeRunCmd(props *runtime.RunProps) (*runtime.RunOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SafeRunCmd", props)
+	ret0, _ := ret[0].(*runtime.RunOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SafeRunCmd indicates an expected call of SafeRunCmd.
+func (mr *MockRuntimeMockRecorder) SafeRunCmd(props interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SafeRunCmd", reflect.TypeOf((*MockRuntime)(nil).SafeRunCmd), props)
+}
+
+// MockArgProvider is a mock of ArgProvider interface.
+type MockArgProvider struct {
+	ctrl     *gomock.Controller
+	recorder *MockArgProviderMockRecorder
+}
+
+// MockArgProviderMockRecorder is the mock recorder for MockArgProvider.
+type MockArgProviderMockRecorder struct {
+	mock *MockArgProvider
+}
+
+// NewMockArgProvider creates a new mock instance.
+func NewMockArgProvider(ctrl *gomock.Controller) *MockArgProvider {
+	mock := &MockArgProvider{ctrl: ctrl}
+	mock.recorder = &MockArgProviderMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockArgProvider) EXPECT() *MockArgProviderMockRecorder {
+	return m.recorder
+}
+
+// Provide mocks base method.
+func (m *MockArgProvider) Provide(ctx *context.Context, runprops *runtime.RunProps) *exec.Cmd {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Provide", ctx, runprops)
+	ret0, _ := ret[0].(*exec.Cmd)
+	return ret0
+}
+
+// Provide indicates an expected call of Provide.
+func (mr *MockArgProviderMockRecorder) Provide(ctx, runprops interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Provide", reflect.TypeOf((*MockArgProvider)(nil).Provide), ctx, runprops)
 }
 
 // MockLimiter is a mock of Limiter interface.
