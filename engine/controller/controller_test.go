@@ -3,8 +3,6 @@ package controller
 import (
 	"reflect"
 	"testing"
-
-	"github.com/golang/mock/gomock"
 )
 
 func TestNewAsyncController(t *testing.T) {
@@ -81,22 +79,4 @@ func TestNewAsyncControllerWithMap(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestSubmitRequest(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	// signalKilledError := errors.New("signal: killed")
-
-	// mockReady := mocks.NewMockRuntime(ctrl)
-	// mockReady.EXPECT().RunCmd(
-	// 	gomock.Any(),
-	// ).Return(&runtime.RunOutput{Stdout: "hello world", Stderr: ""}, nil)
-	// mockReady.EXPECT().IsReady().Return(true)
-
-	// mockNotReady := mocks.NewMockRuntime(ctrl)
-	// mockNotReady.EXPECT().RunCmd(
-	// 	gomock.Any(),
-	// ).Return(&runtime.RunOutput{Stdout: "", Stderr: "error"}, signalKilledError)
-
 }
