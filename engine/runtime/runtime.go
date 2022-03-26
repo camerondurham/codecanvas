@@ -37,23 +37,23 @@ func NewRuntimeAgentWithIds(idStr string, id int, provider ArgProvider) *Runtime
 	}
 }
 
-func (r *RuntimeAgent) RunCmd(runprops *RunProps) (*RunOutput, error) {
-	if runprops == nil {
+func (r *RuntimeAgent) runCmd(props *RunProps) (*RunOutput, error) {
+	if props == nil {
 		return nil, nil
 	}
 
 	// Create a new context and add a timeout to it
-	timeout, _ := time.ParseDuration(fmt.Sprintf("%ds", runprops.Timeout))
+	timeout, _ := time.ParseDuration(fmt.Sprintf("%ds", props.Timeout))
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	var cmd *exec.Cmd
 
-	numArgs := len(runprops.RunArgs)
+	numArgs := len(props.RunArgs)
 	if numArgs < 1 {
 		return nil, nil
 	} else {
-		cmd = r.Provider.Provide(&ctx, runprops)
+		cmd = r.Provider.Provide(&ctx, props)
 	}
 
 	stdoutPipe, stdoutErr := cmd.StdoutPipe()
@@ -69,7 +69,7 @@ func (r *RuntimeAgent) RunCmd(runprops *RunProps) (*RunOutput, error) {
 	stdoutChannel := iohelpers.GetWriterChannelOutput(stdoutPipe)
 	stderrChannel := iohelpers.GetWriterChannelOutput(stderrPipe)
 
-	print.DebugPrintf("\nrunning command with RunProps: %v\n", runprops)
+	print.DebugPrintf("\nrunning command with RunProps: %v\n", props)
 	print.DebugPrintf("running command from PID: %v\n", os.Getpid())
 
 	err := cmd.Run()
@@ -96,6 +96,10 @@ func (r *RuntimeAgent) RunCmd(runprops *RunProps) (*RunOutput, error) {
 	}, err
 }
 
+func (r *RuntimeAgent) RunCmd(runprops *RunProps) (*RunOutput, error) {
+	return r.runCmd(runprops)
+}
+
 func (r *RuntimeAgent) IsReady() bool {
 	r.rwmutex.RLock() // acquire the lock to read to reading while agent is trying to write to the state
 
@@ -103,6 +107,28 @@ func (r *RuntimeAgent) IsReady() bool {
 	return r.state == Ready
 }
 
+// setState locks rwmutex before changing state
+func (r *RuntimeAgent) setState(state State) {
+	r.rwmutex.Lock()
+	defer r.rwmutex.Unlock()
+	r.state = state
+}
+
+// SafeRunCmd will acquire lock and set state to NotReady while running the command
+// 		This function should ensure that threads can see if RuntimeAgent IsReady() to run a
+// 		command with minimal blocking. Since the IsReady() command uses a rwmutex, it
+// 		should only require a read lock which should be faster to acquire than a normal
+// 		mutex.
 func (r *RuntimeAgent) SafeRunCmd(props *RunProps) (*RunOutput, error) {
-	panic("not implemented yet")
+	r.setState(NotReady)
+	defer r.setState(Ready)
+	return r.runCmd(props)
+}
+
+func (r *RuntimeAgent) RuntimeUid() int {
+	return r.Uid
+}
+
+func (r *RuntimeAgent) RuntimeGid() int {
+	return r.Gid
 }

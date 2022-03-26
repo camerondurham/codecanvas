@@ -16,21 +16,9 @@ type AsyncController struct {
 	agents map[uint]*agentData
 }
 
-// State represents whether the worker is ready for another job or not
-type State string
-
-const (
-	// Ready means ready to run another job and no other jobs are currently running
-	Ready = State("ready")
-
-	// NotReady means not ready to run another job since agent is running request or cleaning up from a finished job
-	NotReady = State("notready")
-)
-
 type agentData struct {
-	state   State
 	rwmutex sync.RWMutex
-	agent   runtime.RuntimeAgent
+	agent   runtime.Runtime
 }
 
 func NewAsyncControllerWithMap(a map[uint]*agentData) *AsyncController {
@@ -43,14 +31,11 @@ func NewAsyncController(size uint) *AsyncController {
 	for i := uint(0); i < size; i++ {
 		key := uint(i + 1)
 		m[key] = &agentData{
-			state:   Ready,
 			rwmutex: sync.RWMutex{},
-			agent: runtime.RuntimeAgent{
-				Id:       "agent_" + strconv.FormatInt(int64(key), 10),
-				Provider: &runtime.ProcessorArgsProvider{},
-				Uid:      int(key),
-				Gid:      int(key),
-			},
+			agent: runtime.NewRuntimeAgentWithIds(
+				"agent_"+strconv.FormatInt(int64(key), 10),
+				int(key),
+				&runtime.ProcessorArgsProvider{}),
 		}
 	}
 	return &AsyncController{agents: m}

@@ -65,6 +65,34 @@ func (mr *MockRuntimeMockRecorder) RunCmd(runprops interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunCmd", reflect.TypeOf((*MockRuntime)(nil).RunCmd), runprops)
 }
 
+// RuntimeGid mocks base method.
+func (m *MockRuntime) RuntimeGid() int {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RuntimeGid")
+	ret0, _ := ret[0].(int)
+	return ret0
+}
+
+// RuntimeGid indicates an expected call of RuntimeGid.
+func (mr *MockRuntimeMockRecorder) RuntimeGid() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RuntimeGid", reflect.TypeOf((*MockRuntime)(nil).RuntimeGid))
+}
+
+// RuntimeUid mocks base method.
+func (m *MockRuntime) RuntimeUid() int {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RuntimeUid")
+	ret0, _ := ret[0].(int)
+	return ret0
+}
+
+// RuntimeUid indicates an expected call of RuntimeUid.
+func (mr *MockRuntimeMockRecorder) RuntimeUid() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RuntimeUid", reflect.TypeOf((*MockRuntime)(nil).RuntimeUid))
+}
+
 // SafeRunCmd mocks base method.
 func (m *MockRuntime) SafeRunCmd(props *runtime.RunProps) (*runtime.RunOutput, error) {
 	m.ctrl.T.Helper()

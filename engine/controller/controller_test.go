@@ -3,6 +3,8 @@ package controller
 import (
 	"reflect"
 	"testing"
+
+	"github.com/golang/mock/gomock"
 )
 
 func TestNewAsyncController(t *testing.T) {
@@ -27,7 +29,6 @@ func TestNewAsyncController(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// TODO: implement tests for all functions
 			ac := NewAsyncController(tt.numAgents)
 			m := ac.agents
 			if len(m) != int(tt.numAgents) {
@@ -37,11 +38,11 @@ func TestNewAsyncController(t *testing.T) {
 				if k <= 0 {
 					t.Errorf("found key <= 0")
 				}
-				if v.state != Ready {
+				if !v.agent.IsReady() {
 					t.Errorf("found agent in new async controller in a non-ready state")
 				}
-				if v.agent.Uid != int(k) || v.agent.Gid != int(k) {
-					t.Errorf("found agent with invalid initialization of Uid or Gid: expected value = %d, got uid = %d, gid = %d", k, v.agent.Uid, v.agent.Gid)
+				if v.agent.RuntimeUid() != int(k) || v.agent.RuntimeGid() != int(k) {
+					t.Errorf("found agent with invalid initialization of Uid or Gid: expected value = %d, got uid = %d, gid = %d", k, v.agent.RuntimeUid(), v.agent.RuntimeGid())
 				}
 			}
 		})
@@ -83,5 +84,19 @@ func TestNewAsyncControllerWithMap(t *testing.T) {
 }
 
 func TestSubmitRequest(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	// signalKilledError := errors.New("signal: killed")
+
+	// mockReady := mocks.NewMockRuntime(ctrl)
+	// mockReady.EXPECT().RunCmd(
+	// 	gomock.Any(),
+	// ).Return(&runtime.RunOutput{Stdout: "hello world", Stderr: ""}, nil)
+	// mockReady.EXPECT().IsReady().Return(true)
+
+	// mockNotReady := mocks.NewMockRuntime(ctrl)
+	// mockNotReady.EXPECT().RunCmd(
+	// 	gomock.Any(),
+	// ).Return(&runtime.RunOutput{Stdout: "", Stderr: "error"}, signalKilledError)
 
 }

@@ -14,6 +14,8 @@ type Runtime interface {
 	// SafeRunCmd should verify no other command is being run by the agent/worker
 	SafeRunCmd(props *RunProps) (*RunOutput, error)
 	IsReady() bool
+	RuntimeUid() int
+	RuntimeGid() int
 }
 
 // RuntimeAgent struct stores metadata to execute user code with restricted host resources
@@ -28,11 +30,15 @@ type RuntimeAgent struct {
 	state   State
 }
 
-type State string
+// State represents whether the worker is ready for another job or not
+type State uint32
 
-var (
-	Ready   = State("Ready")
-	Running = State("Running")
+const (
+	// Ready means ready to run another job and no other jobs are currently running
+	Ready = State(0)
+
+	// NotReady means not ready to run another job since agent is running request or cleaning up from a finished job
+	NotReady = State(1)
 )
 
 type RunProps struct {
