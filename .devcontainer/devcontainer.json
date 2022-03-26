@@ -3,9 +3,10 @@
 		"dockerfile": "Dockerfile"
 	},
 	"extensions": [
-		"golang.go"
+		"golang.go",
+		"eamodio.gitlens"
 	],
 	"forwardPorts": [
 		8080
-	],
+	]
 }

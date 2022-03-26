@@ -26,6 +26,8 @@ all:
 	@echo ""
 	@echo "  test: run all unit tests in the repo"
 	@echo ""
+	@echo "  cover: run all tests in repo with coverage"
+	@echo ""
 	@echo "  fmt: run go fmt on the repository"
 	@echo ""
 	@echo "  lint: run Docker golang-lint-ci for the repository"
@@ -99,6 +101,9 @@ build:
 
 test: build
 	PATH=${PATH}:${PWD}/build go test ./...
+
+cover: build
+	PATH=${PATH}:${PWD}/build go test -covermode=atomic ./...
 
 fmt:
 	go fmt ./...
