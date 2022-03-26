@@ -75,6 +75,10 @@ func Test_SafeRunCmd(t *testing.T) {
 		t.Errorf("RuntimeAgent is not ready when created")
 	}
 
+	if runtimeAgent.RuntimeUid() != 1 || runtimeAgent.RuntimeGid() != 1 {
+		t.Errorf("RuntimeAgent should have Gid, Uid = 1. Intead got: uid=%d, gid=%d", runtimeAgent.RuntimeUid(), runtimeAgent.RuntimeGid())
+	}
+
 	go func() {
 		_, _ = runtimeAgent.SafeRunCmd(&RunProps{
 			RunArgs: []string{"sleep", "3"},
