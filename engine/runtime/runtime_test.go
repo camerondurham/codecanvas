@@ -75,10 +75,12 @@ func Test_SafeRunCmd(t *testing.T) {
 		t.Errorf("RuntimeAgent is not ready when created")
 	}
 
-	go runtimeAgent.SafeRunCmd(&RunProps{
-		RunArgs: []string{"sleep", "3"},
-		Timeout: 5,
-	})
+	go func() {
+		_, _ = runtimeAgent.SafeRunCmd(&RunProps{
+			RunArgs: []string{"sleep", "3"},
+			Timeout: 5,
+		})
+	}()
 
 	time.Sleep(time.Second * 1)
 

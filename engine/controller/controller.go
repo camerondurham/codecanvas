@@ -43,5 +43,5 @@ func NewAsyncController(size uint) *AsyncController {
 
 // SubmitRequest will run a command on the first runner agent it finds that is ready
 func (ac *AsyncController) SubmitRequest(runprops *runtime.RunProps) (*runtime.RunOutput, error) {
-	panic("not implemented yet")
+	return nil, nil
 }

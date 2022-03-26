@@ -3,6 +3,8 @@ package controller
 import (
 	"reflect"
 	"testing"
+
+	"github.com/runner-x/runner-x/engine/runtime"
 )
 
 func TestNewAsyncController(t *testing.T) {
@@ -78,5 +80,14 @@ func TestNewAsyncControllerWithMap(t *testing.T) {
 				t.Errorf("Run() got = %v, want %v", ac, tt.expectedController)
 			}
 		})
+	}
+}
+
+func TestSubmitRequest(t *testing.T) {
+	// TODO: actually implement a test
+	ctrl := NewAsyncController(1)
+	output, err := ctrl.SubmitRequest(&runtime.RunProps{})
+	if output != nil && err != nil {
+		t.Error()
 	}
 }
