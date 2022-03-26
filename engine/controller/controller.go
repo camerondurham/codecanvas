@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"errors"
 	"strconv"
 	"sync"
 
@@ -21,16 +22,16 @@ type agentData struct {
 	agent   runtime.Runtime
 }
 
-func NewAsyncControllerWithMap(a map[uint]*agentData) *AsyncController {
-	return &AsyncController{agents: a}
+func NewAsyncControllerWithMap(agents map[uint]*agentData) *AsyncController {
+	return &AsyncController{agents}
 }
 
 func NewAsyncController(size uint) *AsyncController {
-	m := make(map[uint]*agentData)
+	agents := make(map[uint]*agentData)
 
 	for i := uint(0); i < size; i++ {
 		key := uint(i + 1)
-		m[key] = &agentData{
+		agents[key] = &agentData{
 			rwmutex: sync.RWMutex{},
 			agent: runtime.NewRuntimeAgentWithIds(
 				"agent_"+strconv.FormatInt(int64(key), 10),
@@ -38,10 +39,47 @@ func NewAsyncController(size uint) *AsyncController {
 				&runtime.ProcessorArgsProvider{}),
 		}
 	}
-	return &AsyncController{agents: m}
+	return &AsyncController{agents}
+}
+
+type ControllerError error
+
+var (
+	NoRunnerIsReady = ControllerError(errors.New("no runner available"))
+	InvalidInput    = ControllerError(errors.New("invalid input"))
+)
+
+type ControllerRunOutput struct {
+	controllerErr ControllerError
+	runOutput     *runtime.RunOutput
+	commandErr    error
 }
 
 // SubmitRequest will run a command on the first runner agent it finds that is ready
-func (ac *AsyncController) SubmitRequest(runprops *runtime.RunProps) (*runtime.RunOutput, error) {
-	return nil, nil
+func (ac *AsyncController) SubmitRequest(runprops *runtime.RunProps) *ControllerRunOutput {
+
+	if runprops == nil {
+		return &ControllerRunOutput{
+			controllerErr: InvalidInput,
+			runOutput:     nil,
+			commandErr:    nil,
+		}
+	}
+
+	for _, agentData := range ac.agents {
+		if agentData.agent.IsReady() {
+			runOutput, commandErr := agentData.agent.SafeRunCmd(runprops)
+			return &ControllerRunOutput{
+				controllerErr: nil,
+				runOutput:     runOutput,
+				commandErr:    commandErr,
+			}
+		}
+	}
+
+	return &ControllerRunOutput{
+		controllerErr: NoRunnerIsReady,
+		runOutput:     nil,
+		commandErr:    nil,
+	}
 }

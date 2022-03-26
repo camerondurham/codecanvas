@@ -2,9 +2,12 @@ package controller
 
 import (
 	"reflect"
+	"sync"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/runner-x/runner-x/engine/runtime"
+	"github.com/runner-x/runner-x/engine/runtime/mocks"
 )
 
 func TestNewAsyncController(t *testing.T) {
@@ -84,10 +87,167 @@ func TestNewAsyncControllerWithMap(t *testing.T) {
 }
 
 func TestSubmitRequest(t *testing.T) {
-	// TODO: actually implement a test
-	ctrl := NewAsyncController(1)
-	output, err := ctrl.SubmitRequest(&runtime.RunProps{})
-	if output != nil && err != nil {
-		t.Error()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	happyCaseOutput := &runtime.RunOutput{
+		Stdout: "hello",
+		Stderr: "world",
 	}
+
+	tests := []struct {
+		name     string
+		runProps *runtime.RunProps
+		mockInfo []mockProps
+		want     ControllerRunOutput
+	}{
+		{
+			name:     "Invalid input",
+			runProps: nil,
+			mockInfo: []mockProps{
+				{
+					state:                  runtime.Ready,
+					shouldBePickedAsRunner: true,
+				},
+			},
+			want: ControllerRunOutput{
+				controllerErr: InvalidInput,
+			},
+		},
+		{
+			name:     "No runner ready",
+			runProps: &runtime.RunProps{},
+			mockInfo: []mockProps{
+				{
+					state:                  runtime.NotReady,
+					shouldBePickedAsRunner: false,
+				},
+				{
+					state:                  runtime.NotReady,
+					shouldBePickedAsRunner: false,
+				},
+			},
+			want: ControllerRunOutput{
+				controllerErr: NoRunnerIsReady,
+			},
+		},
+		{
+			name:     "First runner is ready",
+			runProps: &runtime.RunProps{},
+			mockInfo: []mockProps{
+				{
+					state:                  runtime.Ready,
+					shouldBePickedAsRunner: true,
+					returnOutput:           happyCaseOutput,
+					returnErr:              nil,
+				},
+				{
+					state:                  runtime.NotReady,
+					shouldBePickedAsRunner: false,
+				},
+				{
+					state:                  runtime.NotReady,
+					shouldBePickedAsRunner: false,
+				},
+			},
+			want: ControllerRunOutput{
+				controllerErr: nil,
+				runOutput:     happyCaseOutput,
+				commandErr:    nil,
+			},
+		},
+		{
+			name:     "Runner in middle is ready",
+			runProps: &runtime.RunProps{},
+			mockInfo: []mockProps{
+				{
+					state:                  runtime.NotReady,
+					shouldBePickedAsRunner: false,
+				},
+				{
+					state:                  runtime.Ready,
+					shouldBePickedAsRunner: true,
+					returnOutput:           happyCaseOutput,
+					returnErr:              nil,
+				},
+				{
+					state:                  runtime.NotReady,
+					shouldBePickedAsRunner: false,
+				},
+			},
+			want: ControllerRunOutput{
+				controllerErr: nil,
+				runOutput:     happyCaseOutput,
+				commandErr:    nil,
+			},
+		},
+		{
+			name:     "Last runner is ready",
+			runProps: &runtime.RunProps{},
+			mockInfo: []mockProps{
+				{
+					state:                  runtime.NotReady,
+					shouldBePickedAsRunner: false,
+				},
+				{
+					state:                  runtime.NotReady,
+					shouldBePickedAsRunner: false,
+				},
+				{
+					state:                  runtime.Ready,
+					shouldBePickedAsRunner: true,
+					returnOutput:           happyCaseOutput,
+					returnErr:              nil,
+				},
+			},
+			want: ControllerRunOutput{
+				controllerErr: nil,
+				runOutput:     happyCaseOutput,
+				commandErr:    nil,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			asyncController := createMocksWithState(tt.mockInfo, ctrl)
+			got := asyncController.SubmitRequest(tt.runProps)
+			if got.controllerErr != tt.want.controllerErr {
+				t.Errorf("Run() got = %v, want = %v", got.controllerErr, tt.want.controllerErr)
+			}
+			if got.commandErr != tt.want.commandErr {
+				t.Errorf("Run() got = %v, want = %v", got.commandErr, tt.want.commandErr)
+			}
+			if got.runOutput != tt.want.runOutput {
+				t.Errorf("Run() got = %v, want = %v", got.runOutput, tt.want.runOutput)
+			}
+		})
+	}
+}
+
+type mockProps struct {
+	state                  runtime.State
+	shouldBePickedAsRunner bool
+	returnOutput           *runtime.RunOutput
+	returnErr              error
+}
+
+func createMocksWithState(stateArray []mockProps, ctrl *gomock.Controller) *AsyncController {
+	agents := make(map[uint]*agentData)
+
+	for index, mockProp := range stateArray {
+		key := uint(index + 1)
+		runtimeMock := mocks.NewMockRuntime(ctrl)
+		runtimeMock.EXPECT().IsReady().MaxTimes(1).Return(mockProp.state == runtime.Ready)
+		if mockProp.shouldBePickedAsRunner {
+			runtimeMock.EXPECT().SafeRunCmd(gomock.Any()).MaxTimes(1).Return(mockProp.returnOutput, mockProp.returnErr)
+		}
+		agents[key] = &agentData{
+			rwmutex: sync.RWMutex{},
+			agent:   runtimeMock,
+		}
+	}
+
+	return &AsyncController{agents}
 }
