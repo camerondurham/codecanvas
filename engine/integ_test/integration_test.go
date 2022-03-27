@@ -41,7 +41,7 @@ func Test_ControllerRunMultipleRequests(t *testing.T) {
 	wg.Wait()
 
 	// TODO: find out why this is needed to let other jobs finish and the wait group is not sufficient
-	time.Sleep(time.Second * 1)
+	time.Sleep(time.Second * 3)
 
 	// run command again after the other commands have finished
 	runSafeCmdAndAssertControllerError(asyncCtrl, sleepy, &ctrl.ControllerRunOutput{ControllerErr: nil}, t)
