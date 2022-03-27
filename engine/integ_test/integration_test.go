@@ -24,9 +24,10 @@ func Test_ControllerRunMultipleRequests(t *testing.T) {
 		RunArgs: []string{"sleep", "1"},
 		Timeout: 2,
 	}
-	go runSafeCmdAndPrintResult(asyncCtrl, sleepy, wg)
 
-	go runSafeCmdAndPrintResult(asyncCtrl, sleepy, wg)
+	// pass pointer to waitgroup instead of copying by value so we use the right lock value
+	go runSafeCmdAndPrintResult(asyncCtrl, sleepy, &wg)
+	go runSafeCmdAndPrintResult(asyncCtrl, sleepy, &wg)
 
 	// Let other commands run first. Unfortunately without this sleep,
 	// the SubmitRequest below will run before the goroutines have a time
@@ -37,17 +38,14 @@ func Test_ControllerRunMultipleRequests(t *testing.T) {
 
 	runSafeCmdAndAssertControllerError(asyncCtrl, sleepy, &ctrl.ControllerRunOutput{ControllerErr: ctrl.NoRunnerIsReady}, t)
 
-	// allow other commands to finish
+	// allow other commands to finish before retying
 	wg.Wait()
-
-	// TODO: find out why this is needed to let other jobs finish and the wait group is not sufficient
-	time.Sleep(time.Second * 3)
 
 	// run command again after the other commands have finished
 	runSafeCmdAndAssertControllerError(asyncCtrl, sleepy, &ctrl.ControllerRunOutput{ControllerErr: nil}, t)
 }
 
-func runSafeCmdAndPrintResult(ac *ctrl.AsyncController, props *runtime.RunProps, wg sync.WaitGroup) {
+func runSafeCmdAndPrintResult(ac *ctrl.AsyncController, props *runtime.RunProps, wg *sync.WaitGroup) {
 	// let the test wait until this job completes
 	wg.Add(1)
 	defer wg.Done()
