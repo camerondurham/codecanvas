@@ -32,7 +32,7 @@ func TestNewAsyncController(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ac := NewAsyncController(tt.numAgents)
+			ac := NewAsyncController(tt.numAgents, &runtime.ProcessorArgsProvider{})
 			m := ac.agents
 			if len(m) != int(tt.numAgents) {
 				t.Errorf("incorrect map size: got %d, want %d", len(m), tt.numAgents)
@@ -112,7 +112,7 @@ func TestSubmitRequest(t *testing.T) {
 				},
 			},
 			want: ControllerRunOutput{
-				controllerErr: InvalidInput,
+				ControllerErr: InvalidInput,
 			},
 		},
 		{
@@ -129,7 +129,7 @@ func TestSubmitRequest(t *testing.T) {
 				},
 			},
 			want: ControllerRunOutput{
-				controllerErr: NoRunnerIsReady,
+				ControllerErr: NoRunnerIsReady,
 			},
 		},
 		{
@@ -152,9 +152,9 @@ func TestSubmitRequest(t *testing.T) {
 				},
 			},
 			want: ControllerRunOutput{
-				controllerErr: nil,
-				runOutput:     happyCaseOutput,
-				commandErr:    nil,
+				ControllerErr: nil,
+				RunOutput:     happyCaseOutput,
+				CommandErr:    nil,
 			},
 		},
 		{
@@ -177,9 +177,9 @@ func TestSubmitRequest(t *testing.T) {
 				},
 			},
 			want: ControllerRunOutput{
-				controllerErr: nil,
-				runOutput:     happyCaseOutput,
-				commandErr:    nil,
+				ControllerErr: nil,
+				RunOutput:     happyCaseOutput,
+				CommandErr:    nil,
 			},
 		},
 		{
@@ -202,9 +202,9 @@ func TestSubmitRequest(t *testing.T) {
 				},
 			},
 			want: ControllerRunOutput{
-				controllerErr: nil,
-				runOutput:     happyCaseOutput,
-				commandErr:    nil,
+				ControllerErr: nil,
+				RunOutput:     happyCaseOutput,
+				CommandErr:    nil,
 			},
 		},
 	}
@@ -213,14 +213,14 @@ func TestSubmitRequest(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			asyncController := createMocksWithState(tt.mockInfo, ctrl)
 			got := asyncController.SubmitRequest(tt.runProps)
-			if got.controllerErr != tt.want.controllerErr {
-				t.Errorf("Run() got = %v, want = %v", got.controllerErr, tt.want.controllerErr)
+			if got.ControllerErr != tt.want.ControllerErr {
+				t.Errorf("Run() got = %v, want = %v", got.ControllerErr, tt.want.ControllerErr)
 			}
-			if got.commandErr != tt.want.commandErr {
-				t.Errorf("Run() got = %v, want = %v", got.commandErr, tt.want.commandErr)
+			if got.CommandErr != tt.want.CommandErr {
+				t.Errorf("Run() got = %v, want = %v", got.CommandErr, tt.want.CommandErr)
 			}
-			if got.runOutput != tt.want.runOutput {
-				t.Errorf("Run() got = %v, want = %v", got.runOutput, tt.want.runOutput)
+			if got.RunOutput != tt.want.RunOutput {
+				t.Errorf("Run() got = %v, want = %v", got.RunOutput, tt.want.RunOutput)
 			}
 		})
 	}
@@ -239,7 +239,14 @@ func createMocksWithState(stateArray []mockProps, ctrl *gomock.Controller) *Asyn
 	for index, mockProp := range stateArray {
 		key := uint(index + 1)
 		runtimeMock := mocks.NewMockRuntime(ctrl)
+
+		// every agent should be checked at most once to see if it's ready
 		runtimeMock.EXPECT().IsReady().MaxTimes(1).Return(mockProp.state == runtime.Ready)
+
+		// do not expect these to be called every time since some tests will exit early when there is invalid input
+		runtimeMock.EXPECT().RuntimeUid().AnyTimes().Return(1234)
+		runtimeMock.EXPECT().RuntimeGid().AnyTimes().Return(1234)
+
 		if mockProp.shouldBePickedAsRunner {
 			runtimeMock.EXPECT().SafeRunCmd(gomock.Any()).MaxTimes(1).Return(mockProp.returnOutput, mockProp.returnErr)
 		}

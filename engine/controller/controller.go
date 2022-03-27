@@ -26,7 +26,7 @@ func NewAsyncControllerWithMap(agents map[uint]*agentData) *AsyncController {
 	return &AsyncController{agents}
 }
 
-func NewAsyncController(size uint) *AsyncController {
+func NewAsyncController(size uint, provider runtime.ArgProvider) *AsyncController {
 	agents := make(map[uint]*agentData)
 
 	for i := uint(0); i < size; i++ {
@@ -36,7 +36,7 @@ func NewAsyncController(size uint) *AsyncController {
 			agent: runtime.NewRuntimeAgentWithIds(
 				"agent_"+strconv.FormatInt(int64(key), 10),
 				int(key),
-				&runtime.ProcessorArgsProvider{}),
+				provider),
 		}
 	}
 	return &AsyncController{agents}
@@ -50,9 +50,9 @@ var (
 )
 
 type ControllerRunOutput struct {
-	controllerErr ControllerError
-	runOutput     *runtime.RunOutput
-	commandErr    error
+	ControllerErr ControllerError
+	RunOutput     *runtime.RunOutput
+	CommandErr    error
 }
 
 // SubmitRequest will run a command on the first runner agent it finds that is ready
@@ -60,26 +60,32 @@ func (ac *AsyncController) SubmitRequest(runprops *runtime.RunProps) *Controller
 
 	if runprops == nil {
 		return &ControllerRunOutput{
-			controllerErr: InvalidInput,
-			runOutput:     nil,
-			commandErr:    nil,
+			ControllerErr: InvalidInput,
+			RunOutput:     nil,
+			CommandErr:    nil,
 		}
 	}
 
 	for _, agentData := range ac.agents {
 		if agentData.agent.IsReady() {
-			runOutput, commandErr := agentData.agent.SafeRunCmd(runprops)
+			runOutput, commandErr := agentData.agent.SafeRunCmd(&runtime.RunProps{
+				RunArgs: runprops.RunArgs,
+				Timeout: runprops.Timeout,
+				Nprocs:  runprops.Nprocs,
+				Uid:     agentData.agent.RuntimeUid(),
+				Gid:     agentData.agent.RuntimeGid(),
+			})
 			return &ControllerRunOutput{
-				controllerErr: nil,
-				runOutput:     runOutput,
-				commandErr:    commandErr,
+				ControllerErr: nil,
+				RunOutput:     runOutput,
+				CommandErr:    commandErr,
 			}
 		}
 	}
 
 	return &ControllerRunOutput{
-		controllerErr: NoRunnerIsReady,
-		runOutput:     nil,
-		commandErr:    nil,
+		ControllerErr: NoRunnerIsReady,
+		RunOutput:     nil,
+		CommandErr:    nil,
 	}
 }

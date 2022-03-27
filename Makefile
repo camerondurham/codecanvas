@@ -30,6 +30,8 @@ all:
 	@echo ""
 	@echo "  fmt: run go fmt on the repository"
 	@echo ""
+	@echo "  clean: remove build directory"
+	@echo ""
 	@echo "  lint: run Docker golang-lint-ci for the repository"
 	@echo ""
 	@echo "  install-hooks: install git-hooks in the cloned repo .git directory"
@@ -107,6 +109,9 @@ cover: build
 
 fmt:
 	go fmt ./...
+
+clean:
+	rm -rf build
 
 lint:
 	docker run --rm -v $(shell pwd):/app -w /app golangci/golangci-lint:v1.44.0 golangci-lint run  ./... -v
