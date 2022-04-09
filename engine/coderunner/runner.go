@@ -42,11 +42,34 @@ func (cr *CodeRunner) Run(props *RunnerProps) (*RunnerOutput, error) {
 
 	// TODO: add intermediate step to allow multiple code runs concurrently
 
-	// TODO: create parent directory to create temp dirs in
-	// create temporary directory
-	dir, err := os.MkdirTemp(cr.workdirPath, "runner")
+	filename := "code." + FileExtensionMap[props.Lang]
+
+	var writePath string
+	var cleanupPath string
+	if len(cr.workdirPath) == 0 {
+		// if no path was provided, we can create a throwaway directory
+		dir, err := os.MkdirTemp(cr.workdirPath, "runner")
+		if err != nil {
+			fmt.Printf("unable to make tmpdir: [%v]", err)
+			return nil, err
+		}
+		// cleanup the temporary directory
+		cleanupPath = dir
+		writePath = filepath.Join(dir, filename)
+	} else {
+		// if code runner has a path provided, we can
+
+		// this will need to change when changing to using "runtime agents"
+		// since each agent we get will have its own working directory
+		writePath = filepath.Join(cr.workdirPath, filename)
+		cleanupPath = writePath
+	}
+
+	print.DebugPrintf("source path: %s", writePath)
+	err := os.WriteFile(writePath, []byte(props.Source), 0644)
 	if err != nil {
-		panic(err)
+		print.DebugPrintf("error writing to path: [%v], aborting", err)
+		return nil, err
 	}
 
 	defer func(path string) {
@@ -54,18 +77,7 @@ func (cr *CodeRunner) Run(props *RunnerProps) (*RunnerOutput, error) {
 		if err != nil {
 			print.DebugPrintf("error removing tmp dir in handler: %v", err)
 		}
-	}(dir)
-
-	// write user input into tempdir
-	filename := "code." + FileExtensionMap[props.Lang]
-	writePath := filepath.Join(dir, filename)
-
-	print.DebugPrintf("source path: %s", writePath)
-	err = os.WriteFile(writePath, []byte(props.Source), 0644)
-	if err != nil {
-		print.DebugPrintf("error writing to path: [%v], aborting", err)
-		return nil, err
-	}
+	}(cleanupPath)
 
 	// runner compiles with timeout
 	// TODO: implement compilation step if language is compiled

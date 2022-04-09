@@ -55,8 +55,12 @@ dkr-build-mock:
 dkr-mock: dkr-build-mock
 	docker run -d -p 8080:8080 --name ${MOCK_SERVER_NAME} ${MOCK_SERVER_NAME}:${VERSION}
 
+# retire this command since we will likely stick with debian server
+dkr-build-alpine:
+	docker build -t ${SERVER_NAME}:${VERSION} -f docker/server-alpine/Dockerfile .
+
 dkr-build-server:
-	docker build -t ${SERVER_NAME}:${VERSION} -f docker/server/Dockerfile .
+	docker build -t ${SERVER_NAME}:${VERSION} -f docker/server-debian/Dockerfile .
 
 dkr-build-dev:
 	docker build -t ${DEV_NAME}:${VERSION} -f .devcontainer/Dockerfile .
@@ -114,7 +118,7 @@ clean:
 	rm -rf build
 
 lint:
-	docker run --rm -v $(shell pwd):/app -w /app golangci/golangci-lint:v1.44.0 golangci-lint run  ./... -v
+	docker run --rm -v $(shell pwd):/app -w /app golangci/golangci-lint:v1.45.2 golangci-lint run  ./... -v
 
 install-hooks:
 	@echo "installing git hooks"
