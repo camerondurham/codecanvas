@@ -3,11 +3,13 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/runner-x/runner-x/engine/runtime"
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"time"
+
+	"github.com/runner-x/runner-x/engine/runtime"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -54,7 +56,15 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	handler := coderunner.NewCodeRunner("api-runhandler", "", &runtime.ProcessorArgsProvider{})
+	var handler *coderunner.CodeRunner
+
+	// TODO: don't hard code the directory here
+	workdirPath := "/tmp/runner1"
+	if _, ok := os.LookupEnv("UNIT_TEST"); ok {
+		workdirPath = ""
+	}
+
+	handler = coderunner.NewCodeRunner("api-runhandler", workdirPath, &runtime.ProcessorArgsProvider{})
 
 	RunProps := coderunner.RunnerProps{
 		Source: res.Source,

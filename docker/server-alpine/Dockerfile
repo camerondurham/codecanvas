@@ -10,7 +10,11 @@ FROM golang:1.17.6-alpine3.15
 RUN apk add python3
 
 WORKDIR /runner
-COPY --from=builder /runner/process ./
+
+# add process binary to a directory already in $PATH
+COPY --from=builder /runner/process /usr/bin
 COPY --from=builder /runner/runner-server ./
+# TODO: do this in the server
+RUN groupadd -g 1234 runner1 && useradd -u 1234 -g runner1 -d /tmp/runner1 runner1
 EXPOSE 8080
 ENTRYPOINT ["/runner/runner-server"]

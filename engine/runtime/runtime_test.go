@@ -3,6 +3,7 @@ package runtime
 import (
 	"reflect"
 	"testing"
+	"time"
 )
 
 func Test_RunCmd(t *testing.T) {
@@ -63,5 +64,38 @@ func Test_RunCmd(t *testing.T) {
 				t.Errorf("RunCmd() got = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+// TODO: improve this test to avoid using sleeping
+func Test_SafeRunCmd(t *testing.T) {
+	runtimeAgent := NewRuntimeAgentWithIds("test", 1, &NilProvider{})
+
+	if !runtimeAgent.IsReady() {
+		t.Errorf("RuntimeAgent is not ready when created")
+	}
+
+	if runtimeAgent.RuntimeUid() != 1 || runtimeAgent.RuntimeGid() != 1 {
+		t.Errorf("RuntimeAgent should have Gid, Uid = 1. Intead got: uid=%d, gid=%d", runtimeAgent.RuntimeUid(), runtimeAgent.RuntimeGid())
+	}
+
+	go func() {
+		_, _ = runtimeAgent.SafeRunCmd(&RunProps{
+			RunArgs: []string{"sleep", "3"},
+			Timeout: 5,
+		})
+	}()
+
+	time.Sleep(time.Second * 1)
+
+	if runtimeAgent.IsReady() {
+		t.Errorf("RuntimeAgent is in state ready  while it is running a command")
+	}
+
+	// wait until process finishes
+	time.Sleep(time.Second * 5)
+
+	if !runtimeAgent.IsReady() {
+		t.Errorf("RuntimeAgent did not set its state to be ready again after finishing command execution")
 	}
 }
