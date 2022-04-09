@@ -62,8 +62,9 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	workdirPath := "/tmp/runner1"
 	if _, ok := os.LookupEnv("UNIT_TEST"); ok {
 		workdirPath = ""
-		handler = coderunner.NewCodeRunner("api-runhandler", workdirPath, &runtime.ProcessorArgsProvider{})
 	}
+
+	handler = coderunner.NewCodeRunner("api-runhandler", workdirPath, &runtime.ProcessorArgsProvider{})
 
 	RunProps := coderunner.RunnerProps{
 		Source: res.Source,
