@@ -42,11 +42,14 @@ func (cr *CodeRunner) Run(props *RunnerProps) (*RunnerOutput, error) {
 
 	// TODO: add intermediate step to allow multiple code runs concurrently
 
-	// TODO: create parent directory to create temp dirs in
-	// create temporary directory
-	dir, err := os.MkdirTemp(cr.workdirPath, "runner")
+	filename := "code." + FileExtensionMap[props.Lang]
+	writePath := filepath.Join(cr.workdirPath, filename)
+
+	print.DebugPrintf("source path: %s", writePath)
+	err := os.WriteFile(writePath, []byte(props.Source), 0644)
 	if err != nil {
-		panic(err)
+		print.DebugPrintf("error writing to path: [%v], aborting", err)
+		return nil, err
 	}
 
 	defer func(path string) {
@@ -54,18 +57,7 @@ func (cr *CodeRunner) Run(props *RunnerProps) (*RunnerOutput, error) {
 		if err != nil {
 			print.DebugPrintf("error removing tmp dir in handler: %v", err)
 		}
-	}(dir)
-
-	// write user input into tempdir
-	filename := "code." + FileExtensionMap[props.Lang]
-	writePath := filepath.Join(dir, filename)
-
-	print.DebugPrintf("source path: %s", writePath)
-	err = os.WriteFile(writePath, []byte(props.Source), 0644)
-	if err != nil {
-		print.DebugPrintf("error writing to path: [%v], aborting", err)
-		return nil, err
-	}
+	}(writePath)
 
 	// runner compiles with timeout
 	// TODO: implement compilation step if language is compiled

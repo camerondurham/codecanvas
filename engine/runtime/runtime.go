@@ -13,10 +13,10 @@ import (
 )
 
 const (
-	DefaultSoftNproc   = 2000
-	DefaultHardNproc   = 5000
-	DefaultSoftFsize   = 100000
-	DefaultHardFsize   = 250000
+	DefaultSoftNproc   = 20
+	DefaultHardNproc   = 50
+	DefaultSoftFsize   = 1000
+	DefaultHardFsize   = 2500
 	DefaultUid         = 1234
 	DefaultGid         = 1234
 	ProcessCommandName = "process"

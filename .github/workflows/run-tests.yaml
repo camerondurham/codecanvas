@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Test
-        run: make test
+        run: ./docker/server-debian/entrypoint.sh && make test
 
       - name: Test Server Starts
         run: cd server && ./test_server_startup.sh
