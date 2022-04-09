@@ -27,7 +27,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: ./docker/server/Dockerfile
+          file: ./docker/server-debian/Dockerfile
           pull: true
           push: true
           cache-from: type=registry,ref=camerondurham/runner-server:latest
