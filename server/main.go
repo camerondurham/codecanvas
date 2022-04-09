@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/runner-x/runner-x/engine/runtime"
@@ -55,8 +56,13 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var handler *coderunner.CodeRunner
 	// TODO: don't hard code the directory here
-	handler := coderunner.NewCodeRunner("api-runhandler", "/tmp/runner1", &runtime.ProcessorArgsProvider{})
+	if _, ok := os.LookupEnv("UNIT_TEST"); ok {
+		handler = coderunner.NewTestCodeRunner("api-runhandler", &runtime.ProcessorArgsProvider{})
+	} else {
+		handler = coderunner.NewCodeRunner("api-runhandler", "/tmp/runner1", &runtime.ProcessorArgsProvider{})
+	}
 
 	RunProps := coderunner.RunnerProps{
 		Source: res.Source,

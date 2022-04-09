@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/runner-x/runner-x/engine/coderunner"
@@ -59,6 +60,12 @@ func Test_runHandler(t *testing.T) {
 
 			// https://pkg.go.dev/net/http/httptest#ResponseRecorder
 			w := httptest.NewRecorder()
+
+			if err := os.Setenv("UNIT_TEST", "1"); err != nil {
+				// skip the rest if we can't test this
+				fmt.Printf("cannot unit test runHandler: [%v]\n", err)
+				return
+			}
 
 			runHandler(w, tt.args.r)
 
