@@ -32,13 +32,6 @@ func NewCodeRunner(id, dir string, p runtime.ArgProvider) *CodeRunner {
 	return &CodeRunner{runner: r, workdirPath: dir}
 }
 
-func NewTestCodeRunner(id string, p runtime.ArgProvider) *CodeRunner {
-	r := runtime.NewTimeoutRuntime(id, p)
-	// do not set workdir path for test runners so temp dir is created
-	// TODO: this is sloppy handling of handling the workdir path and should be simplified
-	return &CodeRunner{runner: r}
-}
-
 func DebugPrintRunOutput(out runtime.RunOutput) {
 	print.DebugPrintf("\n[stdout]: %s", out.Stdout)
 	print.DebugPrintf("\n[stderr]: %s", out.Stderr)
