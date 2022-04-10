@@ -7,5 +7,5 @@ RUN apt-get update -y \
 && go install github.com/spf13/cobra/cobra@v1.3.0 \
 && go install github.com/golang/mock/mockgen@v1.6.0
 
-EXPOSE 8080
+EXPOSE 10100
 ENTRYPOINT ["/bin/bash"]

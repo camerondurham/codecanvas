@@ -14,5 +14,5 @@ COPY --from=builder /runner/runner-server ./
 COPY docker/server-debian/entrypoint.sh /runner/entrypoint.sh
 RUN apt-get update \
     && apt-get install -y python3
-EXPOSE 8080
+EXPOSE 10100
 ENTRYPOINT ["/runner/entrypoint.sh", "server"]

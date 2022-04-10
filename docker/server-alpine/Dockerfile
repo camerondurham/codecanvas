@@ -16,5 +16,5 @@ COPY --from=builder /runner/process /usr/bin
 COPY --from=builder /runner/runner-server ./
 # TODO: do this in the server
 RUN groupadd -g 1234 runner1 && useradd -u 1234 -g runner1 -d /tmp/runner1 runner1
-EXPOSE 8080
+EXPOSE 10100
 ENTRYPOINT ["/runner/runner-server"]

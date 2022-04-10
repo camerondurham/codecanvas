@@ -8,5 +8,5 @@ FROM golang:1.17.6-alpine3.15
 # FROM scratch
 WORKDIR /runner
 COPY --from=builder /runner/mock-server ./
-EXPOSE 8080
+EXPOSE 10100
 ENTRYPOINT ["/runner/mock-server"]

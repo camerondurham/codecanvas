@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	API_PORT               = ":8080"
+	API_PORT               = ":10100"
 	SERVER_REQUEST_TIMEOUT = 10
 )
 
