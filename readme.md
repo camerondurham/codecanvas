@@ -162,7 +162,7 @@ make run-mock
 # run the mock API server in the background (you'll have to use `make kill-api` to shut down)
 make run-mock-bg
 
-# kill the server (mock or not) if it's running (this works by killing the process using port 8080, the API port)
+# kill the server (mock or not) if it's running (this works by killing the process using port 10100, the API port)
 make kill-api
 
 # run all tests in the repository
@@ -231,21 +231,21 @@ go run api/main.go
 ```
 
 Usually you'll want to run the server in the background to you can do other
-things with your terminal. However, you'd need to kill the process running on port `8080`
+things with your terminal. However, you'd need to kill the process running on port `10100`
 once you're done. You can use the `api/kill_server.sh` script for this.
 
 ```bash
 # 1. run the API in the background
 go run api/main.go &
 
-# 2. once you are done, use the script to shut down processes on port 8080
+# 2. once you are done, use the script to shut down processes on port 10100
 ./api/kill_server.sh
 
 ```
 
 You can also use the `api/kill_server.sh` script if you see this error:
 
-> error starting server: listen tcp :8080: bind: address already in use
+> error starting server: listen tcp :10100: bind: address already in use
 
 ### Go Tips
 

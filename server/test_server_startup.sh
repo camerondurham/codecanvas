@@ -12,7 +12,7 @@ sleep 5
 # child process process id
 server_pid=$!
 
-response=$(curl -X GET localhost:8080/api/v1/languages)
+response=$(curl -X GET localhost:10100/api/v1/languages)
 if [ -z "$response" ]; then
     echo "no response from languages endpoint"
     kill -9 $server_pid

@@ -7,6 +7,6 @@
 		"eamodio.gitlens"
 	],
 	"forwardPorts": [
-		8080
+		10100
 	]
 }

@@ -1,0 +1,11 @@
+services:
+  backend:
+    build: 
+      dockerfile: docker/server-debian/Dockerfile
+      context: ../../
+    ports:
+      - 10100:10100
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: dnsrr

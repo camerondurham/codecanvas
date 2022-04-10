@@ -16,11 +16,7 @@ all:
 	@echo ""
 	@echo "  run-api: run the API server"
 	@echo ""
-	@echo "  run-api-bg: run the API server in the background"
-	@echo ""
 	@echo "  run-mock: run the mock API server"
-	@echo ""
-	@echo "  run-mock-bg: run the mock API server in the background"
 	@echo ""
 	@echo "  kill-api: kill the API server"
 	@echo ""
@@ -40,20 +36,16 @@ all:
 	@echo ""
 	@echo "  dkr-server: build and run server using Docker"
 	@echo ""
-	@echo "  dkr-dev: build and run runtime processor using Docker"
-	@echo ""
 	@echo "  dkr-stop-mock: stop and remove mock container"
 	@echo ""
 	@echo "  dkr-stop-server: stop and remove server container"
-	@echo ""
-	@echo "  dkr-stop-dev: stop and remove dev container"
 	@echo ""
 
 dkr-build-mock:
 	docker build -t ${MOCK_SERVER_NAME}:${VERSION} -f docker/mock-server/Dockerfile .
 
 dkr-mock: dkr-build-mock
-	docker run -d -p 8080:8080 --name ${MOCK_SERVER_NAME} ${MOCK_SERVER_NAME}:${VERSION}
+	docker run -d -p 10100:10100 --name ${MOCK_SERVER_NAME} ${MOCK_SERVER_NAME}:${VERSION}
 
 # retire this command since we will likely stick with debian server
 dkr-build-alpine:
@@ -66,10 +58,7 @@ dkr-build-dev:
 	docker build -t ${DEV_NAME}:${VERSION} -f .devcontainer/Dockerfile .
 
 dkr-server: dkr-build-server
-	docker run -d -p 8080:8080 -e DEBUG=1 --name ${SERVER_NAME} ${SERVER_NAME}:${VERSION}
-
-dkr-dev: dkr-build-dev
-	docker run -it -p 8080:8080 --rm -v ${PWD}:/runner --name ${DEV_NAME} ${DEV_NAME}:${VERSION}
+	docker run -d -p 10100:10100 -e DEBUG=1 --name ${SERVER_NAME} ${SERVER_NAME}:${VERSION}
 
 dkr-stop-mock:
 	docker stop ${MOCK_SERVER_NAME}

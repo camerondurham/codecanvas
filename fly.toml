@@ -1,0 +1,15 @@
+# fly.toml file generated for runner on 2022-04-09T18:03:25-07:00
+
+app = "runner"
+
+
+[env]
+  PORT = "10100"
+
+[[services]]
+  internal_port = 10100
+  protocol = "tcp"
+
+  [[services.ports]]
+    handlers = ["http"]
+    port = "10100"

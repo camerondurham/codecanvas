@@ -5,7 +5,7 @@ kports() {
     if [[ "$#" != "0" ]]; then
         ports="$1"
     else
-        ports="8080"
+        ports="10100"
     fi
 
     processes=$(lsof -i:"${ports}")
