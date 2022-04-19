@@ -33,6 +33,11 @@ var runCmd = &cobra.Command{
 			panic(err)
 		}
 
+		url, err := rootCmd.PersistentFlags().GetString("url")
+		if err != nil {
+			panic(err)
+		}
+
 		filename := args[0]
 		ext := extractExtension(filename)
 		var langCheck coderunner.Language
@@ -51,7 +56,14 @@ var runCmd = &cobra.Command{
 			return
 		}
 
-		var cmdClient client.Requester = client.NewClient()
+		// add a flag to modify timeout?
+		var cmdClient client.Requester
+		clint := client.Config{
+			BaseUrl: url,
+			Timeout: coderunner.TIMEOUT_DEFAULT,
+		}
+		cmdClient = client.NewClientFromConfig(clint)
+
 		r := &api.RunRequest{
 			Source: string(source[:]),
 			Lang:   langCheck,

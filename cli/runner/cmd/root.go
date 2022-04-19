@@ -43,4 +43,5 @@ func init() {
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.PersistentFlags().StringP("url", "u", "http://localhost:10100", "specifies the url host for the runner API")
 }
