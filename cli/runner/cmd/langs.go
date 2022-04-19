@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/runner-x/runner-x/cli/runner/client"
+	"github.com/runner-x/runner-x/engine/coderunner"
 	"github.com/spf13/cobra"
 )
 
@@ -16,8 +17,18 @@ var langsCmd = &cobra.Command{
 	Use:   "langs",
 	Short: "query the server for supported languages",
 	Run: func(cmd *cobra.Command, args []string) {
-		// implement CLI subcommand logic here
-		var cmdClient client.Requester = client.NewClient()
+		url, err := rootCmd.PersistentFlags().GetString("url")
+		if err != nil {
+			panic(err)
+		}
+
+		var cmdClient client.Requester
+		clint := client.Config{
+			BaseUrl: url,
+			Timeout: coderunner.TIMEOUT_DEFAULT,
+		}
+		cmdClient = client.NewClientFromConfig(clint)
+
 		resp, err := cmdClient.Languages()
 		if err != nil {
 			fmt.Println(err)
