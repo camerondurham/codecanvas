@@ -1,8 +1,7 @@
 {
   "dependencies": {
     "codemirror": "^5.65.2"
-  }
-
+  },
   "scripts": {
     "start": "npm install && python3 -m http.server 80"
   }

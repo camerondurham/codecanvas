@@ -1,6 +1,7 @@
 .CodeMirror {
     border: 4px solid gray;
-    width: 40%; 
+    width: 600px;
+    height: 400px; 
     margin: auto;
     font-size: 16px;
     text-align: left; 
@@ -15,7 +16,7 @@ body {
     background-color: mediumpurple; 
     text-align: center;
     font-family: monospace; 
-    text-shadow: -2px -2px 0 skyblue; 
+    /*text-shadow: -2px -2px 0 skyblue; */
 }
 
 footer {
