@@ -6,6 +6,8 @@ var codeMirror = CodeMirror.fromTextArea(document.getElementById("code"), {
     smartIndent: false, 
 });
 
+codeMirror.setValue("def main():\n\tprint('Hello, World!')\n\nif __name__ == '__main__':\n\tmain()");
+
 /*
 //for fun 
 colors = ["plum", "skyblue", "pink", "clay", "tan", "steelblue", "teal", "thistle", "mintcream", "mediumpurple", "indigo", "honeydew", "gray", "white", "fuchsia", "gold", "greenyellow", "green", "darkred", "coral"]

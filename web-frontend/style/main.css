@@ -8,8 +8,18 @@
     text-shadow: none; 
 }
 
+button {
+    font-weight: bold; 
+    padding: 4px; 
+    margin-top: 5px; 
+}
+
+#lang-btn {
+    display: inline; 
+}
+
 #wrapper {
-    margin-top: 10%;
+    margin-top: 5%; 
 }
 
 body {

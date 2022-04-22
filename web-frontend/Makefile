@@ -4,7 +4,8 @@ brief:
 	@echo "\nUse make npm-start to install dependencies and serve on http://localhost:80"
 	@echo "\nUse make clean-modules to get rid of the node_modules folder, just in case" 
 	@echo "\nUse make serve in order to serve on http://localhost without installing dependencies"
-	@echo 
+	@echo "The API must be running via docker locally in order for requests to function."
+	@echo
 
 npm-start:
 	npm run start 
