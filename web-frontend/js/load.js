@@ -2,16 +2,36 @@ var codeMirror = CodeMirror.fromTextArea(document.getElementById("code"), {
     mode: "python",
     autofocus: true,
     lineNumbers: true,
-    indentWithTabs: true, 
-    smartIndent: false, 
+    indentWithTabs: true,
+    smartIndent: false,
 });
 
 codeMirror.setValue("def main():\n\tprint('Hello, World!')\n\nif __name__ == '__main__':\n\tmain()");
+selectTheme();
 
-/*
-//for fun 
-colors = ["plum", "skyblue", "pink", "clay", "tan", "steelblue", "teal", "thistle", "mintcream", "mediumpurple", "indigo", "honeydew", "gray", "white", "fuchsia", "gold", "greenyellow", "green", "darkred", "coral"]
-clr = colors[Math.floor(Math.random() * colors.length)];
+var langs;
+langRequest()
+    .then(function (result) {
+        var res = JSON.parse(result);
+        langs = res.languages;
+        //langs = ['debug1', 'debug2', 'debug3'];
+    })
+    .catch(function (err) {
+        langs = ['Error!'];
+        console.log("Error when fetching languages: " + err);
+    })
+    .finally(function () {
+        var lang_menu = document.getElementById('lang-select');
+        for (const lang of langs) {
+            var child = document.createElement('option');
+            child.innerText = lang;
+            lang_menu.appendChild(child);
+        }
+        updateLanguage();
+    });
 
-document.body.setAttribute("style", "background-color:"+clr);
-*/
+function selectTheme() {
+    var select = document.getElementById('theme-select');
+    var theme = select.options[select.selectedIndex].textContent;
+    codeMirror.setOption('theme', theme);
+}

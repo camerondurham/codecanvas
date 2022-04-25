@@ -1,8 +1,7 @@
 .CodeMirror {
     border: 4px solid gray;
-    width: 600px;
-    height: 400px; 
     margin: auto;
+    height: 500px;
     font-size: 16px;
     text-align: left; 
     text-shadow: none; 
@@ -14,8 +13,9 @@ button {
     margin-top: 5px; 
 }
 
-#lang-btn {
-    display: inline; 
+.selectors {
+    display: flex;
+    justify-content:space-between;
 }
 
 #wrapper {
@@ -23,14 +23,24 @@ button {
 }
 
 body {
-    background-color: mediumpurple; 
+    background-color: indigo; 
     text-align: center;
     font-family: monospace; 
-    /*text-shadow: -2px -2px 0 skyblue; */
+    color: white;
+}
+
+a, a:visited {
+    color: gray; 
+    font-weight: bold; 
 }
 
 footer {
     font-style: italic;
-    font-size: 12px; 
+    font-size: 14px; 
     padding: 10px; 
+}
+
+#wrapper {
+    width: 50%;
+    margin: auto;
 }
