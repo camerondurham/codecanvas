@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/exec"
+	"syscall"
 	"testing"
 
 	"github.com/runner-x/runner-x/engine/coderunner"
@@ -79,4 +81,32 @@ func Test_runHandler(t *testing.T) {
 			// TODO: better assertions on response body
 		})
 	}
+}
+
+func Test_server_startup(t *testing.T) {
+	cmd := exec.Command("go", []string{"run", "main.go"}...)
+
+	fmt.Printf("starting server")
+	cmd.Start()
+
+	done := make(chan struct{})
+	go func() {
+		err := cmd.Wait()
+		fmt.Printf("command started waiting")
+		status := cmd.ProcessState.Sys().(syscall.WaitStatus)
+		exitStatus := status.ExitStatus()
+		signaled := status.Signaled()
+		signal := status.Signal()
+		fmt.Println("Error:", err)
+		if signaled {
+			fmt.Println("Signal:", signal)
+		} else {
+			fmt.Println("Status:", exitStatus)
+		}
+		close(done)
+	}()
+
+	cmd.Process.Kill()
+	<-done
+	fmt.Printf("finished calling and killed process")
 }
