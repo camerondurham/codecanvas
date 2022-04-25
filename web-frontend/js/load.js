@@ -7,6 +7,7 @@ var codeMirror = CodeMirror.fromTextArea(document.getElementById("code"), {
 });
 
 codeMirror.setValue("def main():\n\tprint('Hello, World!')\n\nif __name__ == '__main__':\n\tmain()");
+selectTheme();
 
 var langs;
 langRequest()
