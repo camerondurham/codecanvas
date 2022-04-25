@@ -129,12 +129,27 @@ func CreateNewRouter() *chi.Mux {
 		AllowedOrigins: []string{"https://*", "http://*"},
 		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token", "X-Requested-With"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: false,
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
 	}))
 	return r
+}
+
+func setCORSOptionHandler(r *chi.Mux, paths []string) {
+	for _, v := range paths {
+		r.Options(v, optionHandler)
+	}
+}
+
+// try to prevent
+//   has been blocked by CORS policy:
+//   Response to preflight request doesn’t pass access control check:
+//   It does not have HTTP ok status.
+
+func optionHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
 }
 
 func main() {
@@ -143,6 +158,7 @@ func main() {
 
 	r.Get("/api/v1/languages", languagesHandler)
 	r.Post("/api/v1/run", runHandler)
+	setCORSOptionHandler(r, []string{"/api/v1/languages", "/api/v1/run"})
 
 	err := http.ListenAndServe(API_PORT, r)
 	if err != nil {
