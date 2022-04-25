@@ -1,6 +1,6 @@
 services:
-  backend:
-    build: 
+  server:
+    build:
       dockerfile: docker/server-debian/Dockerfile
       context: ../../
     ports:
@@ -9,3 +9,18 @@ services:
       mode: replicated
       replicas: 1
       endpoint_mode: dnsrr
+    networks:
+      - backend
+  web-frontend:
+    build:
+      dockerfile: docker/frontend/Dockerfile
+      context: ../../
+    ports:
+      - 8088:8043
+    networks:
+      - backend
+
+networks:
+  backend:
+    name: backend
+

@@ -83,6 +83,16 @@ func Test_runHandler(t *testing.T) {
 	}
 }
 
+func Test_optionHandler(t *testing.T) {
+	w := httptest.NewRecorder()
+	optionHandler(w, &http.Request{})
+
+	resp := w.Result()
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Expected status OK, got = %v", resp.StatusCode)
+	}
+}
+
 // TODO: make this actually query languages endpoint
 func Test_server_startup(t *testing.T) {
 	cmd := exec.Command("go", []string{"run", "main.go"}...)
