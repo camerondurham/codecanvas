@@ -1,5 +1,5 @@
 var curr_lang;
-let url = "http://localhost:10100/api/v1/";
+let url = "https://runner.fly.dev:10100/api/v1/";
 let run_endpoint = "run";
 let lang_endpoint = "languages";
 
@@ -17,6 +17,7 @@ function runRequest() {
         }
         let xhr = new XMLHttpRequest(); 
         xhr.open("POST", url + run_endpoint);
+        xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.onload = function() {
             if (this.status >= 200 && this.status < 400) {
                 resolve(xhr.response);
