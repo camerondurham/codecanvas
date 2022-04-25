@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"testing"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/runner-x/runner-x/engine/coderunner"
 	"github.com/runner-x/runner-x/server/api"
 )
@@ -133,4 +134,10 @@ func Test_CreateNewRouter(t *testing.T) {
 	}
 
 	// TODO: find out if it's possible to actually assert on router state for better testing
+}
+
+func Test_setCORSOptionHandler(t *testing.T) {
+	r := chi.NewMux()
+	// trivial non-test for coverage for now, just make sure the function API works
+	setCORSOptionHandler(r, []string{"/test/path1", "/test/path2"})
 }

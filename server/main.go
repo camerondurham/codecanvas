@@ -137,6 +137,12 @@ func CreateNewRouter() *chi.Mux {
 	return r
 }
 
+func setCORSOptionHandler(r *chi.Mux, paths []string) {
+	for _, v := range paths {
+		r.Options(v, optionHandler)
+	}
+}
+
 // try to prevent
 //   has been blocked by CORS policy:
 //   Response to preflight request doesn’t pass access control check:
@@ -152,8 +158,7 @@ func main() {
 
 	r.Get("/api/v1/languages", languagesHandler)
 	r.Post("/api/v1/run", runHandler)
-	r.Options("/api/v1/run", optionHandler)
-	r.Options("/api/v1/languages", optionHandler)
+	setCORSOptionHandler(r, []string{"/api/v1/languages", "/api/v1/run"})
 
 	err := http.ListenAndServe(API_PORT, r)
 	if err != nil {
