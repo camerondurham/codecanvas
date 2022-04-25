@@ -1,5 +1,5 @@
 var curr_lang;
-let url = "https://runner.fly.dev:10100/api/v1/";
+let url = "https://runner.fly.dev/api/v1/";
 let run_endpoint = "run";
 let lang_endpoint = "languages";
 
