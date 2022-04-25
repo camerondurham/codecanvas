@@ -83,11 +83,16 @@ func Test_runHandler(t *testing.T) {
 	}
 }
 
+// TODO: make this actually query languages endpoint
 func Test_server_startup(t *testing.T) {
 	cmd := exec.Command("go", []string{"run", "main.go"}...)
 
 	fmt.Printf("starting server")
-	cmd.Start()
+	err := cmd.Start()
+	if err != nil {
+		fmt.Printf("error starting server, skipping test")
+		t.Skip()
+	}
 
 	done := make(chan struct{})
 	go func() {
@@ -106,7 +111,16 @@ func Test_server_startup(t *testing.T) {
 		close(done)
 	}()
 
-	cmd.Process.Kill()
+	_ = cmd.Process.Kill()
 	<-done
 	fmt.Printf("finished calling and killed process")
+}
+
+func Test_CreateNewRouter(t *testing.T) {
+	r := CreateNewRouter()
+	if r == nil {
+		t.Fatalf("CreateNewRouter returned nil")
+	}
+
+	// TODO: find out if it's possible to actually assert on router state for better testing
 }

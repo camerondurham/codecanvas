@@ -106,7 +106,7 @@ func throwE400(w http.ResponseWriter, err string) {
 	}
 }
 
-func main() {
+func CreateNewRouter() *chi.Mux {
 	r := chi.NewRouter()
 
 	// use request ID to help with Recoverer and debugging logs
@@ -134,6 +134,12 @@ func main() {
 		AllowCredentials: false,
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
 	}))
+	return r
+}
+
+func main() {
+
+	r := CreateNewRouter()
 
 	r.Get("/api/v1/languages", languagesHandler)
 	r.Post("/api/v1/run", runHandler)
