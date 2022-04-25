@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	"github.com/runner-x/runner-x/engine/coderunner"
 	"github.com/runner-x/runner-x/server/api"
 )
@@ -105,7 +106,7 @@ func throwE400(w http.ResponseWriter, err string) {
 	}
 }
 
-func main() {
+func CreateNewRouter() *chi.Mux {
 	r := chi.NewRouter()
 
 	// use request ID to help with Recoverer and debugging logs
@@ -120,6 +121,25 @@ func main() {
 
 	// use middleware to set a timeout to avoid saturating the server
 	r.Use(middleware.Timeout(SERVER_REQUEST_TIMEOUT * time.Second))
+
+	// basic CORS configuration from https://go-chi.io/#/pages/middleware?id=cors
+	// TODO: make CORS policy more restrictive
+	r.Use(cors.Handler(cors.Options{
+		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
+		AllowedOrigins: []string{"https://*", "http://*"},
+		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: false,
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
+	}))
+	return r
+}
+
+func main() {
+
+	r := CreateNewRouter()
 
 	r.Get("/api/v1/languages", languagesHandler)
 	r.Post("/api/v1/run", runHandler)

@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/exec"
+	"syscall"
 	"testing"
 
 	"github.com/runner-x/runner-x/engine/coderunner"
@@ -79,4 +81,46 @@ func Test_runHandler(t *testing.T) {
 			// TODO: better assertions on response body
 		})
 	}
+}
+
+// TODO: make this actually query languages endpoint
+func Test_server_startup(t *testing.T) {
+	cmd := exec.Command("go", []string{"run", "main.go"}...)
+
+	fmt.Printf("starting server")
+	err := cmd.Start()
+	if err != nil {
+		fmt.Printf("error starting server, skipping test")
+		t.Skip()
+	}
+
+	done := make(chan struct{})
+	go func() {
+		err := cmd.Wait()
+		fmt.Printf("command started waiting")
+		status := cmd.ProcessState.Sys().(syscall.WaitStatus)
+		exitStatus := status.ExitStatus()
+		signaled := status.Signaled()
+		signal := status.Signal()
+		fmt.Println("Error:", err)
+		if signaled {
+			fmt.Println("Signal:", signal)
+		} else {
+			fmt.Println("Status:", exitStatus)
+		}
+		close(done)
+	}()
+
+	_ = cmd.Process.Kill()
+	<-done
+	fmt.Printf("finished calling and killed process")
+}
+
+func Test_CreateNewRouter(t *testing.T) {
+	r := CreateNewRouter()
+	if r == nil {
+		t.Fatalf("CreateNewRouter returned nil")
+	}
+
+	// TODO: find out if it's possible to actually assert on router state for better testing
 }
