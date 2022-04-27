@@ -1,4 +1,5 @@
 {
+  "homepage": "https://u64.cam/runner",
   "dependencies": {
     "codemirror": "^5.65.2"
   },
