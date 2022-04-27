@@ -5,7 +5,7 @@
   },
   "scripts": {
     "predeploy": "npm install",
-    "deploy": "gh-pages -d .",
+    "deploy": "npm install && gh-pages -d .",
     "start": "npm install && python3 -m http.server 80"
   },
   "devDependencies": {
