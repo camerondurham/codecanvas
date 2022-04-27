@@ -18,6 +18,10 @@ button {
     justify-content:space-between;
 }
 
+select {
+	font-family: monospace;
+}
+
 #wrapper {
     margin-top: 5%; 
 }
@@ -38,6 +42,26 @@ footer {
     font-style: italic;
     font-size: 14px; 
     padding: 10px; 
+}
+
+.output {
+    width: 60%;
+    margin-top: 10px; 
+}
+
+.field {
+    background-color: skyblue; 
+    border: 2px solid blue; 
+    border-radius: 10px; 
+    -moz-border-radius: 10px; 
+    color: black; 
+    margin: auto; 
+    text-align: left; 
+    padding: 5px; 
+}
+
+.box {
+    width: 90%; 
 }
 
 #wrapper {
