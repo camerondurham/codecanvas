@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "codemirror": "^5.65.2"
+  },
+  "scripts": {
+    "predeploy": "npm install",
+    "deploy": "gh-pages -d .",
+    "start": "npm install && python3 -m http.server 80"
+  },
+  "devDependencies": {
+    "gh-pages": "^3.2.3"
+  }
+}

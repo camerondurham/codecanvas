@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Runner-X Project</title>
+
+
+    <script src="node_modules/codemirror/lib/codemirror.js"></script>
+    <link rel="stylesheet" href="node_modules/codemirror/lib/codemirror.css">
+    <link rel="stylesheet" href="style/main.css">
+    <script src="node_modules/codemirror/mode/javascript/javascript.js"></script>
+    <script src="node_modules/codemirror/mode/python/python.js"></script>
+
+</head>
+
+<body>
+    <div id="wrapper">
+        <h1><b><i>Runner-X</i></b></h1><button class="lang-btn" onclick="langCall()">Languages!</button>
+        <textarea id='code'></textarea>
+        
+        <button id="submit-btn" onclick=runCall()>Submit</button>
+        <footer>
+            Frontend for the Runner-X Project. <a href="https://github.com/camerondurham/runner">See the code</a>
+        </footer>
+    </div>
+</body>
+
+<script src="js/load.js"></script>
+<script src="js/api-calls.js"></script>
+</html>
