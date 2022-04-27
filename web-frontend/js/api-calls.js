@@ -42,10 +42,14 @@ function runRequest() {
 async function runCall() {
     await runRequest()
         .then(function(result) {
-            console.log(JSON.parse(result));
+            let out = JSON.parse(result);
+            document.getElementById("stdout-field").innerHTML = "Stdout: " + out["stdout"].replace(/\n/g, '<br>');
+            document.getElementById("stderr-field").innerHTML = "Stderr: " + out["stderr"];
+            document.getElementById("err-field").innerHTML = "Error: " + out["error"];
         })
         .catch(function(err) {
             console.log(err);
+            document.getElementById("output-field").textContent = "Error: " + err; 
         }); 
 }
 
