@@ -27,6 +27,11 @@ module.exports = {
   devServer: {
     static: "./dist",
   },
+  optimization: {
+    splitChunks: {
+      chunks: 'all',
+    },
+  },
   plugins: [
     // this plugin will use the index.html to create the final webpage with
     // correct links to bundled versions of the custom js + imported node

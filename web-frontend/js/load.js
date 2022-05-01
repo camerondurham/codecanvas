@@ -27,23 +27,15 @@ import runCall from "./run-request";
 import codeMirror from "./editor";
 import langRequest from "./langs-request";
 
-var codeMirror = CodeMirror.fromTextArea(document.getElementById("code"), {
-    mode: "python",
-    autofocus: true,
-    lineNumbers: true,
-    indentWithTabs: true,
-    smartIndent: false,
-});
+var langs;
 
 codeMirror.setValue("def main():\n\tprint('Hello, World!')\n\nif __name__ == '__main__':\n\tmain()");
-selectTheme();
 
 var langs;
 langRequest()
     .then(function (result) {
         var res = JSON.parse(result);
         langs = res.languages;
-        //langs = ['debug1', 'debug2', 'debug3'];
     })
     .catch(function (err) {
         langs = ['Error!'];
@@ -69,6 +61,12 @@ function updateLanguage() {
   const selector = document.getElementById("lang-select");
   return selector.options[selector.selectedIndex].innerText;
 }
+
+const submitBtn = document.getElementById("submit-btn");
+submitBtn.addEventListener("click", runCall);
+
+const selector = document.getElementById("theme-select");
+selector.addEventListener("change", selectTheme);
 
 // only single export per .js file allowed
 // exporting this since we will need it to retrieve the current language from the document/DOM
