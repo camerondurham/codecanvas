@@ -26,40 +26,37 @@ import "../style/main.css";
 import runCall from "./run-request";
 import codeMirror from "./editor";
 import langRequest from "./langs-request";
+import runnerConfig from "./config-utils";
 
 var langs;
 
-codeMirror.setValue("def main():\n\tprint('Hello, World!')\n\nif __name__ == '__main__':\n\tmain()");
+codeMirror.setValue(
+  "def main():\n\tprint('Hello, World!')\n\nif __name__ == '__main__':\n\tmain()"
+);
 
-var langs;
 langRequest()
-    .then(function (result) {
-        var res = JSON.parse(result);
-        langs = res.languages;
-    })
-    .catch(function (err) {
-        langs = ['Error!'];
-        console.log("Error when fetching languages: " + err);
-    })
-    .finally(function () {
-        var lang_menu = document.getElementById('lang-select');
-        for (const lang of langs) {
-            var child = document.createElement('option');
-            child.innerText = lang;
-            lang_menu.appendChild(child);
-        }
-        updateLanguage();
-    });
+  .then(function (result) {
+    var res = JSON.parse(result);
+    langs = res.languages;
+  })
+  .catch(function (err) {
+    langs = ["Error!"];
+    console.log("Error when fetching languages: " + err);
+  })
+  .finally(function () {
+    var lang_menu = document.getElementById("lang-select");
+    for (const lang of langs) {
+      var child = document.createElement("option");
+      child.innerText = lang;
+      lang_menu.appendChild(child);
+    }
+    runnerConfig.getSelectedLanguage();
+  });
 
 function selectTheme() {
-    const select = document.getElementById('theme-select');
-    var theme = select.options[select.selectedIndex].textContent;
-    codeMirror.setOption('theme', theme);
-}
-
-function updateLanguage() {
-  const selector = document.getElementById("lang-select");
-  return selector.options[selector.selectedIndex].innerText;
+  const select = document.getElementById("theme-select");
+  var theme = select.options[select.selectedIndex].textContent;
+  codeMirror.setOption("theme", theme);
 }
 
 const submitBtn = document.getElementById("submit-btn");
@@ -67,7 +64,3 @@ submitBtn.addEventListener("click", runCall);
 
 const selector = document.getElementById("theme-select");
 selector.addEventListener("change", selectTheme);
-
-// only single export per .js file allowed
-// exporting this since we will need it to retrieve the current language from the document/DOM
-export default updateLanguage;

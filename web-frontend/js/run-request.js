@@ -1,18 +1,16 @@
 import codeMirror from "./editor";
-import updateLanguage from "./load";
+import runnerConfig from "./config-utils";
 import "codemirror/lib/codemirror.css";
-
-const url = "https://runner.fly.dev/api/v1/";
-const run_endpoint = "run";
 
 function runRequest() {
   return new Promise(function (resolve, reject) {
     var req = {
       source: codeMirror.getValue(),
-      language: updateLanguage(),
+      language: runnerConfig.getSelectedLanguage(),
     };
     let xhr = new XMLHttpRequest();
-    xhr.open("POST", url + run_endpoint);
+    const fullUrl = runnerConfig.url + runnerConfig.runEndpoint;
+    xhr.open("POST", fullUrl);
     xhr.setRequestHeader("Content-Type", "application/json");
     xhr.onload = function () {
       if (this.status >= 200 && this.status < 400) {

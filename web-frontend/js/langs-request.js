@@ -1,11 +1,11 @@
-// TODO: make this a configurable export from load.js
-const url = "https://runner.fly.dev/api/v1/";
-const lang_endpoint = "languages";
+import runnerConfig from "./config-utils";
 
 function langRequest() {
   return new Promise(function (resolve, reject) {
     let xhr = new XMLHttpRequest();
-    xhr.open("GET", url + lang_endpoint);
+    const fullUrl = runnerConfig.url + runnerConfig.langEndpoint;
+    console.log("FULL URL LANG: ", fullUrl);
+    xhr.open("GET", fullUrl);
     xhr.onload = function () {
       if (this.status >= 200 && this.status < 400) {
         resolve(xhr.response);

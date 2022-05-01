@@ -5,7 +5,7 @@ module.exports = {
   mode: "development",
   entry: {
     // Splitting code into separate modules with diff dependencies depending on
-    // shared imports to help with sharing imports. 
+    // shared imports to help with sharing imports.
     // Docs: https://webpack.js.org/guides/code-splitting/
     index: {
       import: "./js/load.js",
@@ -29,7 +29,7 @@ module.exports = {
   },
   optimization: {
     splitChunks: {
-      chunks: 'all',
+      chunks: "all",
     },
   },
   plugins: [

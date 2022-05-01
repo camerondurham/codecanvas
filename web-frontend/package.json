@@ -1,7 +1,7 @@
 {
   "name": "runner-web-frontend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Frontend for USC 401X runner project",
   "private": true,
   "dependencies": {
     "codemirror": "^5.65.2",

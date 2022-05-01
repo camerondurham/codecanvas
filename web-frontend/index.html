@@ -10,7 +10,9 @@
 
 <body>
     <div id="wrapper">
-        <h1><b><i>Runner-X</i></b></h1>
+        <h1>
+            <%= htmlWebpackPlugin.options.title %>
+        </h1>
         <div class="selectors">
             <select id="lang-select">langs</select>
             <select id="theme-select">
@@ -42,8 +44,10 @@
             <div class="field box" id="err-field">Error: </div>
         </div>
         <footer>
-            Frontend for the Runner-X Project. <a href="https://github.com/camerondurham/runner">See the code</a>
+            frontend for the <%= htmlWebpackPlugin.options.title %> project. <a
+                    href="https://github.com/camerondurham/runner">See the code</a>
         </footer>
     </div>
 </body>
+
 </html>
