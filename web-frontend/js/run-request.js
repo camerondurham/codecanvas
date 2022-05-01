@@ -1,3 +1,6 @@
+import codeMirror from "./editor";
+import updateLanguage from "./load"
+import 'codemirror/lib/codemirror.css';
 
 function runRequest() {
     return new Promise(function(resolve, reject) {
@@ -42,3 +45,5 @@ async function runCall() {
             document.getElementById("output-field").textContent = "Error: " + err; 
         }); 
 }
+
+export default runCall;

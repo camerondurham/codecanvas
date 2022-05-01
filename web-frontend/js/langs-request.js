@@ -1,8 +1,3 @@
-function updateLanguage() {
-  var selector = document.getElementById("lang-select");
-  return selector.options[selector.selectedIndex].innerText;
-}
-
 function langRequest() {
     return new Promise(function(resolve, reject) {
         let xhr = new XMLHttpRequest();

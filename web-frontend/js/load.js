@@ -1,3 +1,32 @@
+import "codemirror/lib/codemirror.css";
+import "codemirror/theme/material.css";
+import "codemirror/theme/neat.css";
+import "codemirror/mode/xml/xml";
+import "codemirror/mode/javascript/javascript";
+import "codemirror/mode/python/python";
+
+// other themes
+import "codemirror/theme/3024-day.css";
+import "codemirror/theme/3024-night.css";
+import "codemirror/theme/blackboard.css";
+import "codemirror/theme/darcula.css";
+import "codemirror/theme/dracula.css";
+import "codemirror/theme/eclipse.css";
+import "codemirror/theme/elegant.css";
+import "codemirror/theme/erlang-dark.css";
+import "codemirror/theme/idea.css";
+import "codemirror/theme/isotope.css";
+import "codemirror/theme/midnight.css";
+import "codemirror/theme/lucario.css";
+import "codemirror/theme/material.css";
+import "codemirror/theme/monokai.css";
+import "codemirror/theme/solarized.css";
+
+import "../style/main.css";
+import runCall from "./run-request";
+import codeMirror from "./editor";
+import langRequest from "./langs-request";
+
 var codeMirror = CodeMirror.fromTextArea(document.getElementById("code"), {
     mode: "python",
     autofocus: true,
@@ -31,7 +60,16 @@ langRequest()
     });
 
 function selectTheme() {
-    var select = document.getElementById('theme-select');
+    const select = document.getElementById('theme-select');
     var theme = select.options[select.selectedIndex].textContent;
     codeMirror.setOption('theme', theme);
 }
+
+function updateLanguage() {
+  const selector = document.getElementById("lang-select");
+  return selector.options[selector.selectedIndex].innerText;
+}
+
+// only single export per .js file allowed
+// exporting this since we will need it to retrieve the current language from the document/DOM
+export default updateLanguage;
