@@ -3,29 +3,47 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>Runner-X Project</title>
-
-
-    <script src="node_modules/codemirror/lib/codemirror.js"></script>
-    <link rel="stylesheet" href="node_modules/codemirror/lib/codemirror.css">
-    <link rel="stylesheet" href="style/main.css">
-    <script src="node_modules/codemirror/mode/javascript/javascript.js"></script>
-    <script src="node_modules/codemirror/mode/python/python.js"></script>
-
-</head>
+    <title>
+        runner
+    </title>
+<script defer src="vendors-node_modules_codemirror_mode_javascript_javascript_js-node_modules_codemirror_mode_py-a44da3.8fee0599049f88b903b6.bundle.js"></script><script defer src="index.9c17c961d64d040fec79.bundle.js"></script><script defer src="langs.ec16a453cdd11c0dedde.bundle.js"></script><script defer src="run.4f7b983f605f40d8b5b3.bundle.js"></script><script defer src="vendors-node_modules_codemirror_lib_codemirror_js.6a2c6eb6df8ac9645b12.bundle.js"></script><script defer src="editor.d7327dec6b77ad116c2d.bundle.js"></script></head>
 
 <body>
     <div id="wrapper">
-        <h1><b><i>Runner-X</i></b></h1><button class="lang-btn" onclick="langCall()">Languages!</button>
-        <textarea id='code'></textarea>
-        
-        <button id="submit-btn" onclick=runCall()>Submit</button>
+        <h1><b><i>Runner-X</i></b></h1>
+        <div class="selectors">
+            <select id="lang-select">langs</select>
+            <select id="theme-select">
+                <option selected>default</option>
+                <option>3024-day</option>
+                <option>3024-night</option>
+                <option>blackboard</option>
+                <option>darcula</option>
+                <option>dracula</option>
+                <option>eclipse</option>
+                <option>elegant</option>
+                <option>erlang-dark</option>
+                <option>idea</option>
+                <option>isotope</option>
+                <option>lucario</option>
+                <option>material</option>
+                <option>monokai</option>
+                <option>solarized</option>
+            </select>
+        </div>
+        <p>
+            <textarea id='code'></textarea>
+        </p>
+
+        <button id="submit-btn">Submit</button>
+        <div class="field output">
+            <div class="field box" id="stdout-field">Stdout: </div>
+            <div class="field box" id="stderr-field">Stderr: </div>
+            <div class="field box" id="err-field">Error: </div>
+        </div>
         <footer>
             Frontend for the Runner-X Project. <a href="https://github.com/camerondurham/runner">See the code</a>
         </footer>
     </div>
 </body>
-
-<script src="js/load.js"></script>
-<script src="js/api-calls.js"></script>
 </html>
