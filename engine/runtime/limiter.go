@@ -13,6 +13,23 @@ import (
 	"runtime"
 )
 
+// Limiter interface applies resource limits in a Linux environment
+type Limiter interface {
+	ApplyLimits(rlimits *ResourceLimits) error
+}
+
+type ResourceLimits struct {
+	// TODO: merge or reuse limits with types from #36 PRs
+	NumProcesses *unix.Rlimit
+	MaxFileSize  *unix.Rlimit
+}
+
+// OnSelf is used for setting Linux resource limits
+type OnSelf struct{}
+
+// NilLimiter has no effect and is used for testing
+type NilLimiter struct{}
+
 func NewLimiterOnSelf() *OnSelf {
 	return &OnSelf{}
 }

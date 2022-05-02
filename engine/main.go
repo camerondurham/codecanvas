@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/runner-x/runner-x/engine/runtime"
 
-	codehandler "github.com/runner-x/runner-x/engine/coderunner"
+	codehandler "github.com/runner-x/runner-x/engine/coderunner/v1"
 )
 
 func printOutput(r *codehandler.RunnerOutput, err error) {

@@ -14,7 +14,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
-	"github.com/runner-x/runner-x/engine/coderunner"
+	coderunner "github.com/runner-x/runner-x/engine/coderunner/v1"
 	"github.com/runner-x/runner-x/server/api"
 )
 
@@ -25,7 +25,7 @@ const (
 
 func languagesHandler(w http.ResponseWriter, r *http.Request) {
 	langs := api.LanguagesResponse{
-		Languages: coderunner.Languages,
+		Languages: coderunner.SupportedLanguages,
 	}
 	err := json.NewEncoder(w).Encode(langs)
 	if err != nil {

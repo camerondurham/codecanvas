@@ -13,7 +13,7 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/runner-x/runner-x/engine/coderunner"
+	coderunner "github.com/runner-x/runner-x/engine/coderunner/v1"
 	"github.com/runner-x/runner-x/server/api"
 )
 
