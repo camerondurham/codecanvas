@@ -6,7 +6,6 @@ import (
 	"os/exec"
 	"reflect"
 	"testing"
-	"time"
 )
 
 func TestNilProvider_Provide(t *testing.T) {
@@ -14,7 +13,7 @@ func TestNilProvider_Provide(t *testing.T) {
 		ctx      *context.Context
 		runprops *RunProps
 	}
-	oneSecTimeout, _ := context.WithTimeout(context.Background(), 1*time.Second)
+	testContext := context.Background()
 	tests := []struct {
 		name string
 		args args
@@ -23,7 +22,7 @@ func TestNilProvider_Provide(t *testing.T) {
 		{
 			name: "Nil Provider Test",
 			args: args{
-				ctx: &oneSecTimeout,
+				ctx: &testContext,
 				runprops: &RunProps{
 					RunArgs: []string{"echo", "hello"},
 					Timeout: 1,
@@ -32,7 +31,7 @@ func TestNilProvider_Provide(t *testing.T) {
 					Nprocs:  2,
 				},
 			},
-			want: exec.CommandContext(oneSecTimeout, "echo", []string{"hello"}...),
+			want: exec.CommandContext(testContext, "echo", []string{"hello"}...),
 		},
 	}
 	for _, tt := range tests {
@@ -50,7 +49,7 @@ func TestProcessorArgsProvider_Provide(t *testing.T) {
 		ctx      *context.Context
 		runprops *RunProps
 	}
-	oneSecTimeout, _ := context.WithTimeout(context.Background(), 1*time.Second)
+	testContext := context.Background()
 	tests := []struct {
 		name string
 		args args
@@ -59,7 +58,7 @@ func TestProcessorArgsProvider_Provide(t *testing.T) {
 		{
 			name: "ProcessorArgsProvider Placeholder",
 			args: args{
-				ctx: &oneSecTimeout,
+				ctx: &testContext,
 				runprops: &RunProps{
 					RunArgs: []string{"echo", "hello"},
 					Timeout: 1,
@@ -68,7 +67,7 @@ func TestProcessorArgsProvider_Provide(t *testing.T) {
 					Nprocs:  2,
 				},
 			},
-			want: exec.CommandContext(oneSecTimeout, "echo", []string{"hello"}...),
+			want: exec.CommandContext(testContext, "echo", []string{"hello"}...),
 		},
 		// TODO: Add test cases.
 	}
