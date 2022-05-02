@@ -13,7 +13,7 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/runner-x/runner-x/engine/coderunner"
+	coderunner "github.com/runner-x/runner-x/engine/coderunner/v1"
 	"github.com/runner-x/runner-x/server/api"
 )
 
@@ -82,6 +82,18 @@ func Test_runHandler(t *testing.T) {
 			// TODO: better assertions on response body
 		})
 	}
+}
+
+func Test_languagesHandler(t *testing.T) {
+	// https://pkg.go.dev/net/http/httptest#ResponseRecorder
+	w := httptest.NewRecorder()
+	req := &http.Request{}
+	languagesHandler(w, req)
+	resp := w.Result()
+	if resp.StatusCode != 200 {
+		t.Errorf("Unexpected status code: %v", resp.StatusCode)
+	}
+	// TODO: assert on response body contents
 }
 
 func Test_optionHandler(t *testing.T) {

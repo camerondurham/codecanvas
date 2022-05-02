@@ -1,6 +1,6 @@
 package api
 
-import "github.com/runner-x/runner-x/engine/coderunner"
+import coderunner "github.com/runner-x/runner-x/engine/coderunner/v1"
 
 // A LanguagesResponse contains the languages users are allowed to run on the server
 type LanguagesResponse struct {

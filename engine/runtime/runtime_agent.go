@@ -13,14 +13,24 @@ import (
 )
 
 const (
-	DefaultSoftNproc   = 20
-	DefaultHardNproc   = 50
-	DefaultSoftFsize   = 1000
-	DefaultHardFsize   = 2500
+	DefaultNproc       = 20
+	DefaultFsize       = 1000
 	DefaultUid         = 1234
 	DefaultGid         = 1234
 	ProcessCommandName = "process"
 )
+
+// RuntimeAgent struct stores metadata to execute user code with restricted host resources
+type RuntimeAgent struct {
+	Id       string
+	Provider ArgProvider
+	Uid      int
+	Gid      int
+
+	// rwmutex restricts access to running code with the RuntimeAgent
+	rwmutex sync.RWMutex
+	state   State
+}
 
 func NewTimeoutRuntime(id string, provider ArgProvider) *RuntimeAgent {
 	return &RuntimeAgent{Id: id, Provider: provider, Uid: DefaultUid, Gid: DefaultGid}
@@ -49,6 +59,7 @@ func (r *RuntimeAgent) runCmd(props *RunProps) (*RunOutput, error) {
 
 	var cmd *exec.Cmd
 
+	// TODO: args provider logic should be abstracted into controller
 	numArgs := len(props.RunArgs)
 	if numArgs < 1 {
 		return nil, nil

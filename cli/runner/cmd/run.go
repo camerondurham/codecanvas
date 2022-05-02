@@ -9,7 +9,7 @@ import (
 	"os"
 
 	"github.com/runner-x/runner-x/cli/runner/client"
-	"github.com/runner-x/runner-x/engine/coderunner"
+	coderunner "github.com/runner-x/runner-x/engine/coderunner/v1"
 	"github.com/runner-x/runner-x/server/api"
 	"github.com/spf13/cobra"
 )

@@ -8,6 +8,16 @@ import (
 	"github.com/runner-x/runner-x/util/print"
 )
 
+type ArgProvider interface {
+	Provide(ctx *context.Context, runprops *RunProps) *exec.Cmd
+}
+
+// ProcessorArgsProvider wraps commands to pass to the process CLI
+type ProcessorArgsProvider struct{}
+
+// NilProvider returns the args provided
+type NilProvider struct{}
+
 func (p *ProcessorArgsProvider) Provide(ctx *context.Context, runprops *RunProps) *exec.Cmd {
 	var args []string
 
@@ -16,10 +26,10 @@ func (p *ProcessorArgsProvider) Provide(ctx *context.Context, runprops *RunProps
 	}
 
 	args = []string{
-		"-nprocs=" + strconv.Itoa(DefaultSoftNproc),
+		"-nprocs=" + strconv.Itoa(DefaultNproc),
 		"-uid=" + strconv.Itoa(DefaultUid),
 		"-gid=" + strconv.Itoa(DefaultGid),
-		"-fsize=" + strconv.Itoa(DefaultSoftFsize),
+		"-fsize=" + strconv.Itoa(DefaultFsize),
 		"-timeout=" + strconv.Itoa(runprops.Timeout),
 		"-cmd=" + runprops.RunArgs[0]}
 
