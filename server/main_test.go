@@ -84,6 +84,18 @@ func Test_runHandler(t *testing.T) {
 	}
 }
 
+func Test_languagesHandler(t *testing.T) {
+	// https://pkg.go.dev/net/http/httptest#ResponseRecorder
+	w := httptest.NewRecorder()
+	req := &http.Request{}
+	languagesHandler(w, req)
+	resp := w.Result()
+	if resp.StatusCode != 200 {
+		t.Errorf("Unexpected status code: %v", resp.StatusCode)
+	}
+	// TODO: assert on response body contents
+}
+
 func Test_optionHandler(t *testing.T) {
 	w := httptest.NewRecorder()
 	optionHandler(w, &http.Request{})
