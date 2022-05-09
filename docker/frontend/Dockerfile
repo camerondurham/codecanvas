@@ -1,4 +1,4 @@
-FROM debian:buster-slim as builder
+FROM public.ecr.aws/debian/debian:buster-slim as builder
 WORKDIR /frontend
 COPY ./web-frontend .
 RUN apt-get update -y \

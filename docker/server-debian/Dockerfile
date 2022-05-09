@@ -1,10 +1,10 @@
-FROM golang:1.17.7-buster as builder
+FROM public.ecr.aws/bitnami/golang:1.17.9 as builder
 WORKDIR /runner
 COPY . .
 RUN go build -v -o /runner/process /runner/engine/process/ \
  && go build -v -o /runner/runner-server /runner/server/
 
-FROM golang:1.17.7-buster
+FROM public.ecr.aws/bitnami/golang:1.17.9
 
 WORKDIR /runner
 
@@ -15,4 +15,5 @@ COPY docker/server-debian/entrypoint.sh /runner/entrypoint.sh
 RUN apt-get update \
     && apt-get install -y python3
 EXPOSE 10100
+ENV NUM_RUNNERS=${NUM_RUNNERS:-100}
 ENTRYPOINT ["/runner/entrypoint.sh", "server"]

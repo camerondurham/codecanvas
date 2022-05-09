@@ -14,15 +14,7 @@ all:
 	@echo ""
 	@echo "  gen-mocks: create/recreate mocks for unit testing"
 	@echo ""
-	@echo "  run-api: run the API server"
-	@echo ""
-	@echo "  run-mock: run the mock API server"
-	@echo ""
-	@echo "  kill-api: kill the API server"
-	@echo ""
-	@echo "  test: run all unit tests in the repo"
-	@echo ""
-	@echo "  cover: run all tests in repo with coverage"
+	@echo "  test: run all tests in repo with coverage"
 	@echo ""
 	@echo "  fmt: run go fmt on the repository"
 	@echo ""
@@ -41,23 +33,12 @@ all:
 	@echo "  dkr-stop-server: stop and remove server container"
 	@echo ""
 
-dkr-build-mock:
-	docker build -t ${MOCK_SERVER_NAME}:${VERSION} -f docker/mock-server/Dockerfile .
-
 dkr-mock: dkr-build-mock
+	docker build -t ${MOCK_SERVER_NAME}:${VERSION} -f docker/mock-server/Dockerfile .
 	docker run -d -p 10100:10100 --name ${MOCK_SERVER_NAME} ${MOCK_SERVER_NAME}:${VERSION}
 
-# retire this command since we will likely stick with debian server
-dkr-build-alpine:
-	docker build -t ${SERVER_NAME}:${VERSION} -f docker/server-alpine/Dockerfile .
-
-dkr-build-server:
+dkr-server:
 	docker build -t ${SERVER_NAME}:${VERSION} -f docker/server-debian/Dockerfile .
-
-dkr-build-dev:
-	docker build -t ${DEV_NAME}:${VERSION} -f .devcontainer/Dockerfile .
-
-dkr-server: dkr-build-server
 	docker run -d -p 10100:10100 -e DEBUG=1 --name ${SERVER_NAME} ${SERVER_NAME}:${VERSION}
 
 dkr-stop-mock:
@@ -74,30 +55,12 @@ dkr-stop-dev:
 gen-mocks:
 	mockgen -source ./engine/runtime/types.go -package=mocks -destination ./engine/runtime/mocks/Runtime.go Runtime
 
-run-api:
-	go run server/main.go
-
-run-api-bg:
-	go run server/main.go &
-
-run-mock:
-	go run server/mock-server/main.go
-
-run-mock-bg:
-	go run server/mock-server/main.go &
-
-kill-api:
-	./hack/kill_server.sh
-
 build:
 	mkdir -p build
 	go build -v -o build/runner-server ./server/
 	go build -v -o build/process ./engine/process/
 
 test: build
-	PATH=${PATH}:${PWD}/build go test ./...
-
-cover: build
 	PATH=${PATH}:${PWD}/build go test -covermode=atomic ./...
 
 fmt:
@@ -105,9 +68,6 @@ fmt:
 
 clean:
 	rm -rf build
-
-lint:
-	docker run --rm -v $(shell pwd):/app -w /app golangci/golangci-lint:v1.45.2 golangci-lint run  ./... -v
 
 install-hooks:
 	@echo "installing git hooks"
