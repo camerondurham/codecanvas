@@ -31,6 +31,15 @@ func TestWorkdirWriter_Write(t *testing.T) {
 		wantErr bool
 	}{
 		{
+			name: "Nil Blob Shouldn't Panic",
+			fields: fields{
+				Workdir: "",
+				Perm:    0666,
+			},
+			args:    args{blob: nil},
+			wantErr: false,
+		},
+		{
 			name: "Simple Write Nothing",
 			fields: fields{
 				Workdir: "",
@@ -65,10 +74,12 @@ func TestWorkdirWriter_Write(t *testing.T) {
 			if err := ww.Write(tt.args.blob); (err != nil) != tt.wantErr {
 				t.Errorf("Write() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			if len(ww.written) != 1 {
+			if tt.args.blob != nil && len(ww.written) != 1 {
 				t.Errorf("Write() expected to add filename to ww.written")
 			}
-			err = os.RemoveAll(filepath.Join(tt.fields.Workdir, tt.args.blob.filename))
+			if tt.args.blob != nil {
+				err = os.RemoveAll(filepath.Join(tt.fields.Workdir, tt.args.blob.filename))
+			}
 		})
 	}
 }
@@ -118,6 +129,17 @@ func TestWorkdirWriter_Remove(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "Remove Non Existent Path Test",
+			fields: fields{
+				workdir: "/tmp",
+				perm:    0644,
+				written: []string{"/bad/path"},
+			},
+			// if path does not exist, it will not throw any error
+			// RemoveAll only throws error PathError if there is (I think) bad permissions or symlink??
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -127,11 +149,13 @@ func TestWorkdirWriter_Remove(t *testing.T) {
 				written: tt.fields.written,
 			}
 			for _, f := range tt.fields.written {
-				err := ww.Write(&Blob{
-					data:     []byte("blob"),
-					filename: f,
-				})
-				HandleTestErr(err)
+				if f != "/bad/path" {
+					err := ww.Write(&Blob{
+						data:     []byte("blob"),
+						filename: f,
+					})
+					HandleTestErr(err)
+				}
 			}
 			if err := ww.Remove(); (err != nil) != tt.wantErr {
 				t.Errorf("Remove() error = %v, wantErr %v", err, tt.wantErr)

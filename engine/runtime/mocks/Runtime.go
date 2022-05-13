@@ -119,17 +119,3 @@ func (mr *MockRuntimeMockRecorder) Workdir() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Workdir", reflect.TypeOf((*MockRuntime)(nil).Workdir))
 }
-
-// writeToWorkdir mocks base method.
-func (m *MockRuntime) writeToWorkdir(props *runtime.FileProps) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "writeToWorkdir", props)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// writeToWorkdir indicates an expected call of writeToWorkdir.
-func (mr *MockRuntimeMockRecorder) writeToWorkdir(props interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "writeToWorkdir", reflect.TypeOf((*MockRuntime)(nil).writeToWorkdir), props)
-}
