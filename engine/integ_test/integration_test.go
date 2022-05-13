@@ -57,7 +57,6 @@ func runSafeCmdAndPrintResult(ac *ctrl.AsyncController, props *ctrl.Props, wg *s
 }
 
 func runSafeCmdAndAssertControllerError(ac *ctrl.AsyncController, props *ctrl.Props, expect *ctrl.CtrlRunOutput, t *testing.T) {
-	// TODO: fix this. this is un-believably dumb and hacky to try to get around flaky tests
 	output := ac.SubmitRequest(props)
 	if output.ControllerErr != nil && expect.ControllerErr == nil {
 		t.Errorf("expected no controller error but got: %v", output.ControllerErr.Error())
