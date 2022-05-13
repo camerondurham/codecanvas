@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"errors"
+	mocks3 "github.com/runner-x/runner-x/engine/controller/writerremover/mocks"
 	"reflect"
 	"sync"
 	"testing"
@@ -94,6 +96,14 @@ func TestSubmitRequest(t *testing.T) {
 	happyCaseOutput := &runtime.RunOutput{
 		Stdout: "hello",
 		Stderr: "world",
+	}
+
+	preRunProps := &runtime.RunProps{
+		RunArgs: []string{"echo", "hello", "world"},
+		Timeout: 0,
+		Uid:     0,
+		Gid:     0,
+		Nprocs:  0,
 	}
 
 	tests := []struct {
@@ -228,7 +238,94 @@ func TestSubmitRequest(t *testing.T) {
 				CommandErr:    nil,
 			},
 		},
-	}
+		{
+			name: "Last runner is ready: write error",
+			runProps: &Props{
+				RunProps: &runtime.RunProps{},
+			},
+			mockInfo: []mockProps{
+				{
+					state:                  runtime.NotReady,
+					shouldBePickedAsRunner: false,
+				},
+				{
+					state:                  runtime.NotReady,
+					shouldBePickedAsRunner: false,
+				},
+				{
+					state:                  runtime.Ready,
+					shouldBePickedAsRunner: true,
+					returnOutput:           happyCaseOutput,
+					returnErr:              nil,
+					writeErr:               errors.New("some error"),
+				},
+			},
+			want: CtrlRunOutput{
+				ControllerErr: PreRunWriteError,
+				RunOutput:     nil,
+				CommandErr:    nil,
+			},
+		},
+		{
+			name: "Last runner is ready: post run write error",
+			runProps: &Props{
+				RunProps: &runtime.RunProps{},
+			},
+			mockInfo: []mockProps{
+				{
+					state:                  runtime.NotReady,
+					shouldBePickedAsRunner: false,
+				},
+				{
+					state:                  runtime.NotReady,
+					shouldBePickedAsRunner: false,
+				},
+				{
+					state:                  runtime.Ready,
+					shouldBePickedAsRunner: true,
+					returnOutput:           happyCaseOutput,
+					returnErr:              nil,
+					writeErr:               nil,
+					postRunRemoveErr:       errors.New("some error"),
+				},
+			},
+			want: CtrlRunOutput{
+				ControllerErr: PostRunPurgeError,
+				RunOutput:     happyCaseOutput,
+				CommandErr:    nil,
+			},
+		},
+		{
+			name: "Last runner is ready: pre run cmd error",
+			runProps: &Props{
+				PreRunProps: preRunProps,
+				RunProps:    &runtime.RunProps{},
+			},
+			mockInfo: []mockProps{
+				{
+					state:                  runtime.NotReady,
+					shouldBePickedAsRunner: false,
+				},
+				{
+					state:                  runtime.NotReady,
+					shouldBePickedAsRunner: false,
+				},
+				{
+					state:                  runtime.Ready,
+					shouldBePickedAsRunner: true,
+					returnOutput:           happyCaseOutput,
+					returnErr:              nil,
+					writeErr:               nil,
+					preRunErr:              errors.New("some error"),
+					preRunCmd:              preRunProps,
+				},
+			},
+			want: CtrlRunOutput{
+				ControllerErr: PreRunError,
+				RunOutput:     nil,
+				CommandErr:    nil,
+			},
+		}}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -252,6 +349,10 @@ type mockProps struct {
 	shouldBePickedAsRunner bool
 	returnOutput           *runtime.RunOutput
 	returnErr              error
+	writeErr               error
+	postRunRemoveErr       error
+	preRunErr              error
+	preRunCmd              *runtime.RunProps
 }
 
 func createMocksWithState(stateArray []mockProps, ctrl *gomock.Controller) *AsyncController {
@@ -268,13 +369,30 @@ func createMocksWithState(stateArray []mockProps, ctrl *gomock.Controller) *Asyn
 		runtimeMock.EXPECT().RuntimeUid().AnyTimes().Return(1234)
 		runtimeMock.EXPECT().RuntimeGid().AnyTimes().Return(1234)
 
+		if mockProp.preRunCmd != nil && mockProp.preRunErr != nil {
+			runtimeMock.EXPECT().SafeRunCmd(gomock.Eq(mockProp.preRunCmd)).Return(nil, mockProp.preRunErr)
+		}
+
 		if mockProp.shouldBePickedAsRunner {
 			runtimeMock.EXPECT().SafeRunCmd(gomock.Any()).MaxTimes(1).Return(mockProp.returnOutput, mockProp.returnErr)
+		}
+
+		writerRemoverMock := mocks3.NewMockBlobWriterRemover(ctrl)
+		if mockProp.writeErr != nil {
+			writerRemoverMock.EXPECT().Write(gomock.Any()).Return(mockProp.writeErr)
+		} else {
+			writerRemoverMock.EXPECT().Write(gomock.Any()).AnyTimes()
+		}
+
+		if mockProp.postRunRemoveErr != nil {
+			writerRemoverMock.EXPECT().Remove().Return(mockProp.postRunRemoveErr)
+		} else {
+			writerRemoverMock.EXPECT().Remove().MaxTimes(1)
 		}
 		agents[key] = &agentData{
 			rwmutex:       sync.RWMutex{},
 			agent:         runtimeMock,
-			writerRemover: NewWorkdirWriter("", 0644),
+			writerRemover: writerRemoverMock,
 		}
 	}
 

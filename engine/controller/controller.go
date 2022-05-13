@@ -2,6 +2,7 @@ package controller
 
 import (
 	"errors"
+	"github.com/runner-x/runner-x/engine/controller/writerremover"
 	print2 "github.com/runner-x/runner-x/util/print"
 	"path/filepath"
 	"strconv"
@@ -24,7 +25,7 @@ type CtrlRunOutput struct {
 
 // Props store the commands to run before and after the isolated run command
 type Props struct {
-	Data        *Blob
+	Data        *writerremover.Blob
 	PreRunProps *runtime.RunProps
 	RunProps    *runtime.RunProps
 }
@@ -36,7 +37,7 @@ type AsyncController struct {
 type agentData struct {
 	rwmutex       sync.RWMutex
 	agent         runtime.Runtime
-	writerRemover BlobWriterRemover
+	writerRemover writerremover.BlobWriterRemover
 }
 
 func NewAsyncControllerWithMap(agents map[uint]*agentData) *AsyncController {
@@ -52,7 +53,7 @@ func NewAsyncController(size uint, provider runtime.ArgProvider, parentWorkdir s
 		agents[key] = &agentData{
 			rwmutex:       sync.RWMutex{},
 			agent:         runtime.NewRuntimeAgentWithIds("agent"+strconv.FormatInt(int64(key), 10), int(key), provider, workdir),
-			writerRemover: NewWorkdirWriter(workdir, 0644),
+			writerRemover: writerremover.NewWorkdirWriter(workdir, 0644),
 		}
 	}
 	return &AsyncController{agents}
