@@ -30,6 +30,9 @@ type WorkdirWriter struct {
 	written []string
 }
 
+func NewBlob(data []byte, filename string) *Blob {
+	return &Blob{data, filename}
+}
 func NewWorkdirWriter(workdir string, perm os.FileMode) *WorkdirWriter {
 	return &WorkdirWriter{workdir: workdir, perm: perm, written: []string{}}
 }

@@ -2,6 +2,7 @@ package v2
 
 import (
 	"github.com/runner-x/runner-x/engine/controller"
+	"github.com/runner-x/runner-x/engine/controller/writerremover"
 	"github.com/runner-x/runner-x/engine/runtime"
 )
 
@@ -22,6 +23,7 @@ func (cr *CodeRunner) Run(props *RunnerProps) (*RunnerOutput, error) {
 	compileCommands := &runtime.RunProps{
 		RunArgs: language.CompileCmd,
 		Timeout: TimeoutDefault,
+		Nprocs:  20,
 	}
 	runCommands := language.RunCmd
 
@@ -30,11 +32,9 @@ func (cr *CodeRunner) Run(props *RunnerProps) (*RunnerOutput, error) {
 	runtimeProps := &runtime.RunProps{
 		RunArgs: runCommands,
 		Timeout: TimeoutDefault,
-		Uid:     0,
-		Gid:     0,
-		Nprocs:  0,
 	}
 	runOut := cr.controller.SubmitRequest(&controller.Props{
+		Data:        writerremover.NewBlob([]byte(props.Source), "run"+FileExtensionToLangMap[props.Lang].FileExtension),
 		PreRunProps: compileCommands,
 		RunProps:    runtimeProps,
 	})
