@@ -1,16 +1,18 @@
 #!/bin/bash
 set -x
 
+NUM_RUNNERS=${NUM_RUNNERS:-1}
+
 setup_user() {
-    if [[ $# > 0 ]]; then
+    if [[ $# -gt 0 ]]; then
         user_id=$1
         directory=$2
         username=$3
 
         user_home="$directory/$username"
         mkdir -p "$user_home"
-        groupadd -g $user_id $username
-        useradd -u 1234 -g 1234 -d "$user_home" "$username"
+        groupadd -g "$user_id" "$username"
+        useradd -u "$user_id" -g "$user_id" -d "$user_home" "$username"
         chown -R "$username:$username" "$user_home"
     else
         mkdir -p /tmp/runner1
@@ -21,11 +23,16 @@ setup_user() {
 }
 
 # start server
-if [[ $# > 0 ]]; then
+if [[ $# -gt 0 ]]; then
     if [[ "$1" = "server" ]]; then
-        setup_user
+      user_id=1001
+      for i in $( seq 1 "$NUM_RUNNERS" ); do
+        username="runner$i"
+        setup_user "$user_id" "/tmp" "$username"
+        user_id=$((user_id + 1))
+      done
         DEBUG=1 /runner/runner-server
     fi
 else
-    setup_user
+    setup_user "$@"
 fi

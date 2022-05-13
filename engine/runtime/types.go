@@ -11,6 +11,11 @@ type Runtime interface {
 	RuntimeGid() int
 }
 
+type FileProps struct {
+	Filename string
+	Data     string
+}
+
 // State represents whether the worker is ready for another job or not
 type State uint32
 

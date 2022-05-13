@@ -18,12 +18,13 @@ func Test_ControllerRunMultipleRequests(t *testing.T) {
 
 	var wg sync.WaitGroup
 
-	asyncCtrl := ctrl.NewAsyncController(2, &runtime.NilProvider{})
+	asyncCtrl := ctrl.NewAsyncController(2, &runtime.NilProvider{}, "", "")
 
-	sleepy := &runtime.RunProps{
-		RunArgs: []string{"sleep", "1"},
-		Timeout: 2,
-	}
+	sleepy := &ctrl.Props{
+		RunProps: &runtime.RunProps{
+			RunArgs: []string{"sleep", "1"},
+			Timeout: 2,
+		}}
 
 	// pass pointer to waitgroup instead of copying by value so we use the right lock value
 	go runSafeCmdAndPrintResult(asyncCtrl, sleepy, &wg)
@@ -36,16 +37,16 @@ func Test_ControllerRunMultipleRequests(t *testing.T) {
 	// a job it has no room to do.
 	time.Sleep(time.Millisecond * 100)
 
-	runSafeCmdAndAssertControllerError(asyncCtrl, sleepy, &ctrl.ControllerRunOutput{ControllerErr: ctrl.NoRunnerIsReady}, t)
+	runSafeCmdAndAssertControllerError(asyncCtrl, sleepy, &ctrl.CtrlRunOutput{ControllerErr: ctrl.NoRunnerIsReady}, t)
 
 	// allow other commands to finish before retying
 	wg.Wait()
 
 	// run command again after the other commands have finished
-	runSafeCmdAndAssertControllerError(asyncCtrl, sleepy, &ctrl.ControllerRunOutput{ControllerErr: nil}, t)
+	runSafeCmdAndAssertControllerError(asyncCtrl, sleepy, &ctrl.CtrlRunOutput{ControllerErr: nil}, t)
 }
 
-func runSafeCmdAndPrintResult(ac *ctrl.AsyncController, props *runtime.RunProps, wg *sync.WaitGroup) {
+func runSafeCmdAndPrintResult(ac *ctrl.AsyncController, props *ctrl.Props, wg *sync.WaitGroup) {
 	// let the test wait until this job completes
 	wg.Add(1)
 	defer wg.Done()
@@ -55,7 +56,8 @@ func runSafeCmdAndPrintResult(ac *ctrl.AsyncController, props *runtime.RunProps,
 	fmt.Printf("output: %v\n", output)
 }
 
-func runSafeCmdAndAssertControllerError(ac *ctrl.AsyncController, props *runtime.RunProps, expect *ctrl.ControllerRunOutput, t *testing.T) {
+func runSafeCmdAndAssertControllerError(ac *ctrl.AsyncController, props *ctrl.Props, expect *ctrl.CtrlRunOutput, t *testing.T) {
+	// TODO: fix this. this is un-believably dumb and hacky to try to get around flaky tests
 	output := ac.SubmitRequest(props)
 	if output.ControllerErr != nil && expect.ControllerErr == nil {
 		t.Errorf("expected no controller error but got: %v", output.ControllerErr.Error())

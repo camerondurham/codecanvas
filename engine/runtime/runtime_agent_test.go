@@ -58,10 +58,10 @@ func Test_RunCmd(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := runtimeAgent.RunCmd(tt.args.props)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("RunCmd() error = %v, wantErr = %v", err, tt.wantErr)
+				t.Errorf("RunProps() error = %v, wantErr = %v", err, tt.wantErr)
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("RunCmd() got = %v, want %v", got, tt.want)
+				t.Errorf("RunProps() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -69,7 +69,7 @@ func Test_RunCmd(t *testing.T) {
 
 // TODO: improve this test to avoid using sleeping
 func Test_SafeRunCmd(t *testing.T) {
-	runtimeAgent := NewRuntimeAgentWithIds("test", 1, &NilProvider{})
+	runtimeAgent := NewRuntimeAgentWithIds("test", 1, &NilProvider{}, "")
 
 	if !runtimeAgent.IsReady() {
 		t.Errorf("RuntimeAgent is not ready when created")

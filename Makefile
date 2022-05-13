@@ -54,6 +54,8 @@ dkr-stop-dev:
 
 gen-mocks:
 	mockgen -source ./engine/runtime/types.go -package=mocks -destination ./engine/runtime/mocks/Runtime.go Runtime
+	mockgen -source ./engine/controller/controller.go -package=mocks -destination ./engine/controller/mocks/Controller.go Controller
+	mockgen -source ./engine/controller/writerremover/blobwriter.go -package=mocks -destination ./engine/controller/writerremover/mocks/Blobwriter.go BlobWriterRemover
 
 build:
 	mkdir -p build
