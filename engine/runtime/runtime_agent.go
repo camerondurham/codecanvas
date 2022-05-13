@@ -147,12 +147,3 @@ func (r *RuntimeAgent) RuntimeUid() int {
 func (r *RuntimeAgent) RuntimeGid() int {
 	return r.Gid
 }
-
-func (r *RuntimeAgent) Workdir() string {
-	return r.workdir
-}
-
-func (r *RuntimeAgent) writeToWorkdir(props *FileProps) error {
-
-	return nil
-}

@@ -13,7 +13,6 @@ import (
 
 type Controller interface {
 	SubmitRequest(runprops *Props) *CtrlRunOutput
-	runRequest(runprops *runtime.RunProps, agent *runtime.RuntimeAgent)
 }
 
 type CtrlErr error

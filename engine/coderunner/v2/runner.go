@@ -7,6 +7,14 @@ import (
 
 const TimeoutDefault = 1
 
+func NewCodeRunner(numRunners uint, argProvider runtime.ArgProvider, parentDir, pattern string) *CodeRunner {
+	ctrl := controller.NewAsyncController(numRunners, argProvider, parentDir, pattern)
+	return &CodeRunner{
+		controller: ctrl,
+		numRunners: numRunners,
+	}
+}
+
 func (cr *CodeRunner) Run(props *RunnerProps) (*RunnerOutput, error) {
 
 	// TODO: parse language and get compile commands

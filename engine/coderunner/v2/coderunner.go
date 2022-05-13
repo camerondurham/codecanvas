@@ -4,7 +4,7 @@ import "github.com/runner-x/runner-x/engine/controller"
 
 type CodeRunner struct {
 	controller controller.Controller
-	numRunners int
+	numRunners uint
 }
 
 type Runner interface {

@@ -171,7 +171,6 @@ func TestNewWorkdirWriter(t *testing.T) {
 	type args struct {
 		workdir string
 		perm    os.FileMode
-		written []string
 	}
 	tests := []struct {
 		name string

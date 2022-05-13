@@ -9,8 +9,6 @@ type Runtime interface {
 	IsReady() bool
 	RuntimeUid() int
 	RuntimeGid() int
-
-	Workdir() string
 }
 
 type FileProps struct {
