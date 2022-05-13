@@ -362,17 +362,7 @@ of how to actually use mocks in a unit test.
 
 Will add more about this later! Here's some [reading](https://martinfowler.com/bliki/IntegrationTest.html) from Martin Fowler for now!
 
-There aren't examples of integration testing in the repo yet.
-
+For now the only sort of "end-to-end" integration test is here: [runner/blob/main/engine/integ_test/integration_test.go](https://github.com/camerondurham/runner/blob/main/engine/integ_test/integration_test.go)
 ## Documentation
 
 When writing instructions for users and in the README, please follow syntax recommended by [google developer docs](https://developers.google.com/style/code-syntax)
-
-## Other things
-
-### Change package name (just in case)
-
-```bash
-# change module name in all files
- find . -type f \( -name '*.go' -o -name '*.mod' \) -exec sed -i -e "s;runner-x;runner;g" {} +
-```
