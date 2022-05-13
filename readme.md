@@ -44,7 +44,7 @@ loop FindRunner
 
     loop RunnerExecutionFlow
         Controller->>Standard Shell: pre-run hook (compile)
-        Standard Shell-->>Controller:
+        Standard Shell-->>Controller: 
         Controller->>Process: execute processor binary
 
         loop Process
@@ -55,7 +55,7 @@ loop FindRunner
 
         Process-->>Controller: return exit code
         Controller->>Standard Shell: remove source code
-        Standard Shell-->>Controller:
+        Standard Shell-->>Controller: return result
     end
     Controller-->>Controller: unlock runner
 end
@@ -67,6 +67,7 @@ Controller-->>CodeRunner: return stdout, stderr, runtime errors
 
 CodeRunner-->>Server: return CodeRunnerOutput
 Server-->>Client: return server transformed response
+
 ```
 
 ### Repository Structure
