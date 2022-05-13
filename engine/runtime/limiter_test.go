@@ -41,8 +41,8 @@ func TestNilLimiter_ApplyLimits(t *testing.T) {
 			name: "Simple RLIMIT Test",
 			args: args{rlimits: &ResourceLimits{
 				NumProcesses: &unix.Rlimit{
-					Cur: 20,
-					Max: 20,
+					Cur: 2000,
+					Max: 2000,
 				},
 				MaxFileSize: &unix.Rlimit{
 					Cur: 20000,
@@ -75,8 +75,8 @@ func TestOnSelf_ApplyLimits(t *testing.T) {
 			name: "Simple RLIMIT Test",
 			args: args{rlimits: &ResourceLimits{
 				NumProcesses: &unix.Rlimit{
-					Cur: 20,
-					Max: 20,
+					Cur: 2000,
+					Max: 2000,
 				},
 				MaxFileSize: &unix.Rlimit{
 					Cur: 20000,
@@ -108,8 +108,8 @@ func Test_applyLimitsLinux(t *testing.T) {
 			name: "Simple RLIMIT Test",
 			args: args{rlimits: &ResourceLimits{
 				NumProcesses: &unix.Rlimit{
-					Cur: 20,
-					Max: 20,
+					Cur: 2000,
+					Max: 2000,
 				},
 				MaxFileSize: &unix.Rlimit{
 					Cur: 20000,
@@ -135,6 +135,9 @@ func Test_applyLimitsLinux(t *testing.T) {
 					t.Errorf("expected system rlimit %v but got: %v", tt.args.rlimits.NumProcesses, rlimitVal)
 				}
 				err = unix.Getrlimit(unix.RLIMIT_FSIZE, rlimitVal)
+				if err != nil {
+					t.Errorf("error fetching limits: %v", err)
+				}
 				if rlimitVal.Cur != tt.args.rlimits.MaxFileSize.Cur || rlimitVal.Max != tt.args.rlimits.MaxFileSize.Max {
 					t.Errorf("expected system rlimit %v but got: %v", tt.args.rlimits.NumProcesses, rlimitVal)
 				}
