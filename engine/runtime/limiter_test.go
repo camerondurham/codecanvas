@@ -1,7 +1,9 @@
 package runtime
 
 import (
+	"golang.org/x/sys/unix"
 	"reflect"
+	"runtime"
 	"testing"
 )
 
@@ -12,7 +14,10 @@ func TestNewLimiterOnSelf(t *testing.T) {
 		name string
 		want *OnSelf
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Simple New Limiter Test",
+			want: &OnSelf{},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -32,7 +37,20 @@ func TestNilLimiter_ApplyLimits(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Simple RLIMIT Test",
+			args: args{rlimits: &ResourceLimits{
+				NumProcesses: &unix.Rlimit{
+					Cur: 20,
+					Max: 20,
+				},
+				MaxFileSize: &unix.Rlimit{
+					Cur: 20000,
+					Max: 20000,
+				},
+			}},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -53,7 +71,19 @@ func TestOnSelf_ApplyLimits(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Simple RLIMIT Test",
+			args: args{rlimits: &ResourceLimits{
+				NumProcesses: &unix.Rlimit{
+					Cur: 20,
+					Max: 20,
+				},
+				MaxFileSize: &unix.Rlimit{
+					Cur: 20000,
+					Max: 20000,
+				},
+			}},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -74,13 +104,41 @@ func Test_applyLimitsLinux(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Simple RLIMIT Test",
+			args: args{rlimits: &ResourceLimits{
+				NumProcesses: &unix.Rlimit{
+					Cur: 20,
+					Max: 20,
+				},
+				MaxFileSize: &unix.Rlimit{
+					Cur: 20000,
+					Max: 20000,
+				},
+			}},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := applyLimitsLinux(tt.args.rlimits); (err != nil) != tt.wantErr {
-				t.Errorf("applyLimitsLinux() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
+		switch runtime.GOOS {
+		case "linux":
+			t.Run(tt.name, func(t *testing.T) {
+				if err := applyLimitsLinux(tt.args.rlimits); (err != nil) != tt.wantErr {
+					t.Errorf("applyLimitsLinux() error = %v, wantErr %v", err, tt.wantErr)
+				}
+				rlimitVal := &unix.Rlimit{}
+				err := unix.Getrlimit(unix.RLIMIT_NPROC, rlimitVal)
+				if err != nil {
+					t.Errorf("error fetching limits: %v", err)
+				}
+				if rlimitVal.Cur != tt.args.rlimits.NumProcesses.Cur || rlimitVal.Max != tt.args.rlimits.NumProcesses.Max {
+					t.Errorf("expected system rlimit %v but got: %v", tt.args.rlimits.NumProcesses, rlimitVal)
+				}
+				err = unix.Getrlimit(unix.RLIMIT_FSIZE, rlimitVal)
+				if rlimitVal.Cur != tt.args.rlimits.MaxFileSize.Cur || rlimitVal.Max != tt.args.rlimits.MaxFileSize.Max {
+					t.Errorf("expected system rlimit %v but got: %v", tt.args.rlimits.NumProcesses, rlimitVal)
+				}
+			})
+		}
 	}
 }
