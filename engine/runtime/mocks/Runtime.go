@@ -5,8 +5,6 @@
 package mocks
 
 import (
-	context "context"
-	exec "os/exec"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -108,76 +106,30 @@ func (mr *MockRuntimeMockRecorder) SafeRunCmd(props interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SafeRunCmd", reflect.TypeOf((*MockRuntime)(nil).SafeRunCmd), props)
 }
 
-// MockArgProvider is a mock of ArgProvider interface.
-type MockArgProvider struct {
-	ctrl     *gomock.Controller
-	recorder *MockArgProviderMockRecorder
-}
-
-// MockArgProviderMockRecorder is the mock recorder for MockArgProvider.
-type MockArgProviderMockRecorder struct {
-	mock *MockArgProvider
-}
-
-// NewMockArgProvider creates a new mock instance.
-func NewMockArgProvider(ctrl *gomock.Controller) *MockArgProvider {
-	mock := &MockArgProvider{ctrl: ctrl}
-	mock.recorder = &MockArgProviderMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockArgProvider) EXPECT() *MockArgProviderMockRecorder {
-	return m.recorder
-}
-
-// Provide mocks base method.
-func (m *MockArgProvider) Provide(ctx *context.Context, runprops *runtime.RunProps) *exec.Cmd {
+// Workdir mocks base method.
+func (m *MockRuntime) Workdir() string {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Provide", ctx, runprops)
-	ret0, _ := ret[0].(*exec.Cmd)
+	ret := m.ctrl.Call(m, "Workdir")
+	ret0, _ := ret[0].(string)
 	return ret0
 }
 
-// Provide indicates an expected call of Provide.
-func (mr *MockArgProviderMockRecorder) Provide(ctx, runprops interface{}) *gomock.Call {
+// Workdir indicates an expected call of Workdir.
+func (mr *MockRuntimeMockRecorder) Workdir() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Provide", reflect.TypeOf((*MockArgProvider)(nil).Provide), ctx, runprops)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Workdir", reflect.TypeOf((*MockRuntime)(nil).Workdir))
 }
 
-// MockLimiter is a mock of Limiter interface.
-type MockLimiter struct {
-	ctrl     *gomock.Controller
-	recorder *MockLimiterMockRecorder
-}
-
-// MockLimiterMockRecorder is the mock recorder for MockLimiter.
-type MockLimiterMockRecorder struct {
-	mock *MockLimiter
-}
-
-// NewMockLimiter creates a new mock instance.
-func NewMockLimiter(ctrl *gomock.Controller) *MockLimiter {
-	mock := &MockLimiter{ctrl: ctrl}
-	mock.recorder = &MockLimiterMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockLimiter) EXPECT() *MockLimiterMockRecorder {
-	return m.recorder
-}
-
-// ApplyLimits mocks base method.
-func (m *MockLimiter) ApplyLimits(rlimits *runtime.ResourceLimits) error {
+// writeToWorkdir mocks base method.
+func (m *MockRuntime) writeToWorkdir(props *runtime.FileProps) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ApplyLimits", rlimits)
+	ret := m.ctrl.Call(m, "writeToWorkdir", props)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// ApplyLimits indicates an expected call of ApplyLimits.
-func (mr *MockLimiterMockRecorder) ApplyLimits(rlimits interface{}) *gomock.Call {
+// writeToWorkdir indicates an expected call of writeToWorkdir.
+func (mr *MockRuntimeMockRecorder) writeToWorkdir(props interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApplyLimits", reflect.TypeOf((*MockLimiter)(nil).ApplyLimits), rlimits)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "writeToWorkdir", reflect.TypeOf((*MockRuntime)(nil).writeToWorkdir), props)
 }

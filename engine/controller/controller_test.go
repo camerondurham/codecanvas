@@ -32,7 +32,7 @@ func TestNewAsyncController(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ac := NewAsyncController(tt.numAgents, &runtime.ProcessorArgsProvider{})
+			ac := NewAsyncController(tt.numAgents, &runtime.ProcessorArgsProvider{}, "", "")
 			m := ac.agents
 			if len(m) != int(tt.numAgents) {
 				t.Errorf("incorrect map size: got %d, want %d", len(m), tt.numAgents)
@@ -98,12 +98,12 @@ func TestSubmitRequest(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		runProps *runtime.RunProps
+		runProps *Props
 		mockInfo []mockProps
-		want     ControllerRunOutput
+		want     CtrlRunOutput
 	}{
 		{
-			name:     "Invalid input",
+			name:     "Invalid input: props nil",
 			runProps: nil,
 			mockInfo: []mockProps{
 				{
@@ -111,13 +111,28 @@ func TestSubmitRequest(t *testing.T) {
 					shouldBePickedAsRunner: true,
 				},
 			},
-			want: ControllerRunOutput{
+			want: CtrlRunOutput{
 				ControllerErr: InvalidInput,
 			},
 		},
 		{
-			name:     "No runner ready",
-			runProps: &runtime.RunProps{},
+			name:     "Invalid input: RunProps nil",
+			runProps: &Props{},
+			mockInfo: []mockProps{
+				{
+					state:                  runtime.Ready,
+					shouldBePickedAsRunner: true,
+				},
+			},
+			want: CtrlRunOutput{
+				ControllerErr: InvalidInput,
+			},
+		},
+		{
+			name: "No runner ready",
+			runProps: &Props{
+				RunProps: &runtime.RunProps{},
+			},
 			mockInfo: []mockProps{
 				{
 					state:                  runtime.NotReady,
@@ -128,13 +143,15 @@ func TestSubmitRequest(t *testing.T) {
 					shouldBePickedAsRunner: false,
 				},
 			},
-			want: ControllerRunOutput{
+			want: CtrlRunOutput{
 				ControllerErr: NoRunnerIsReady,
 			},
 		},
 		{
-			name:     "First runner is ready",
-			runProps: &runtime.RunProps{},
+			name: "First runner is ready",
+			runProps: &Props{
+				RunProps: &runtime.RunProps{},
+			},
 			mockInfo: []mockProps{
 				{
 					state:                  runtime.Ready,
@@ -151,15 +168,17 @@ func TestSubmitRequest(t *testing.T) {
 					shouldBePickedAsRunner: false,
 				},
 			},
-			want: ControllerRunOutput{
+			want: CtrlRunOutput{
 				ControllerErr: nil,
 				RunOutput:     happyCaseOutput,
 				CommandErr:    nil,
 			},
 		},
 		{
-			name:     "Runner in middle is ready",
-			runProps: &runtime.RunProps{},
+			name: "Runner in middle is ready",
+			runProps: &Props{
+				RunProps: &runtime.RunProps{},
+			},
 			mockInfo: []mockProps{
 				{
 					state:                  runtime.NotReady,
@@ -176,15 +195,17 @@ func TestSubmitRequest(t *testing.T) {
 					shouldBePickedAsRunner: false,
 				},
 			},
-			want: ControllerRunOutput{
+			want: CtrlRunOutput{
 				ControllerErr: nil,
 				RunOutput:     happyCaseOutput,
 				CommandErr:    nil,
 			},
 		},
 		{
-			name:     "Last runner is ready",
-			runProps: &runtime.RunProps{},
+			name: "Last runner is ready",
+			runProps: &Props{
+				RunProps: &runtime.RunProps{},
+			},
 			mockInfo: []mockProps{
 				{
 					state:                  runtime.NotReady,
@@ -201,7 +222,7 @@ func TestSubmitRequest(t *testing.T) {
 					returnErr:              nil,
 				},
 			},
-			want: ControllerRunOutput{
+			want: CtrlRunOutput{
 				ControllerErr: nil,
 				RunOutput:     happyCaseOutput,
 				CommandErr:    nil,
@@ -251,8 +272,9 @@ func createMocksWithState(stateArray []mockProps, ctrl *gomock.Controller) *Asyn
 			runtimeMock.EXPECT().SafeRunCmd(gomock.Any()).MaxTimes(1).Return(mockProp.returnOutput, mockProp.returnErr)
 		}
 		agents[key] = &agentData{
-			rwmutex: sync.RWMutex{},
-			agent:   runtimeMock,
+			rwmutex:       sync.RWMutex{},
+			agent:         runtimeMock,
+			writerRemover: NewWorkdirWriter("", 0644),
 		}
 	}
 

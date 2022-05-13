@@ -27,6 +27,9 @@ type RuntimeAgent struct {
 	Uid      int
 	Gid      int
 
+	// workdir represents the directory where all commands should be run
+	workdir string
+
 	// rwmutex restricts access to running code with the RuntimeAgent
 	rwmutex sync.RWMutex
 	state   State
@@ -36,12 +39,13 @@ func NewTimeoutRuntime(id string, provider ArgProvider) *RuntimeAgent {
 	return &RuntimeAgent{Id: id, Provider: provider, Uid: DefaultUid, Gid: DefaultGid}
 }
 
-func NewRuntimeAgentWithIds(idStr string, id int, provider ArgProvider) *RuntimeAgent {
+func NewRuntimeAgentWithIds(idStr string, id int, provider ArgProvider, workdir string) *RuntimeAgent {
 	return &RuntimeAgent{
 		Id:       idStr,
 		Provider: provider,
 		Uid:      id,
 		Gid:      id,
+		workdir:  workdir,
 		state:    Ready,
 		rwmutex:  sync.RWMutex{},
 	}
@@ -53,7 +57,7 @@ func (r *RuntimeAgent) runCmd(props *RunProps) (*RunOutput, error) {
 	}
 
 	// Create a new context and add a timeout to it
-	timeout, _ := time.ParseDuration(fmt.Sprintf("%ds", props.Timeout))
+	timeout := time.Second * time.Duration(props.Timeout)
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
@@ -142,4 +146,13 @@ func (r *RuntimeAgent) RuntimeUid() int {
 
 func (r *RuntimeAgent) RuntimeGid() int {
 	return r.Gid
+}
+
+func (r *RuntimeAgent) Workdir() string {
+	return r.workdir
+}
+
+func (r *RuntimeAgent) writeToWorkdir(props *FileProps) error {
+
+	return nil
 }

@@ -9,6 +9,13 @@ type Runtime interface {
 	IsReady() bool
 	RuntimeUid() int
 	RuntimeGid() int
+
+	Workdir() string
+}
+
+type FileProps struct {
+	Filename string
+	Data     string
 }
 
 // State represents whether the worker is ready for another job or not

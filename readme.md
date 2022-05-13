@@ -18,44 +18,52 @@ to have any compiler on their machine. This is a work in progress project for TC
 
 Sequence diagram with rough state of the project.
 
+Mermaid Live Editor Link: [edit](https://mermaid-js.github.io/mermaid-live-editor/edit#pako:eNqNVMty2zAM_BUMT8mM3Q_wIRc3ubYT96gLTcE2awpQQdBtJpN_L6lnrKZJpING5O4CWIJ4No5rNBsT8VdCcvjV26PYpqJt8Ei6vrvboVxQNhDTvvEaoRAqqigwt7A9oTtXBN3TI19RLjb42iqCFPWocGBprFaEVBeJgZAZ2yz6mIgKy9kQYF74kj83t1PEH2IpFp3HXnMMPhMWcq2ViBAsHZM94odwJ1gyHvEgidQ3CK1wG6fMX9E7PqlwCLNN8JP3oJzNGnemAh481T21z2UmL5QOGQj2Yn2w-9Al8hZnQQrszhO0vAXexe1j3v9Bl9QzPQT-PZqxSGKnlmorNexOGEJ2UHCdJeHEfIYbx03rA97O5Gv8MqP_BPku7DDGDWCXUWdwWWCBvScrT2PyUwEDY14tz7D4WjCi5oaLnMTlc_SlaT_FIaa1MCskn33P3h_zN3capIgytP0HMmMtbzCGxlmSF2YJahLKOrmFrvnvnpBgwxeEoeZr4mdOp0vu_cZKdNVaQzn9u2TNt2moJ2rNSVfliyKr6VLlH5b474UaB8hAnze_JW2TXk2Obk7NkboN0HFKYF16oWWK2RKzMg3mCeTrPPGeS8WV0RM2WJnshMkunStT0UvGpbYMrvvaK4vZHGyIuDI2Ke-eyJmNSsIRNIzMAfXyFw9h2JY)
+
 ```mermaid
 sequenceDiagram
 Client->>Server: submits code
 
 loop Check
-      Server->>Server: validate request
+      Server->>Server: validate request format
 end
 
-Server-->>CodeRunner: submit code runner request
+Server-->>CodeRunner: call CodeRunner.Run()
 
-loop Transform
-      CodeRunner->>CodeRunner: create tmp directory
-      CodeRunner->>CodeRunner: write user code
-      CodeRunner->>CodeRunner: parse language, compile
+loop TransformRequest
+      CodeRunner->>CodeRunner: parse language
+      CodeRunner->>CodeRunner: create language runtime props
 end
 
-CodeRunner-->>Runtime: run user code request
+CodeRunner-->>Controller: submit job to controller
 
-loop Limit
-    Runtime->>Runtime: make timeout context
-    Runtime->>Runtime: attach to stdout, stderr of command
+loop FindRunner
+    Controller->>Controller: find available runner
+    Controller-->>Controller: lock runner
+
+
+    loop RunnerExecutionFlow
+        Controller->>Standard Shell: pre-run hook (compile)
+        Standard Shell-->>Controller:
+        Controller->>Process: execute processor binary
+
+        loop Process
+            Process->>Process: set resource limits
+            Process->>Process: set non-root uid and gid for user code
+            Process->>Process: execute user code
+        end
+
+        Process-->>Controller: return exit code
+        Controller->>Standard Shell: remove source code
+        Standard Shell-->>Controller:
+    end
+    Controller-->>Controller: unlock runner
 end
 
-Runtime->>Process: execute processor binary
 
-Note right of Process: runtime creates a new process to avoid any resource limits affecting the runner server
-loop Process
-    Process->>Process: set resource limits
-    Process->>Process: set non-root uid and gid for user code
-    Process->>Process: execute user code
-end
 
-Process-->>Runtime: exits with error code or 0 meaning no error
-Runtime-->>CodeRunner: return stdout, stderr, runtime errors
 
-loop Cleanup
-    CodeRunner->>CodeRunner: remove tmp directory
-end
+Controller-->>CodeRunner: return stdout, stderr, runtime errors
 
 CodeRunner-->>Server: return CodeRunnerOutput
 Server-->>Client: return server transformed response
