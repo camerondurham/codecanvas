@@ -63,6 +63,18 @@ func TestWorkdirWriter_Write(t *testing.T) {
 			}},
 			wantErr: false,
 		},
+		{
+			name: "Simple Write Bigger FIle",
+			fields: fields{
+				Workdir: "",
+				Perm:    0666,
+			},
+			args: args{blob: &Blob{
+				data:     []byte("#!/bin/bash\n\necho hello world\n\nsleep 2"),
+				filename: "test.sh",
+			}},
+			wantErr: false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -74,10 +86,19 @@ func TestWorkdirWriter_Write(t *testing.T) {
 			if err := ww.Write(tt.args.blob); (err != nil) != tt.wantErr {
 				t.Errorf("Write() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			if tt.args.blob != nil && len(ww.written) != 1 {
-				t.Errorf("Write() expected to add filename to ww.written")
-			}
 			if tt.args.blob != nil {
+				if len(ww.written) != 1 {
+					t.Errorf("Write() expected to add filename to ww.written")
+				}
+				for _, f := range ww.written {
+					fi, err := os.Stat(f)
+					if err != nil {
+						t.Errorf("error reading written file: %v", err)
+					}
+					if len(tt.args.blob.data) > 0 && fi.Size() <= 0 {
+						t.Errorf("Write() did not actually write any file. Expected size: %v, got: %v", len(tt.args.blob.data), fi.Size())
+					}
+				}
 				err = os.RemoveAll(filepath.Join(tt.fields.Workdir, tt.args.blob.filename))
 			}
 		})

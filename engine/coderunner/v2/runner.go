@@ -4,6 +4,7 @@ import (
 	"github.com/runner-x/runner-x/engine/controller"
 	"github.com/runner-x/runner-x/engine/controller/writerremover"
 	"github.com/runner-x/runner-x/engine/runtime"
+	print2 "github.com/runner-x/runner-x/util/print"
 )
 
 const TimeoutDefault = 1
@@ -18,7 +19,6 @@ func NewCodeRunner(numRunners uint, argProvider runtime.ArgProvider, parentDir, 
 
 func (cr *CodeRunner) Run(props *RunnerProps) (*RunnerOutput, error) {
 
-	// TODO: parse language and get compile commands
 	language := LangNameToLangMap[props.Lang]
 	compileCommands := &runtime.RunProps{
 		RunArgs: language.CompileCmd,
@@ -27,12 +27,14 @@ func (cr *CodeRunner) Run(props *RunnerProps) (*RunnerOutput, error) {
 	}
 	runCommands := language.RunCmd
 
-	// TODO: write the file????
 	// TODO: actually use the right Uid and Gid and Nprocs????
 	runtimeProps := &runtime.RunProps{
 		RunArgs: runCommands,
 		Timeout: TimeoutDefault,
 	}
+	print2.DebugPrintf("writing file: %v", props.Source)
+	print2.DebugPrintf("compile commands: %v", compileCommands.RunArgs)
+	print2.DebugPrintf("run commands: %v", runtimeProps.RunArgs)
 	runOut := cr.controller.SubmitRequest(&controller.Props{
 		Data:        writerremover.NewBlob([]byte(props.Source), "run"+FileExtensionToLangMap[props.Lang].FileExtension),
 		PreRunProps: compileCommands,
