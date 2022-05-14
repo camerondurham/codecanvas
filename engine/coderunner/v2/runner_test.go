@@ -2,12 +2,12 @@ package v2
 
 import (
 	"errors"
-	"fmt"
 	"github.com/golang/mock/gomock"
 	"github.com/runner-x/runner-x/engine/controller"
 	mocks2 "github.com/runner-x/runner-x/engine/controller/mocks"
 	"github.com/runner-x/runner-x/engine/runtime"
 	"github.com/runner-x/runner-x/engine/runtime/mocks"
+	"github.com/runner-x/runner-x/util/files"
 	"os"
 	"reflect"
 	"testing"
@@ -28,12 +28,7 @@ func TestCodeRunner_Run(t *testing.T) {
 
 	// run making a workdir path
 	dir, _ := os.MkdirTemp("", "runner")
-	defer func(path string) {
-		err := os.RemoveAll(path)
-		if err != nil {
-			fmt.Println("error cleaning up after runner test")
-		}
-	}(dir)
+	defer files.RemovePath(dir)
 
 	mockSuccess := mocks.NewMockRuntime(ctrl)
 	mockSuccessWorkdir := mocks.NewMockRuntime(ctrl)

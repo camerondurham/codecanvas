@@ -2,6 +2,7 @@ package writerremover
 
 import (
 	"fmt"
+	"github.com/runner-x/runner-x/util/files"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -19,10 +20,7 @@ func TestWorkdirWriter_Write(t *testing.T) {
 
 	dir, err := os.MkdirTemp("/tmp", "TestWorkdirWriter_Write")
 	HandleTestErr(err)
-	defer func(path string) {
-		err := os.RemoveAll(path)
-		HandleTestErr(err)
-	}(dir)
+	defer files.RemovePath(dir)
 
 	tests := []struct {
 		name    string

@@ -3,13 +3,13 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/runner-x/runner-x/server/api/v1"
 	"io"
 	"net/http"
 	"strings"
 	"time"
 
 	coderunner "github.com/runner-x/runner-x/engine/coderunner/v1"
-	"github.com/runner-x/runner-x/server/api"
 )
 
 // TODO: fill in this client package as needed and create, use Client as needed in CLI commands
@@ -21,8 +21,8 @@ const (
 )
 
 type Requester interface {
-	Run(r *api.RunRequest) (*api.RunResponse, error)
-	Languages() (*api.LanguagesResponse, error)
+	Run(r *v1.RunRequest) (*v1.RunResponse, error)
+	Languages() (*v1.LanguagesResponse, error)
 }
 
 type Client struct {
@@ -58,11 +58,11 @@ func NewClientFromConfig(c Config) *Client {
 	return &client
 }
 
-func (c *Client) Run(r *api.RunRequest) (*api.RunResponse, error) {
+func (c *Client) Run(r *v1.RunRequest) (*v1.RunResponse, error) {
 	// TODO: implement/refactor
 	source := r.Source
 
-	reqBody := api.RunRequest{
+	reqBody := v1.RunRequest{
 		Source: source,
 		Lang:   r.Lang,
 	}
@@ -91,14 +91,14 @@ func (c *Client) Run(r *api.RunRequest) (*api.RunResponse, error) {
 		return nil, err
 	}
 
-	var ret api.RunResponse
+	var ret v1.RunResponse
 	decodeErr := json.Unmarshal(respReader, &ret)
 	PanicCheck(decodeErr)
 
 	return &ret, nil
 }
 
-func (c *Client) Languages() (*api.LanguagesResponse, error) {
+func (c *Client) Languages() (*v1.LanguagesResponse, error) {
 	// TODO: implement/refactor
 	req, err := http.NewRequest("GET", c.BaseUrl+LANG_ENDPOINT, nil)
 	if err != nil {
@@ -118,7 +118,7 @@ func (c *Client) Languages() (*api.LanguagesResponse, error) {
 		return nil, err
 	}
 
-	var jsonLangs api.LanguagesResponse
+	var jsonLangs v1.LanguagesResponse
 	decodeErr := json.Unmarshal(body, &jsonLangs)
 	PanicCheck(decodeErr)
 

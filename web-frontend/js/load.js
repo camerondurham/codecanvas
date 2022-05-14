@@ -27,6 +27,7 @@ import runCall from "./run-request";
 import codeMirror from "./editor";
 import langRequest from "./langs-request";
 import runnerConfig from "./config-utils";
+import setLang from "./set-code";
 
 var langs;
 
@@ -37,6 +38,8 @@ codeMirror.setValue(
 langRequest()
   .then(function (result) {
     var res = JSON.parse(result);
+    // uncomment for testing
+    // var res = { languages: ["python3", "node", "c++11", "go"] };
     langs = res.languages;
   })
   .catch(function (err) {
@@ -64,3 +67,6 @@ submitBtn.addEventListener("click", runCall);
 
 const selector = document.getElementById("theme-select");
 selector.addEventListener("change", selectTheme);
+
+const langSelector = document.getElementById("lang-select");
+langSelector.addEventListener("change", setLang);

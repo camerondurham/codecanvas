@@ -12,9 +12,12 @@ import (
 	"syscall"
 	"testing"
 
+	"github.com/runner-x/runner-x/engine/runtime"
+	"github.com/runner-x/runner-x/util/errors"
+
 	"github.com/go-chi/chi/v5"
-	coderunner "github.com/runner-x/runner-x/engine/coderunner/v1"
-	"github.com/runner-x/runner-x/server/api"
+	coderunner "github.com/runner-x/runner-x/engine/coderunner/v2"
+	api "github.com/runner-x/runner-x/server/api/v2"
 )
 
 func newRequest(reqType string, url string, reqStruct interface{}) *http.Request {
@@ -34,16 +37,40 @@ func Test_runHandler(t *testing.T) {
 		SomeKey string
 	}
 
+	tmpDir, err := os.MkdirTemp("/tmp", "runner")
+	errors.HandleErrors(err)
+
+	// defer files.RemovePath(tmpDir)
+
+	err = os.Mkdir(tmpDir+"/1", 0777)
+	errors.HandleErrors(err)
+
 	tests := []struct {
 		name string
 		args args
 	}{
 		{
+			name: "basic happy case compiled",
+			args: args{
+				r: newRequest("POST", "url", api.RunRequest{
+					Source: `
+#include<iostream>
+int main() {
+	std::cout << "hello world" << std::endl;
+	return 0;
+}
+`,
+					Lang: coderunner.Cpp.Name,
+				}),
+				expectedStatusCode: 200,
+			},
+		},
+		{
 			name: "basic happy case",
 			args: args{
 				r: newRequest("POST", "url", api.RunRequest{
 					Source: "print(\"hello world\")",
-					Lang:   coderunner.PYTHON3,
+					Lang:   coderunner.Python3.Name,
 				}),
 				expectedStatusCode: 200,
 			},
@@ -64,13 +91,11 @@ func Test_runHandler(t *testing.T) {
 			// https://pkg.go.dev/net/http/httptest#ResponseRecorder
 			w := httptest.NewRecorder()
 
-			if err := os.Setenv("UNIT_TEST", "1"); err != nil {
-				// skip the rest if we can't test this
-				fmt.Printf("cannot unit test runHandler: [%v]\n", err)
-				return
+			cr := coderunner.NewCodeRunner(uint(1), &runtime.NilProvider{}, tmpDir, "")
+			server := &RunnerServer{
+				coderunner: cr,
 			}
-
-			runHandler(w, tt.args.r)
+			server.runHandler(w, tt.args.r)
 
 			resp := w.Result()
 			if resp.StatusCode != tt.args.expectedStatusCode {
@@ -88,7 +113,11 @@ func Test_languagesHandler(t *testing.T) {
 	// https://pkg.go.dev/net/http/httptest#ResponseRecorder
 	w := httptest.NewRecorder()
 	req := &http.Request{}
-	languagesHandler(w, req)
+	cr := coderunner.NewCodeRunner(uint(1), &runtime.ProcessorArgsProvider{}, "/tmp", "runner")
+	server := &RunnerServer{
+		coderunner: cr,
+	}
+	server.languagesHandler(w, req)
 	resp := w.Result()
 	if resp.StatusCode != 200 {
 		t.Errorf("Unexpected status code: %v", resp.StatusCode)

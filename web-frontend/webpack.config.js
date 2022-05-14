@@ -15,6 +15,10 @@ module.exports = {
       import: "./js/langs-request.js",
       dependOn: "editor",
     },
+    setCode: {
+      import: "./js/set-code.js",
+      dependOn: "editor",
+    },
     run: {
       import: "./js/run-request.js",
       dependOn: "editor",

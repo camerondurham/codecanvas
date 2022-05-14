@@ -1,70 +1,116 @@
+@import url("https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&display=swap');
+
+@import url("https://fonts.googleapis.com/css2?family=Work+Sans&display=swap");
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+    body {
+        background: #181818;
+        color: #d8d8d8;
+    }
+
+    a {
+        color: #CF9FFF;
+    }
+
+    .field {
+        background-color: #282828;
+        color: #d8d8d8;
+    }
+}
+
+
+
+/* Light mode */
+@media (prefers-color-scheme: light) {
+    body {
+        background-color: #f5f5f5;
+        color: #282828;
+    }
+
+    a {
+        color: #400080;
+    }
+
+    .field {
+        background-color: #d8d8d8;
+        color:#282828;
+    }
+}
+
 .CodeMirror {
-    border: 4px solid gray;
     margin: auto;
-    height: 500px;
-    font-size: 16px;
-    text-align: left; 
-    text-shadow: none; 
+    height: 450px;
+    font-size: 15px;
+    text-align: left;
+    text-shadow: none;
 }
 
 button {
-    font-weight: bold; 
-    padding: 4px; 
-    margin-top: 5px; 
+    font-style: "IBM Plex Mono", monospace;
+    padding: 4px;
+    margin-top: 5px;
 }
 
 .selectors {
     display: flex;
-    justify-content:space-between;
+    justify-content: space-between;
 }
 
 select {
-	font-family: monospace;
+    font-family: monospace;
+    font: "IBM Plex Mono";
 }
 
 #wrapper {
-    margin-top: 5%; 
+    margin-top: 3%;
 }
+
 
 body {
-    background-color: indigo; 
-    text-align: center;
-    font-family: monospace; 
-    color: white;
+    font-family: "IBM Plex Mono", monospace;
+    text-rendering: optimizeLegibility;
+    line-height: 1.5;
+    margin: 1rem 1rem;
+    max-width: 800px;
 }
 
-a, a:visited {
-    color: gray; 
-    font-weight: bold; 
+html {
+    margin-left: calc(100vw - 100%);
+}
+
+a:visited {
+    color: gray;
+    font-weight: bold;
 }
 
 footer {
-    font-style: italic;
-    font-size: 14px; 
-    padding: 10px; 
+    font-size: 14px;
+    padding: 20px;
+    margin-left: 30%;
+    align-items: center;
 }
 
 .output {
-    width: 60%;
-    margin-top: 10px; 
+    width: 70%;
+    margin-top: 10px;
 }
 
 .field {
-    background-color: skyblue; 
-    border: 2px solid blue; 
-    border-radius: 10px; 
-    -moz-border-radius: 10px; 
-    color: black; 
-    margin: auto; 
-    text-align: left; 
-    padding: 5px; 
+    border-radius: 10px;
+    -moz-border-radius: 10px;
+    margin: auto;
+    text-align: left;
+    padding: 5px;
+    font-size: 14px;
 }
 
 .box {
-    width: 90%; 
+    width: 90%;
 }
 
 #wrapper {
-    width: 50%;
-    margin: auto;
+    width: 100%;
+    margin-left: 40%;
 }

@@ -26,10 +26,10 @@ func (p *ProcessorArgsProvider) Provide(ctx *context.Context, runprops *RunProps
 	}
 
 	args = []string{
-		"-nprocs=" + strconv.Itoa(DefaultNproc),
-		"-uid=" + strconv.Itoa(DefaultUid),
-		"-gid=" + strconv.Itoa(DefaultGid),
-		"-fsize=" + strconv.Itoa(DefaultFsize),
+		"-nprocs=" + strconv.Itoa(runprops.Nprocs),
+		"-uid=" + strconv.Itoa(runprops.Uid),
+		"-gid=" + strconv.Itoa(runprops.Gid),
+		"-fsize=" + strconv.Itoa(runprops.Fsize),
 		"-timeout=" + strconv.Itoa(runprops.Timeout),
 		"-cmd=" + runprops.RunArgs[0]}
 

@@ -17,7 +17,7 @@ func Test_createLangMaps(t *testing.T) {
 	}{
 		{
 			name: "Test Map Is Created",
-			args: args{langs: SupportedLanguages},
+			args: args{langs: []Language{Python3, NodeJs}},
 			wantExtToLangMap: map[string]Language{
 				".py": Python3,
 				".js": NodeJs,
