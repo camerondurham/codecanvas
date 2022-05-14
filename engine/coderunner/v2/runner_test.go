@@ -84,6 +84,30 @@ func TestCodeRunner_Run(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "Test Successful Run Compiled Code",
+			mock: mockSuccess,
+			fields: fields{
+				controller: mockCtrlOk1,
+				numRunners: 1,
+			},
+			args: args{
+				props: &RunnerProps{
+					Lang: Cpp.Name,
+					Source: `#include<iostream>
+int main() {
+	std::cout << "hello world" << std::endl;
+	return 0;
+}`,
+				},
+			},
+			want: &RunnerOutput{
+				Stdout:       "hello world",
+				Stderr:       "",
+				CommandError: nil,
+			},
+			wantErr: false,
+		},
+		{
 			name: "Runtime Failure",
 			mock: mockFails,
 			fields: fields{
