@@ -65,15 +65,15 @@ select {
 
 #wrapper {
     margin-top: 3%;
+    width: 50%;
 }
 
 
 body {
     font-family: "IBM Plex Mono", monospace;
     text-rendering: optimizeLegibility;
-    line-height: 1.5;
-    margin: 1rem 1rem;
-    max-width: 800px;
+    /* line-height: 1.5; */
+    /* margin: 1rem 1rem; */
 }
 
 html {
@@ -111,6 +111,6 @@ footer {
 }
 
 #wrapper {
-    width: 100%;
-    margin-left: 40%;
+    width: 50%;
+    margin-left: 25%;
 }
