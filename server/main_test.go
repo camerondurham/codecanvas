@@ -84,6 +84,23 @@ int main() {
 				expectedStatusCode: 400,
 			},
 		},
+		{
+			name: "basic unparsable request case",
+			args: args{
+				r:                  newRequest("POST", "url", []byte("garbage")),
+				expectedStatusCode: 400,
+			},
+		},
+		{
+			name: "basic unsupported language",
+			args: args{
+				r: newRequest("POST", "url", api.RunRequest{
+					Source: "print(\"hello\")",
+					Lang:   coderunner.Go.Name,
+				}),
+				expectedStatusCode: 400,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
