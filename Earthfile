@@ -76,7 +76,7 @@ lint:
 test-go:
   # runner-server tests require that the process binary can be built
   COPY +build-server/process /usr/bin
-  RUN go test -covermode=atomic ./...
+  RUN UNIT_TEST=1 DEBUG=1 go test -covermode=atomic ./...
   RUN cd server && ./test_server_startup.sh
 
 test-web:

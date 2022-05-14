@@ -7,15 +7,18 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
+
+	print2 "github.com/runner-x/runner-x/util/print"
 
 	"github.com/runner-x/runner-x/engine/runtime"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
-	coderunner "github.com/runner-x/runner-x/engine/coderunner/v1"
-	"github.com/runner-x/runner-x/server/api"
+	coderunner "github.com/runner-x/runner-x/engine/coderunner/v2"
+	api "github.com/runner-x/runner-x/server/api/v2"
 )
 
 const (
@@ -23,7 +26,11 @@ const (
 	SERVER_REQUEST_TIMEOUT = 10
 )
 
-func languagesHandler(w http.ResponseWriter, r *http.Request) {
+type RunnerServer struct {
+	coderunner coderunner.CodeRunner
+}
+
+func (rs RunnerServer) languagesHandler(w http.ResponseWriter, r *http.Request) {
 	langs := api.LanguagesResponse{
 		Languages: coderunner.SupportedLanguages,
 	}
@@ -33,7 +40,7 @@ func languagesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func runHandler(w http.ResponseWriter, r *http.Request) {
+func (rs RunnerServer) runHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var res api.RunRequest
 	var err error
@@ -43,7 +50,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	for {
 		err = decoder.Decode(&res)
 		if err != nil && err != io.EOF {
-			throwE400(w, "failed to parse request body")
+			rs.throwE400(w, "failed to parse request body")
 			return
 		}
 		if err == io.EOF {
@@ -53,29 +60,24 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 	// verify request contains both language and source code to run
 	if len(res.Lang) == 0 || len(res.Source) == 0 {
-		throwE400(w, "\"language\" and \"source\" fields are required")
+		rs.throwE400(w, "\"language\" and \"source\" fields are required")
 		return
 	}
 
-	var handler *coderunner.CodeRunner
-
-	// TODO: don't hard code the directory here
-	workdirPath := "/tmp/runner1"
-	if _, ok := os.LookupEnv("UNIT_TEST"); ok {
-		workdirPath = ""
+	if _, ok := coderunner.SupportedLanguageSet[res.Lang]; !ok {
+		rs.throwE400(w, fmt.Sprintf("invalid language: [%v] not currently supported", res.Lang))
+		return
 	}
-
-	handler = coderunner.NewCodeRunner("api-runhandler", workdirPath, &runtime.ProcessorArgsProvider{})
 
 	RunProps := coderunner.RunnerProps{
 		Source: res.Source,
 		Lang:   res.Lang,
 	}
 
-	RunnerOutput, err := handler.Run(&RunProps)
+	RunnerOutput, err := rs.coderunner.Run(&RunProps)
 
 	if err != nil {
-		throwE400(w, ("failed to run output: " + err.Error()))
+		rs.throwE400(w, "failed to run output: "+err.Error())
 		return
 	}
 
@@ -87,12 +89,12 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = json.NewEncoder(w).Encode(output)
 	if err != nil {
-		throwE400(w, ("failed to encode run output: " + err.Error()))
+		rs.throwE400(w, "failed to encode run output: "+err.Error())
 		return
 	}
 }
 
-func throwE400(w http.ResponseWriter, err string) {
+func (rs *RunnerServer) throwE400(w http.ResponseWriter, err string) {
 	log.Printf("%v\n", err)
 	w.WriteHeader(http.StatusBadRequest)
 	w.Header().Set("Content-Type", "application/json")
@@ -152,12 +154,38 @@ func optionHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func CreateCodeRunner() *coderunner.CodeRunner {
+	var numRunners int
+	numRunnersStr := os.Getenv("NUM_RUNNERS")
+	numRunners, err := strconv.Atoi(numRunnersStr)
+	if err != nil {
+		print2.DebugPrintf("error reading NUM_RUNNERS, setting to default of 1")
+		numRunners = 1
+	}
+
+	parentDir := "/tmp"
+	if _, ok := os.LookupEnv("UNIT_TEST"); ok {
+		parentDir, err = os.MkdirTemp("/tmp", "runner")
+		print2.DebugPrintf("err result making unit test tmp dir: %v", err)
+	}
+
+	cr := coderunner.NewCodeRunner(uint(numRunners), &runtime.ProcessorArgsProvider{}, parentDir, "runner")
+	return &cr
+}
+
+func CreateServer(cr coderunner.CodeRunner) *RunnerServer {
+	return &RunnerServer{coderunner: cr}
+
+}
+
 func main() {
 
 	r := CreateNewRouter()
+	cr := CreateCodeRunner()
+	server := CreateServer(*cr)
 
-	r.Get("/api/v1/languages", languagesHandler)
-	r.Post("/api/v1/run", runHandler)
+	r.Get("/api/v1/languages", server.languagesHandler)
+	r.Post("/api/v1/run", server.runHandler)
 	setCORSOptionHandler(r, []string{"/api/v1/languages", "/api/v1/run"})
 
 	err := http.ListenAndServe(API_PORT, r)

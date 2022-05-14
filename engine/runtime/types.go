@@ -33,6 +33,7 @@ type RunProps struct {
 	Uid     int      `json:"uid"`      // TODO: remove, only the runtime agent itself should care about the uid and this should be overridden
 	Gid     int      `json:"gid"`      // TODO: remove, same as above
 	Nprocs  int      `json:"nprocs"`
+	Fsize   int      `json:"fsize"`
 }
 
 // TODO: add additional context to exited command

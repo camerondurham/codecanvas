@@ -114,8 +114,9 @@ func (ac *AsyncController) SubmitRequest(runprops *Props) *CtrlRunOutput {
 			// the actual command must be run as non-root user
 			runOutput, commandErr := agent.SafeRunCmd(&runtime.RunProps{
 				RunArgs: runProps.RunArgs,
-				Timeout: runProps.Timeout,
-				Nprocs:  runProps.Nprocs,
+				Timeout: runtime.DefaultTimeout,
+				Nprocs:  runtime.DefaultNproc,
+				Fsize:   runtime.DefaultFsize,
 				Uid:     agentData.agent.RuntimeUid(),
 				Gid:     agentData.agent.RuntimeGid(),
 			})

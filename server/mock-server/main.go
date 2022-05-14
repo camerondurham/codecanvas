@@ -5,14 +5,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	v2 "github.com/runner-x/runner-x/server/api/v2"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	coderunner "github.com/runner-x/runner-x/engine/coderunner/v1"
-	"github.com/runner-x/runner-x/server/api"
+	coderunner "github.com/runner-x/runner-x/engine/coderunner/v2"
 )
 
 const (
@@ -21,7 +21,7 @@ const (
 )
 
 func languagesHandler(w http.ResponseWriter, r *http.Request) {
-	langs := api.LanguagesResponse{
+	langs := v2.LanguagesResponse{
 		Languages: coderunner.SupportedLanguages,
 	}
 	err := json.NewEncoder(w).Encode(langs)
@@ -38,7 +38,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO: let code runner run the code
 
 	// TODO: replace hard-coded reponse with transformed runner output
-	output := api.RunResponse{
+	output := v2.RunResponse{
 		Stdout: "hello world",
 		Stderr: "",
 		Error:  nil,
@@ -66,8 +66,8 @@ func main() {
 	// use middleware to set a timeout to avoid saturating the server
 	r.Use(middleware.Timeout(SERVER_REQUEST_TIMEOUT * time.Second))
 
-	r.Get("/api/v1/languages", languagesHandler)
-	r.Post("/api/v1/run", runHandler)
+	r.Get("/api/v2/languages", languagesHandler)
+	r.Post("/api/v2/run", runHandler)
 
 	err := http.ListenAndServe(API_PORT, r)
 	if err != nil {

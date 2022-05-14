@@ -9,12 +9,17 @@ import (
 	"net/http/httptest"
 	"os"
 	"os/exec"
+	"reflect"
+	"strconv"
 	"syscall"
 	"testing"
 
+	"github.com/runner-x/runner-x/engine/runtime"
+	"github.com/runner-x/runner-x/util/errors"
+
 	"github.com/go-chi/chi/v5"
-	coderunner "github.com/runner-x/runner-x/engine/coderunner/v1"
-	"github.com/runner-x/runner-x/server/api"
+	coderunner "github.com/runner-x/runner-x/engine/coderunner/v2"
+	api "github.com/runner-x/runner-x/server/api/v2"
 )
 
 func newRequest(reqType string, url string, reqStruct interface{}) *http.Request {
@@ -34,16 +39,40 @@ func Test_runHandler(t *testing.T) {
 		SomeKey string
 	}
 
+	tmpDir, err := os.MkdirTemp("/tmp", "runner")
+	errors.HandleErrors(err)
+
+	// defer files.RemovePath(tmpDir)
+
+	err = os.Mkdir(tmpDir+"/1", 0777)
+	errors.HandleErrors(err)
+
 	tests := []struct {
 		name string
 		args args
 	}{
 		{
+			name: "basic happy case compiled",
+			args: args{
+				r: newRequest("POST", "url", api.RunRequest{
+					Source: `
+#include<iostream>
+int main() {
+	std::cout << "hello world" << std::endl;
+	return 0;
+}
+`,
+					Lang: coderunner.Cpp.Name,
+				}),
+				expectedStatusCode: 200,
+			},
+		},
+		{
 			name: "basic happy case",
 			args: args{
 				r: newRequest("POST", "url", api.RunRequest{
 					Source: "print(\"hello world\")",
-					Lang:   coderunner.PYTHON3,
+					Lang:   coderunner.Python3.Name,
 				}),
 				expectedStatusCode: 200,
 			},
@@ -57,6 +86,23 @@ func Test_runHandler(t *testing.T) {
 				expectedStatusCode: 400,
 			},
 		},
+		{
+			name: "basic unparsable request case",
+			args: args{
+				r:                  newRequest("POST", "url", []byte("garbage")),
+				expectedStatusCode: 400,
+			},
+		},
+		{
+			name: "basic unsupported language",
+			args: args{
+				r: newRequest("POST", "url", api.RunRequest{
+					Source: "print(\"hello\")",
+					Lang:   coderunner.Go.Name,
+				}),
+				expectedStatusCode: 400,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -64,13 +110,11 @@ func Test_runHandler(t *testing.T) {
 			// https://pkg.go.dev/net/http/httptest#ResponseRecorder
 			w := httptest.NewRecorder()
 
-			if err := os.Setenv("UNIT_TEST", "1"); err != nil {
-				// skip the rest if we can't test this
-				fmt.Printf("cannot unit test runHandler: [%v]\n", err)
-				return
+			cr := coderunner.NewCodeRunner(uint(1), &runtime.NilProvider{}, tmpDir, "")
+			server := &RunnerServer{
+				coderunner: cr,
 			}
-
-			runHandler(w, tt.args.r)
+			server.runHandler(w, tt.args.r)
 
 			resp := w.Result()
 			if resp.StatusCode != tt.args.expectedStatusCode {
@@ -88,7 +132,11 @@ func Test_languagesHandler(t *testing.T) {
 	// https://pkg.go.dev/net/http/httptest#ResponseRecorder
 	w := httptest.NewRecorder()
 	req := &http.Request{}
-	languagesHandler(w, req)
+	cr := coderunner.NewCodeRunner(uint(1), &runtime.ProcessorArgsProvider{}, "/tmp", "runner")
+	server := &RunnerServer{
+		coderunner: cr,
+	}
+	server.languagesHandler(w, req)
 	resp := w.Result()
 	if resp.StatusCode != 200 {
 		t.Errorf("Unexpected status code: %v", resp.StatusCode)
@@ -152,4 +200,83 @@ func Test_setCORSOptionHandler(t *testing.T) {
 	r := chi.NewMux()
 	// trivial non-test for coverage for now, just make sure the function API works
 	setCORSOptionHandler(r, []string{"/test/path1", "/test/path2"})
+}
+
+func TestCreateCodeRunner(t *testing.T) {
+	tests := []struct {
+		name            string
+		isNumRunnersSet bool
+		isUnitTestSet   bool
+		want            int
+	}{
+		{
+			name:            "NUM_RUNNERS not set",
+			isNumRunnersSet: false,
+			isUnitTestSet:   false,
+			want:            1,
+		},
+		{
+			name:            "NUM_RUNNERS set",
+			isNumRunnersSet: true,
+			isUnitTestSet:   false,
+			want:            100,
+		},
+		{
+			name:            "NUM_RUNNERS set and unit test set",
+			isNumRunnersSet: true,
+			isUnitTestSet:   true,
+			want:            100,
+		},
+		{
+			name:            "NUM_RUNNERS set and unit test not sset",
+			isNumRunnersSet: false,
+			isUnitTestSet:   true,
+			want:            100,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.isUnitTestSet {
+				err := os.Setenv("UNIT_TEST", "1")
+				fmt.Printf("set env var err=%v\ny", err)
+			} else {
+				err := os.Unsetenv("UNIT_TEST")
+				fmt.Printf("unset env var err=%v\ny", err)
+			}
+
+			if tt.isNumRunnersSet {
+				err := os.Setenv("NUM_RUNNERS", strconv.Itoa(tt.want))
+				fmt.Printf("set env var err=%v\ny", err)
+			} else {
+				err := os.Unsetenv("NUM_RUNNERS")
+				fmt.Printf("unset env var err=%v\ny", err)
+			}
+			got := CreateCodeRunner()
+			fmt.Printf("got code runner: %v", got)
+		})
+	}
+}
+
+func TestCreateServer(t *testing.T) {
+	type args struct {
+		cr coderunner.CodeRunner
+	}
+	tests := []struct {
+		name string
+		args args
+		want *RunnerServer
+	}{
+		{
+			name: "Trivial Create Server",
+			args: args{cr: coderunner.CodeRunner{}},
+			want: &RunnerServer{coderunner: coderunner.CodeRunner{}},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := CreateServer(tt.args.cr); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("CreateServer() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

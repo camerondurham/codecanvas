@@ -1,10 +1,11 @@
-FROM public.ecr.aws/bitnami/golang:1.17.9 as builder
+FROM golang:1.17.9 as builder
+#FROM public.ecr.aws/bitnami/golang:1.17.9 as builder
 WORKDIR /runner
 COPY . .
 RUN go build -v -o /runner/process /runner/engine/process/ \
  && go build -v -o /runner/runner-server /runner/server/
 
-FROM public.ecr.aws/bitnami/golang:1.17.9
+FROM golang:1.17.9
 
 WORKDIR /runner
 
@@ -13,7 +14,7 @@ COPY --from=builder /runner/process /usr/bin
 COPY --from=builder /runner/runner-server ./
 COPY docker/server-debian/entrypoint.sh /runner/entrypoint.sh
 RUN apt-get update \
-    && apt-get install -y python3
+    && apt-get install -y python3 nodejs
 EXPOSE 10100
 ENV NUM_RUNNERS=${NUM_RUNNERS:-100}
 ENTRYPOINT ["/runner/entrypoint.sh", "server"]

@@ -6,11 +6,11 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/runner-x/runner-x/server/api/v1"
 	"os"
 
 	"github.com/runner-x/runner-x/cli/runner/client"
 	coderunner "github.com/runner-x/runner-x/engine/coderunner/v1"
-	"github.com/runner-x/runner-x/server/api"
 	"github.com/spf13/cobra"
 )
 
@@ -64,7 +64,7 @@ var runCmd = &cobra.Command{
 		}
 		cmdClient = client.NewClientFromConfig(clint)
 
-		r := &api.RunRequest{
+		r := &v1.RunRequest{
 			Source: string(source[:]),
 			Lang:   langCheck,
 		}

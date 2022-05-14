@@ -33,16 +33,17 @@ var (
 		CompileCmd:    nil,
 		RunCmd:        []string{"bash"},
 	}
-	Cpp11 = Language{
-		Name:          "c++11",
+	Cpp = Language{
+		Name:          "c++",
 		FileExtension: ".cpp",
-		CompileCmd:    []string{"g++", "--std=c++11"},
+		CompileCmd:    []string{"g++"},
+		RunCmd:        []string{"./a.out"}, // TODO: shouldn't need to hardcode this
 	}
 	Go = Language{
 		Name:          "go",
 		FileExtension: ".go",
 		CompileCmd:    []string{"go", "build"},
-		RunCmd:        nil,
+		RunCmd:        []string{"./run"},
 	}
 	NodeJs = Language{
 		Name:          "nodejs",
@@ -51,15 +52,22 @@ var (
 		RunCmd:        []string{"node"},
 	}
 
-	SupportedLanguages = []Language{
-		Python3,
-		NodeJs,
+	SupportedLanguages = []string{
+		Python3.Name,
+		NodeJs.Name,
+		Cpp.Name,
+	}
+
+	SupportedLanguageSet = map[string]bool{
+		Python3.Name: true,
+		NodeJs.Name:  true,
+		Cpp.Name:     true,
 	}
 
 	allLanguages = []Language{
 		Python3,
 		Shell,
-		Cpp11,
+		Cpp,
 		Go,
 		NodeJs,
 	}

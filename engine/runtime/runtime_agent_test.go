@@ -69,7 +69,7 @@ func Test_RunCmd(t *testing.T) {
 
 // TODO: improve this test to avoid using sleeping
 func Test_SafeRunCmd(t *testing.T) {
-	runtimeAgent := NewRuntimeAgentWithIds("test", 1, &NilProvider{}, "")
+	runtimeAgent := NewRuntimeAgentWithIds("test", 1, &NilProvider{}, "/tmp")
 
 	if !runtimeAgent.IsReady() {
 		t.Errorf("RuntimeAgent is not ready when created")

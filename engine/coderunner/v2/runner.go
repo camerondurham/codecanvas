@@ -7,11 +7,9 @@ import (
 	print2 "github.com/runner-x/runner-x/util/print"
 )
 
-const TimeoutDefault = 1
-
-func NewCodeRunner(numRunners uint, argProvider runtime.ArgProvider, parentDir, pattern string) *CodeRunner {
+func NewCodeRunner(numRunners uint, argProvider runtime.ArgProvider, parentDir, pattern string) CodeRunner {
 	ctrl := controller.NewAsyncController(numRunners, argProvider, parentDir, pattern)
-	return &CodeRunner{
+	return CodeRunner{
 		controller: ctrl,
 		numRunners: numRunners,
 	}
@@ -20,23 +18,35 @@ func NewCodeRunner(numRunners uint, argProvider runtime.ArgProvider, parentDir, 
 func (cr *CodeRunner) Run(props *RunnerProps) (*RunnerOutput, error) {
 
 	language := LangNameToLangMap[props.Lang]
-	compileCommands := &runtime.RunProps{
-		RunArgs: language.CompileCmd,
-		Timeout: TimeoutDefault,
-		Nprocs:  20,
+	filename := "run" + language.FileExtension
+	compileCmd := language.CompileCmd
+	if language.CompileCmd != nil {
+		compileCmd = append(compileCmd, filename)
 	}
+
+	compileCommands := &runtime.RunProps{
+		RunArgs: compileCmd,
+		Timeout: runtime.DefaultTimeout,
+		Nprocs:  runtime.DefaultNproc,
+		Fsize:   runtime.DefaultFsize,
+	}
+
 	runCommands := language.RunCmd
+	if language.CompileCmd == nil || len(language.CompileCmd) == 0 {
+		runCommands = append(runCommands, "./"+filename)
+	}
 
 	// TODO: actually use the right Uid and Gid and Nprocs????
 	runtimeProps := &runtime.RunProps{
 		RunArgs: runCommands,
-		Timeout: TimeoutDefault,
+		Timeout: runtime.DefaultTimeout,
 	}
+
 	print2.DebugPrintf("writing file: %v", props.Source)
 	print2.DebugPrintf("compile commands: %v", compileCommands.RunArgs)
 	print2.DebugPrintf("run commands: %v", runtimeProps.RunArgs)
 	runOut := cr.controller.SubmitRequest(&controller.Props{
-		Data:        writerremover.NewBlob([]byte(props.Source), "run"+FileExtensionToLangMap[props.Lang].FileExtension),
+		Data:        writerremover.NewBlob([]byte(props.Source), filename),
 		PreRunProps: compileCommands,
 		RunProps:    runtimeProps,
 	})

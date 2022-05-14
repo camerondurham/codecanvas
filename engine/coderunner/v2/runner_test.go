@@ -2,12 +2,12 @@ package v2
 
 import (
 	"errors"
-	"fmt"
 	"github.com/golang/mock/gomock"
 	"github.com/runner-x/runner-x/engine/controller"
 	mocks2 "github.com/runner-x/runner-x/engine/controller/mocks"
 	"github.com/runner-x/runner-x/engine/runtime"
 	"github.com/runner-x/runner-x/engine/runtime/mocks"
+	"github.com/runner-x/runner-x/util/files"
 	"os"
 	"reflect"
 	"testing"
@@ -28,12 +28,7 @@ func TestCodeRunner_Run(t *testing.T) {
 
 	// run making a workdir path
 	dir, _ := os.MkdirTemp("", "runner")
-	defer func(path string) {
-		err := os.RemoveAll(path)
-		if err != nil {
-			fmt.Println("error cleaning up after runner test")
-		}
-	}(dir)
+	defer files.RemovePath(dir)
 
 	mockSuccess := mocks.NewMockRuntime(ctrl)
 	mockSuccessWorkdir := mocks.NewMockRuntime(ctrl)
@@ -79,6 +74,30 @@ func TestCodeRunner_Run(t *testing.T) {
 				props: &RunnerProps{
 					Lang:   Python3.Name,
 					Source: "print(\"hello world\")",
+				},
+			},
+			want: &RunnerOutput{
+				Stdout:       "hello world",
+				Stderr:       "",
+				CommandError: nil,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Test Successful Run Compiled Code",
+			mock: mockSuccess,
+			fields: fields{
+				controller: mockCtrlOk1,
+				numRunners: 1,
+			},
+			args: args{
+				props: &RunnerProps{
+					Lang: Cpp.Name,
+					Source: `#include<iostream>
+int main() {
+	std::cout << "hello world" << std::endl;
+	return 0;
+}`,
 				},
 			},
 			want: &RunnerOutput{

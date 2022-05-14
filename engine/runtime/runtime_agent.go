@@ -13,8 +13,9 @@ import (
 )
 
 const (
+	DefaultTimeout     = 2
 	DefaultNproc       = 20
-	DefaultFsize       = 1000
+	DefaultFsize       = 50000
 	DefaultUid         = 1234
 	DefaultGid         = 1234
 	ProcessCommandName = "process"
@@ -86,6 +87,13 @@ func (r *RuntimeAgent) runCmd(props *RunProps) (*RunOutput, error) {
 
 	print.DebugPrintf("\nrunning command with RunProps: %v\n", props)
 	print.DebugPrintf("running command from PID: %v\n", os.Getpid())
+
+	if len(r.workdir) > 0 {
+		err := os.Chdir(r.workdir)
+		if err != nil {
+			print.DebugPrintf("unable to change directories: %v", err)
+		}
+	}
 
 	err := cmd.Run()
 
