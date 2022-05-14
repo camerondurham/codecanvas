@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"os/exec"
+	"strconv"
 	"syscall"
 	"testing"
 
@@ -198,4 +199,59 @@ func Test_setCORSOptionHandler(t *testing.T) {
 	r := chi.NewMux()
 	// trivial non-test for coverage for now, just make sure the function API works
 	setCORSOptionHandler(r, []string{"/test/path1", "/test/path2"})
+}
+
+func TestCreateCodeRunner(t *testing.T) {
+	tests := []struct {
+		name            string
+		isNumRunnersSet bool
+		isUnitTestSet   bool
+		want            int
+	}{
+		{
+			name:            "NUM_RUNNERS not set",
+			isNumRunnersSet: false,
+			isUnitTestSet:   false,
+			want:            1,
+		},
+		{
+			name:            "NUM_RUNNERS set",
+			isNumRunnersSet: true,
+			isUnitTestSet:   false,
+			want:            100,
+		},
+		{
+			name:            "NUM_RUNNERS set and unit test set",
+			isNumRunnersSet: true,
+			isUnitTestSet:   true,
+			want:            100,
+		},
+		{
+			name:            "NUM_RUNNERS set and unit test not sset",
+			isNumRunnersSet: false,
+			isUnitTestSet:   true,
+			want:            100,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.isUnitTestSet {
+				err := os.Setenv("UNIT_TEST", "1")
+				fmt.Printf("set env var err=%v\ny", err)
+			} else {
+				err := os.Unsetenv("UNIT_TEST")
+				fmt.Printf("unset env var err=%v\ny", err)
+			}
+
+			if tt.isNumRunnersSet {
+				err := os.Setenv("NUM_RUNNERS", strconv.Itoa(tt.want))
+				fmt.Printf("set env var err=%v\ny", err)
+			} else {
+				err := os.Unsetenv("NUM_RUNNERS")
+				fmt.Printf("unset env var err=%v\ny", err)
+			}
+			got := CreateCodeRunner()
+			fmt.Printf("got code runner: %v", got)
+		})
+	}
 }

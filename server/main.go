@@ -154,10 +154,7 @@ func optionHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func main() {
-
-	r := CreateNewRouter()
-
+func CreateCodeRunner() *coderunner.CodeRunner {
 	var numRunners int
 	numRunnersStr := os.Getenv("NUM_RUNNERS")
 	numRunners, err := strconv.Atoi(numRunnersStr)
@@ -176,15 +173,22 @@ func main() {
 	}
 
 	cr := coderunner.NewCodeRunner(uint(numRunners), &runtime.ProcessorArgsProvider{}, parentDir, "runner")
+	return &cr
+}
+
+func main() {
+
+	r := CreateNewRouter()
+	cr := CreateCodeRunner()
 	server := &RunnerServer{
-		coderunner: cr,
+		coderunner: *cr,
 	}
 
 	r.Get("/api/v1/languages", server.languagesHandler)
 	r.Post("/api/v1/run", server.runHandler)
 	setCORSOptionHandler(r, []string{"/api/v1/languages", "/api/v1/run"})
 
-	err = http.ListenAndServe(API_PORT, r)
+	err := http.ListenAndServe(API_PORT, r)
 	if err != nil {
 		fmt.Printf("error starting server: %v", err)
 		return
