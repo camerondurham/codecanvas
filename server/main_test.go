@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"os/exec"
+	"reflect"
 	"strconv"
 	"syscall"
 	"testing"
@@ -252,6 +253,30 @@ func TestCreateCodeRunner(t *testing.T) {
 			}
 			got := CreateCodeRunner()
 			fmt.Printf("got code runner: %v", got)
+		})
+	}
+}
+
+func TestCreateServer(t *testing.T) {
+	type args struct {
+		cr coderunner.CodeRunner
+	}
+	tests := []struct {
+		name string
+		args args
+		want *RunnerServer
+	}{
+		{
+			name: "Trivial Create Server",
+			args: args{cr: coderunner.CodeRunner{}},
+			want: &RunnerServer{coderunner: coderunner.CodeRunner{}},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := CreateServer(tt.args.cr); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("CreateServer() = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }

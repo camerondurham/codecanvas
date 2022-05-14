@@ -166,23 +166,23 @@ func CreateCodeRunner() *coderunner.CodeRunner {
 	parentDir := "/tmp"
 	if _, ok := os.LookupEnv("UNIT_TEST"); ok {
 		parentDir, err = os.MkdirTemp("/tmp", "runner")
-		if err != nil {
-			print2.DebugPrintf("error creating unit test tmp dir: %v", err)
-			panic(err)
-		}
+		print2.DebugPrintf("err result making unit test tmp dir: %v", err)
 	}
 
 	cr := coderunner.NewCodeRunner(uint(numRunners), &runtime.ProcessorArgsProvider{}, parentDir, "runner")
 	return &cr
 }
 
+func CreateServer(cr coderunner.CodeRunner) *RunnerServer {
+	return &RunnerServer{coderunner: cr}
+
+}
+
 func main() {
 
 	r := CreateNewRouter()
 	cr := CreateCodeRunner()
-	server := &RunnerServer{
-		coderunner: *cr,
-	}
+	server := CreateServer(*cr)
 
 	r.Get("/api/v1/languages", server.languagesHandler)
 	r.Post("/api/v1/run", server.runHandler)
