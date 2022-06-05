@@ -5,10 +5,18 @@
 [![Go Lint](https://github.com/camerondurham/runner/workflows/Go%20Lint/badge.svg?branch=main)](https://github.com/camerondurham/runner/actions?query=workflow%3A%22Go+Lint%22)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/camerondurham/runner)](https://img.shields.io/github/go-mod/go-version/camerondurham/runner)
 
+## Demo
+
+![gif demo showing python3 nodejs and c++ running code](assets/animation_opt.gif)
+
+> NOTE: please **do not** rely on this API. This is a hobby
+> project for learning and despite best effort to make it definitely can still crash
+> resilient, it does not handle lots of malicious input. If you do find bugs, please do [report them](mailto:u64.cam@gmail.com) or submit a quick [issue](https://github.com/camerondurham/runner/issues/new)!
+
 ## Intro
 
 The runner project is to create an interface for users to run their code remotely without having
-to have any compiler on their machine. This is a work in progress project for TCSS 401X :)
+to have any compiler on their machine. This is done as part of the experimental TCSS 401X "class".
 
 ### High Level Architecture Diagram
 
@@ -69,6 +77,8 @@ CodeRunner-->>Server: return CodeRunnerOutput
 Server-->>Client: return server transformed response
 
 ```
+
+## Development
 
 ### Repository Structure
 
@@ -134,7 +144,7 @@ Steps:
 Also see [Remote-Containers: open an existing folder in a container](https://code.visualstudio.com/docs/remote/containers#_quick-start-open-an-existing-folder-in-a-container).
 
 
-## Development
+### Development Workflow
 
 This repository is primarily written in Go and the Makefile has a helper
 commands to make development easier and more consistent.
@@ -363,6 +373,7 @@ of how to actually use mocks in a unit test.
 Will add more about this later! Here's some [reading](https://martinfowler.com/bliki/IntegrationTest.html) from Martin Fowler for now!
 
 For now the only sort of "end-to-end" integration test is here: [runner/blob/main/engine/integ_test/integration_test.go](https://github.com/camerondurham/runner/blob/main/engine/integ_test/integration_test.go)
+
 ## Documentation
 
 When writing instructions for users and in the README, please follow syntax recommended by [google developer docs](https://developers.google.com/style/code-syntax)
