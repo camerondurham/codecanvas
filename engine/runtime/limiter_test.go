@@ -1,13 +1,12 @@
 package runtime
 
 import (
-	"golang.org/x/sys/unix"
 	"reflect"
 	"runtime"
 	"testing"
-)
 
-// TODO: these tests should verify that on linux at least one rlimit is set
+	"golang.org/x/sys/unix"
+)
 
 func TestNewLimiterOnSelf(t *testing.T) {
 	tests := []struct {
@@ -28,6 +27,7 @@ func TestNewLimiterOnSelf(t *testing.T) {
 	}
 }
 
+// TODO: test that limits are not actually changed (low priority)
 func TestNilLimiter_ApplyLimits(t *testing.T) {
 	type args struct {
 		rlimits *ResourceLimits
@@ -47,6 +47,14 @@ func TestNilLimiter_ApplyLimits(t *testing.T) {
 				MaxFileSize: &unix.Rlimit{
 					Cur: 20000,
 					Max: 20000,
+				},
+				MaxCpuTime: &unix.Rlimit{
+					Cur: 60,
+					Max: 120,
+				},
+				MaxStackSize: &unix.Rlimit{
+					Cur: 524288,
+					Max: 524288,
 				},
 			}},
 			wantErr: false,
@@ -82,6 +90,14 @@ func TestOnSelf_ApplyLimits(t *testing.T) {
 					Cur: 20000,
 					Max: 20000,
 				},
+				MaxCpuTime: &unix.Rlimit{
+					Cur: 60,
+					Max: 120,
+				},
+				MaxStackSize: &unix.Rlimit{
+					Cur: 524288,
+					Max: 524288,
+				},
 			}},
 		},
 	}
@@ -95,6 +111,7 @@ func TestOnSelf_ApplyLimits(t *testing.T) {
 	}
 }
 
+// Test_applyLimitsLinux actually verifies RLIMITs are changed after running
 func Test_applyLimitsLinux(t *testing.T) {
 	type args struct {
 		rlimits *ResourceLimits
@@ -115,6 +132,14 @@ func Test_applyLimitsLinux(t *testing.T) {
 					Cur: 20000,
 					Max: 20000,
 				},
+				MaxCpuTime: &unix.Rlimit{
+					Cur: 60,
+					Max: 120,
+				},
+				MaxStackSize: &unix.Rlimit{
+					Cur: 524288,
+					Max: 524288,
+				},
 			}},
 			wantErr: false,
 		},
@@ -127,21 +152,32 @@ func Test_applyLimitsLinux(t *testing.T) {
 					t.Errorf("applyLimitsLinux() error = %v, wantErr %v", err, tt.wantErr)
 				}
 				rlimitVal := &unix.Rlimit{}
-				err := unix.Getrlimit(unix.RLIMIT_NPROC, rlimitVal)
-				if err != nil {
-					t.Errorf("error fetching limits: %v", err)
-				}
+				getRlimit(unix.RLIMIT_NPROC, rlimitVal, t)
 				if rlimitVal.Cur != tt.args.rlimits.NumProcesses.Cur || rlimitVal.Max != tt.args.rlimits.NumProcesses.Max {
 					t.Errorf("expected system rlimit %v but got: %v", tt.args.rlimits.NumProcesses, rlimitVal)
 				}
-				err = unix.Getrlimit(unix.RLIMIT_FSIZE, rlimitVal)
-				if err != nil {
-					t.Errorf("error fetching limits: %v", err)
-				}
+				getRlimit(unix.RLIMIT_FSIZE, rlimitVal, t)
 				if rlimitVal.Cur != tt.args.rlimits.MaxFileSize.Cur || rlimitVal.Max != tt.args.rlimits.MaxFileSize.Max {
-					t.Errorf("expected system rlimit %v but got: %v", tt.args.rlimits.NumProcesses, rlimitVal)
+					t.Errorf("expected system rlimit %v but got: %v", tt.args.rlimits.MaxFileSize, rlimitVal)
+				}
+
+				getRlimit(unix.RLIMIT_CPU, rlimitVal, t)
+				if rlimitVal.Cur != tt.args.rlimits.MaxCpuTime.Cur || rlimitVal.Max != tt.args.rlimits.MaxCpuTime.Max {
+					t.Errorf("expected system rlimit %v but got: %v", tt.args.rlimits.MaxCpuTime, rlimitVal)
+				}
+
+				getRlimit(unix.RLIMIT_STACK, rlimitVal, t)
+				if rlimitVal.Cur != tt.args.rlimits.MaxStackSize.Cur || rlimitVal.Max != tt.args.rlimits.MaxStackSize.Max {
+					t.Errorf("expected system rlimit %v but got: %v", tt.args.rlimits.MaxStackSize, rlimitVal)
 				}
 			})
 		}
+	}
+}
+
+func getRlimit(identifier int, rlimitVal *unix.Rlimit, t *testing.T) {
+	err := unix.Getrlimit(identifier, rlimitVal)
+	if err != nil {
+		t.Errorf("error fetching limits: %v", err)
 	}
 }

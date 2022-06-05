@@ -28,12 +28,14 @@ const (
 )
 
 type RunProps struct {
-	RunArgs []string `json:"run_args"` // program arguments
-	Timeout int      `json:"timeout"`  // timeout before program is killed
-	Uid     int      `json:"uid"`      // TODO: remove, only the runtime agent itself should care about the uid and this should be overridden
-	Gid     int      `json:"gid"`      // TODO: remove, same as above
-	Nprocs  int      `json:"nprocs"`
-	Fsize   int      `json:"fsize"`
+	RunArgs   []string `json:"run_args"` // program arguments
+	Timeout   int      `json:"timeout"`  // timeout before program is killed
+	Uid       int      `json:"uid"`      // TODO: remove, only the runtime agent itself should care about the uid and this should be overridden
+	Gid       int      `json:"gid"`      // TODO: remove, same as above
+	Nprocs    int      `json:"nprocs"`
+	Fsize     int      `json:"fsize"`
+	Cputime   int      `json:"cputime"`
+	Stacksize int      `json:"stacksize"`
 }
 
 // TODO: add additional context to exited command

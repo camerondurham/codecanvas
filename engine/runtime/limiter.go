@@ -8,9 +8,10 @@ package runtime
 
 import (
 	"fmt"
+	"runtime"
+
 	"github.com/runner-x/runner-x/util/print"
 	"golang.org/x/sys/unix"
-	"runtime"
 )
 
 // Limiter interface applies resource limits in a Linux environment
@@ -22,6 +23,8 @@ type ResourceLimits struct {
 	// TODO: merge or reuse limits with types from #36 PRs
 	NumProcesses *unix.Rlimit
 	MaxFileSize  *unix.Rlimit
+	MaxCpuTime   *unix.Rlimit
+	MaxStackSize *unix.Rlimit
 }
 
 // OnSelf is used for setting Linux resource limits
@@ -56,6 +59,18 @@ func applyLimitsLinux(rlimits *ResourceLimits) error {
 	err = unix.Setrlimit(unix.RLIMIT_FSIZE, rlimits.MaxFileSize)
 	if err != nil {
 		fmt.Printf("error setting FSIZE rlimit: %v", err)
+		return err
+	}
+
+	err = unix.Setrlimit(unix.RLIMIT_CPU, rlimits.MaxCpuTime)
+	if err != nil {
+		fmt.Printf("error setting CPU rlimit: %v", err)
+		return err
+	}
+
+	err = unix.Setrlimit(unix.RLIMIT_STACK, rlimits.MaxStackSize)
+	if err != nil {
+		fmt.Printf("error setting STACK rlimit: %v", err)
 		return err
 	}
 

@@ -25,10 +25,12 @@ func (cr *CodeRunner) Run(props *RunnerProps) (*RunnerOutput, error) {
 	}
 
 	compileCommands := &runtime.RunProps{
-		RunArgs: compileCmd,
-		Timeout: runtime.DefaultTimeout,
-		Nprocs:  runtime.DefaultNproc,
-		Fsize:   runtime.DefaultFsize,
+		RunArgs:   compileCmd,
+		Timeout:   runtime.DefaultTimeout,
+		Nprocs:    runtime.DefaultNproc,
+		Fsize:     runtime.DefaultCompileFsize,
+		Stacksize: runtime.DefaultCompileStackSize,
+		Cputime:   runtime.DefaultCputime,
 	}
 
 	runCommands := language.RunCmd

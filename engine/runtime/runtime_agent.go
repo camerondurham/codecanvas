@@ -12,12 +12,23 @@ import (
 	"github.com/runner-x/runner-x/util/print"
 )
 
+// TODO: only have one spot where these defaults are set
 const (
-	DefaultTimeout     = 2
-	DefaultNproc       = 20
-	DefaultFsize       = 50000
+	DefaultTimeout = 1
+	DefaultNproc   = 20
+	// external command
+	DefaultFsize     = 131072 // default 0.125 MB (1/8)
+	DefaultStackSize = 131072 // default 0.125 MB (1/8)
+
+	// defaults for compile command: should probably be a little higher for compiling
+	DefaultCompileFsize     = 262144 // default 0.25 MB (1/4)
+	DefaultCompileStackSize = 262144 // default 0.25 MB (1/4)
+
+	MaxOutputBufSize = 128000
+
 	DefaultUid         = 1234
 	DefaultGid         = 1234
+	DefaultCputime     = 1
 	ProcessCommandName = "process"
 )
 
@@ -82,8 +93,8 @@ func (r *RuntimeAgent) runCmd(props *RunProps) (*RunOutput, error) {
 		panic(stderrErr)
 	}
 
-	stdoutChannel := iohelpers.GetWriterChannelOutput(stdoutPipe)
-	stderrChannel := iohelpers.GetWriterChannelOutput(stderrPipe)
+	stdoutChannel := iohelpers.GetWriterChannelOutput(stdoutPipe, MaxOutputBufSize)
+	stderrChannel := iohelpers.GetWriterChannelOutput(stderrPipe, MaxOutputBufSize)
 
 	print.DebugPrintf("\nrunning command with RunProps: %v\n", props)
 	print.DebugPrintf("running command from PID: %v\n", os.Getpid())

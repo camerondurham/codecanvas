@@ -16,17 +16,22 @@ import (
 )
 
 type args struct {
-	nprocs  *unix.Rlimit
-	fsize   *unix.Rlimit
-	timeout time.Duration
-	runcmd  string
-	runargs []string
+	nprocs    *unix.Rlimit
+	fsize     *unix.Rlimit
+	cputime   *unix.Rlimit
+	stacksize *unix.Rlimit
+	timeout   time.Duration
+	runcmd    string
+	runargs   []string
 }
 
 const (
-	DefaultMaxNprocs   = 200
-	DefaultMaxFileSize = 2000000
-	DefaultTimeout     = 3
+	// TODO: better defaults or automatic defaults based on system this is running on
+	DefaultMaxNprocs   = 200    // default max 200 procs
+	DefaultMaxFileSize = 524288 // default ~0.5MB max file size
+	DefaultTimeout     = 2      // default 2s timeout
+	DefaultCpuTime     = 1      // default max 1s in CPU
+	DefaultStackSize   = 262144 // set default stack size to 0.25MB
 
 	// TODO: find better way to handle errors
 	EApplyingLimits = 10 // error code for applying limits
@@ -37,12 +42,14 @@ const (
 // The process CLI is used to handle set limits on the current process/user
 //
 // usage:
-//     process -uid=1234 -gid=1234 -nprocs=80 -fsize=20000 -timeout=5 -cmd=runcmd runargs...
-//     process -uid=1234 -gid=1234 -nprocs=80 -fsize=20000 -timeout=5 -cmd=python3 file.py
+//     process -uid=1234 -gid=1234 -nprocs=80 -fsize=20000 -timeout=5 -cputime=2 -stacksize=524288 -cmd=runcmd runargs...
+//     process -uid=1234 -gid=1234 -nprocs=80 -fsize=20000 -timeout=5 -cputime=2 -stacksize=524288 -cmd=python3 file.py
 //
 func main() {
 	nprocs := flag.Uint("nprocs", DefaultMaxNprocs, "max number of processes")
 	fsize := flag.Uint("fsize", DefaultMaxFileSize, "max file size process can create")
+	cputime := flag.Uint("cputime", DefaultCpuTime, "max time in seconds process can spend in CPU")
+	stacksize := flag.Uint("stacksize", DefaultStackSize, "max stack size program can use")
 
 	timeout := flag.Uint("timeout", DefaultTimeout, "timeout to apply on command in seconds")
 	uid := flag.Uint("uid", uint(os.Getuid()), "user id to run commands with")
@@ -53,21 +60,25 @@ func main() {
 
 	cmdArgs := flag.Args() // other args not parsed
 
-	print.ProcDebug("parsed args: nprocs=\"%d\" fsize=\"%d\" timeout:\"%d\"  uid:\"%d\" gid:\"%d\" runcmd:\"%s\" cmds:%v\n",
-		*nprocs, *fsize, *timeout, *uid, *gid, *runcmd, cmdArgs)
+	print.ProcDebug("parsed args: nprocs=\"%d\" fsize=\"%d\" timeout:\"%d\" cputime:\"%d\" stacksize: \"%d\" uid:\"%d\" gid:\"%d\" runcmd:\"%s\" cmds:%v\n",
+		*nprocs, *fsize, *timeout, *cputime, *stacksize, *uid, *gid, *runcmd, cmdArgs)
 
 	processArgs := &args{
-		nprocs:  &unix.Rlimit{Cur: uint64(*nprocs), Max: uint64(*nprocs)},
-		fsize:   &unix.Rlimit{Cur: uint64(*fsize), Max: uint64(*fsize)},
-		timeout: time.Second * time.Duration(*timeout),
-		runcmd:  *runcmd,
-		runargs: cmdArgs,
+		nprocs:    &unix.Rlimit{Cur: uint64(*nprocs), Max: uint64(*nprocs)},
+		fsize:     &unix.Rlimit{Cur: uint64(*fsize), Max: uint64(*fsize)},
+		cputime:   &unix.Rlimit{Cur: uint64(*cputime), Max: uint64(*cputime)},
+		stacksize: &unix.Rlimit{Cur: uint64(*stacksize), Max: uint64(*stacksize)},
+		timeout:   time.Second * time.Duration(*timeout),
+		runcmd:    *runcmd,
+		runargs:   cmdArgs,
 	}
 
 	limiter := runtime.NewLimiterOnSelf()
 	err := limiter.ApplyLimits(&runtime.ResourceLimits{
 		NumProcesses: processArgs.nprocs,
 		MaxFileSize:  processArgs.fsize,
+		MaxCpuTime:   processArgs.cputime,
+		MaxStackSize: processArgs.stacksize,
 	})
 
 	if err != nil {
