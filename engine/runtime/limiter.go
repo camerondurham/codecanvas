@@ -19,6 +19,10 @@ type Limiter interface {
 	ApplyLimits(rlimits *ResourceLimits) error
 }
 
+type LimitExecutor interface {
+	SetResourceLimit(which int, r *unix.Rlimit) error
+}
+
 type ResourceLimits struct {
 	// TODO: merge or reuse limits with types from #36 PRs
 	NumProcesses *unix.Rlimit
@@ -28,13 +32,23 @@ type ResourceLimits struct {
 }
 
 // OnSelf is used for setting Linux resource limits
-type OnSelf struct{}
+type OnSelf struct {
+	limitExecutor LimitExecutor
+}
 
 // NilLimiter has no effect and is used for testing
 type NilLimiter struct{}
 
+type UnixRLimiter struct{}
+
 func NewLimiterOnSelf() *OnSelf {
-	return &OnSelf{}
+	return &OnSelf{
+		limitExecutor: &UnixRLimiter{},
+	}
+}
+
+func (le *UnixRLimiter) SetResourceLimit(which int, r *unix.Rlimit) error {
+	return unix.Setrlimit(which, r)
 }
 
 func (s *OnSelf) ApplyLimits(rlimits *ResourceLimits) error {
@@ -43,32 +57,32 @@ func (s *OnSelf) ApplyLimits(rlimits *ResourceLimits) error {
 		print.DebugPrintf("skip applying limits on Darwin")
 		return nil
 	case "linux":
-		return applyLimitsLinux(rlimits)
+		return applyLimitsLinux(rlimits, s.limitExecutor)
 	}
 	return nil
 }
 
-func applyLimitsLinux(rlimits *ResourceLimits) error {
+func applyLimitsLinux(rlimits *ResourceLimits, le LimitExecutor) error {
 	// setrlimit syscall sets resource limits for the current process
-	err := unix.Setrlimit(unix.RLIMIT_NPROC, rlimits.NumProcesses)
+	err := le.SetResourceLimit(unix.RLIMIT_NPROC, rlimits.NumProcesses)
 	if err != nil {
 		fmt.Printf("error setting NPROC rlimit: %v", err)
 		return err
 	}
 
-	err = unix.Setrlimit(unix.RLIMIT_FSIZE, rlimits.MaxFileSize)
+	err = le.SetResourceLimit(unix.RLIMIT_FSIZE, rlimits.MaxFileSize)
 	if err != nil {
 		fmt.Printf("error setting FSIZE rlimit: %v", err)
 		return err
 	}
 
-	err = unix.Setrlimit(unix.RLIMIT_CPU, rlimits.MaxCpuTime)
+	err = le.SetResourceLimit(unix.RLIMIT_CPU, rlimits.MaxCpuTime)
 	if err != nil {
 		fmt.Printf("error setting CPU rlimit: %v", err)
 		return err
 	}
 
-	err = unix.Setrlimit(unix.RLIMIT_STACK, rlimits.MaxStackSize)
+	err = le.SetResourceLimit(unix.RLIMIT_STACK, rlimits.MaxStackSize)
 	if err != nil {
 		fmt.Printf("error setting STACK rlimit: %v", err)
 		return err
