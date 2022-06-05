@@ -31,6 +31,7 @@ func (p *ProcessorArgsProvider) Provide(ctx *context.Context, runprops *RunProps
 		"-gid=" + strconv.Itoa(runprops.Gid),
 		"-fsize=" + strconv.Itoa(runprops.Fsize),
 		"-timeout=" + strconv.Itoa(runprops.Timeout),
+		"-cputime=" + strconv.Itoa(runprops.Cputime),
 		"-cmd=" + runprops.RunArgs[0]}
 
 	if len(runprops.RunArgs) > 1 {

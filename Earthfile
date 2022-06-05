@@ -3,7 +3,7 @@
 # locally and in continuous integration (e.g. Github Actions)
 
 VERSION 0.6
-FROM public.ecr.aws/bitnami/golang:1.17.9
+FROM golang:1.17.9
 WORKDIR /runner
 ARG dependencies="python3 g++ nodejs"
 COPY . .
@@ -28,7 +28,7 @@ build-server:
   SAVE ARTIFACT runner-server
 
 server:
-  FROM public.ecr.aws/bitnami/golang:1.17.9
+  FROM golang:1.17.9
   WORKDIR /runner
   # add process binary to a directory already in $PATH
   COPY +build-server/runner-server ./
@@ -46,14 +46,14 @@ run-server:
   COPY +build-server/runner-server /usr/bin
 
 build-mock:
-  FROM public.ecr.aws/bitnami/golang:1.17.9
+  FROM golang:1.17.9
   WORKDIR /runner
   COPY . .
   RUN go build -v -o /runner/mock-server /runner/server/mock-server
   SAVE ARTIFACT server/mock-server
 
 mock:
-  FROM public.ecr.aws/bitnami/golang:1.17.9
+  FROM golang:1.17.9
   WORKDIR /runner
   COPY +build-mock/mock-server ./
   EXPOSE 10100

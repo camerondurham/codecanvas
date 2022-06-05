@@ -2,11 +2,12 @@ package controller
 
 import (
 	"errors"
-	"github.com/runner-x/runner-x/engine/controller/writerremover"
-	print2 "github.com/runner-x/runner-x/util/print"
 	"path/filepath"
 	"strconv"
 	"sync"
+
+	"github.com/runner-x/runner-x/engine/controller/writerremover"
+	print2 "github.com/runner-x/runner-x/util/print"
 
 	"github.com/runner-x/runner-x/engine/runtime"
 )
@@ -113,12 +114,14 @@ func (ac *AsyncController) SubmitRequest(runprops *Props) *CtrlRunOutput {
 
 			// the actual command must be run as non-root user
 			runOutput, commandErr := agent.SafeRunCmd(&runtime.RunProps{
-				RunArgs: runProps.RunArgs,
-				Timeout: runtime.DefaultTimeout,
-				Nprocs:  runtime.DefaultNproc,
-				Fsize:   runtime.DefaultFsize,
-				Uid:     agentData.agent.RuntimeUid(),
-				Gid:     agentData.agent.RuntimeGid(),
+				RunArgs:   runProps.RunArgs,
+				Timeout:   runtime.DefaultTimeout,
+				Nprocs:    runtime.DefaultNproc,
+				Fsize:     runtime.DefaultFsize,
+				Cputime:   runtime.DefaultCputime,
+				Stacksize: runtime.DefaultStackSize,
+				Uid:       agentData.agent.RuntimeUid(),
+				Gid:       agentData.agent.RuntimeGid(),
 			})
 
 			err = writerRemover.Remove()
