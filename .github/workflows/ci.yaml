@@ -3,7 +3,7 @@ name: CI
 on:
   push:
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build:
@@ -13,6 +13,9 @@ jobs:
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
       FORCE_COLOR: 1
     steps:
+      - uses: earthly/actions/setup-earthly@v1
+        with:
+          version: v0.7.0
       - uses: actions/checkout@v3
       - name: Put back the git branch into git (Earthly uses it for tagging)
         run: |
@@ -25,9 +28,5 @@ jobs:
           git checkout -b "$branch" || true
       - name: Docker Login
         run: docker login --username "$DOCKERHUB_USERNAME" --password "$DOCKERHUB_TOKEN"
-      - name: Download latest earthly
-        run: "sudo /bin/sh -c 'wget https://github.com/earthly/earthly/releases/download/v0.6.14/earthly-linux-amd64 -O /usr/local/bin/earthly && chmod +x /usr/local/bin/earthly'"
-      - name: Earthly version
-        run: earthly --version
       - name: Runs golang tests, lints and web tests
         run: earthly --ci +run-ci
