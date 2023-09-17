@@ -1,4 +1,4 @@
-# 401X runner project
+# runner
 
 [![codecov](https://codecov.io/gh/camerondurham/runner/branch/main/graph/badge.svg)](https://codecov.io/gh/camerondurham/runner)
 [![Unit Tests](https://github.com/camerondurham/runner/workflows/Unit%20Test/badge.svg?branch=main)](https://github.com/camerondurham/runner/actions?query=workflow%3A%22Unit+Test%22)
@@ -11,12 +11,13 @@
 
 > NOTE: please **do not** rely on this API. This is a hobby
 > project for learning and despite best effort to make it definitely can still crash
-> resilient, it does not handle lots of malicious input. If you do find bugs, please do [report them](mailto:u64.cam@gmail.com) or submit a quick [issue](https://github.com/camerondurham/runner/issues/new)!
+> resilient, it does not handle lots of malicious input. If you do find bugs, please do [report them directly](mailto:u64.cam@gmail.com) or submit a quick [issue](https://github.com/camerondurham/runner/issues/new)!
 
 ## Intro
 
 The runner project is to create an interface for users to run their code remotely without having
-to have any compiler on their machine. This is done as part of the experimental TCSS 401X "class".
+to have any compiler on their machine. It is a toy project meant for learning how to build a backend in Go
+and experimenting how to build a somewhat multi-tenant system to run other people's code.
 
 ### High Level Architecture Diagram
 
@@ -84,10 +85,10 @@ Server-->>Client: return server transformed response
 
 These components live in the following paths:
 
-- browser front-end: does not exist _yet_
-- command-line interface: [`cli/runner/`](https://github.com/camerondurham/runner/tree/main/cli/runner)
-- API Server: [`api/`](https://github.com/camerondurham/runner/tree/main/api)
-- CodeRunner: [`engine/coderunner`](https://github.com/camerondurham/runner/tree/main/engine/coderunner)
+- browser front-end: [`web-frontend`](https://github.com/camerondurham/runner/tree/main/web-frontend) (thank you to @arekouzounian for this!)
+- command-line interface: [`cli/runner/`](https://github.com/camerondurham/runner/tree/main/cli/runner) (another thank you to @arekouzounian for this!)
+- API Server: [`api/`](https://github.com/camerondurham/runner/tree/main/api) (thank you to @filipgraniczny for the help!)
+- CodeRunner: [`engine/coderunner`](https://github.com/camerondurham/runner/tree/main/engine/coderunner) (thank you to @siwei-li for the help!)
 - Runner Containers: [`engine/runtime`](https://github.com/camerondurham/runner/tree/main/engine/runtime)
 
 ## Dev Environment
