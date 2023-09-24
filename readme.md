@@ -1,4 +1,4 @@
-# runner
+# code-canvas (cc)
 
 [![codecov](https://codecov.io/gh/camerondurham/runner/branch/main/graph/badge.svg)](https://codecov.io/gh/camerondurham/runner)
 [![Unit Tests](https://github.com/camerondurham/runner/workflows/Unit%20Test/badge.svg?branch=main)](https://github.com/camerondurham/runner/actions?query=workflow%3A%22Unit+Test%22)
