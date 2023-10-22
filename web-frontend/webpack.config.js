@@ -41,7 +41,7 @@ module.exports = {
     // correct links to bundled versions of the custom js + imported node
     // modules
     new HtmlWebpackPlugin({
-      title: "runner",
+      title: "codecanvas",
       template: "index.html",
       clean: true,
     }),
