@@ -32,7 +32,7 @@ import setLang from "./set-code";
 var langs;
 
 codeMirror.setValue(
-  "def main():\n\tprint('Hello, World!')\n\nif __name__ == '__main__':\n\tmain()"
+      "def fibonacci(n):\n\tif n<=1:\n\t\treturn n\n\telse:\n\t\treturn(fibonacci(n-1) + fibonacci(n-2))\n\nn = 5\n\nfibo_series = []\n\nfor i in range(0,n):\n\tfibo_series.append(fibonacci(i))\n\nprint('Hello, World from Python! Here\\'s some fibonacci numbers:')\nprint(fibo_series)"
 );
 
 langRequest()

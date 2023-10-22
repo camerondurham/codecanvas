@@ -5,7 +5,7 @@ function setLang() {
   const lang = selector.options[selector.selectedIndex].innerText;
   if (lang === "python3" || lang === "python") {
     codeMirror.setValue(
-      "def main():\n\tprint('Hello, World!')\n\nif __name__ == '__main__':\n\tmain()"
+      "def fibonacci(n):\n\tif n<=1:\n\t\treturn n\n\telse:\n\t\treturn(fibonacci(n-1) + fibonacci(n-2))\n\nn = 5\n\nfibo_series = []\n\nfor i in range(0,n):\n\tfibo_series.append(fibonacci(i))\n\nprint('Hello, World from Python! Here\\'s some fibonacci numbers:')\nprint(fibo_series)"
     );
   } else if (
     lang === "node" ||
@@ -13,12 +13,15 @@ function setLang() {
     lang === "js" ||
     lang === "javascript"
   ) {
-    codeMirror.setValue("console.log('hello world');");
+    codeMirror.setValue('const { exec } = require("child_process");\n\nconsole.log("Hello world from Node.js! My uptime is:");\n\nexec("uptime", (error, stdout, stderr) => {\n\tif (error) {\n\t\tconsole.log(`error: ${error.message}`);\n\t\treturn;\n}\n\tif (stderr) {\n\t\tconsole.log(`stderr: ${stderr}`);\n\t\treturn;\n\t}\n\t\tconsole.log(`stdout: ${stdout}`);\n});');
   } else if (lang === "c++" || lang === "cpp" || lang === "c++11") {
     codeMirror.setValue(
       `#include<iostream>
+#include<thread>
 int main() {
-	std::cout << "hello world" << std::endl;
+	unsigned int nthreads = std::thread::hardware_concurrency();
+	std::cout << "hello world from C++!" << std::endl;
+	std::cerr << "I have " << nthreads << " threads!" << std::endl;
 	return 0;
 }`
     );
@@ -32,7 +35,7 @@ func main() {
     );
   } else {
     codeMirror.setValue(
-      "def main():\n\tprint('Hello, World!')\n\nif __name__ == '__main__':\n\tmain()"
+      "def fibonacci(n):\n\tif n<=1:\n\t\treturn n\n\telse:\n\t\treturn(fibonacci(n-1) + fibonacci(n-2))\n\nn = 5\n\nfibo_series = []\n\nfor i in range(0,n):\n\tfibo_series.append(fibonacci(i))\n\nprint('Hello, World from Python! Here\\'s some fibonacci numbers:')\nprint(fibo_series)"
     );
   }
 }
