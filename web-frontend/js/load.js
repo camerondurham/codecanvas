@@ -32,7 +32,7 @@ import setLang from "./set-code";
 var langs;
 
 codeMirror.setValue(
-  "def main():\n\tprint('Hello, World!')\n\nif __name__ == '__main__':\n\tmain()"
+  "def main():\n\tprint('Hello, World from Python!')\n\nif __name__ == '__main__':\n\tmain()"
 );
 
 langRequest()
