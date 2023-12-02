@@ -38,13 +38,12 @@ const (
 	ERunningProc    = 20 // error code when running command
 )
 
-//
 // The process CLI is used to handle set limits on the current process/user
 //
 // usage:
-//     process -uid=1234 -gid=1234 -nprocs=80 -fsize=20000 -timeout=5 -cputime=2 -stacksize=524288 -cmd=runcmd runargs...
-//     process -uid=1234 -gid=1234 -nprocs=80 -fsize=20000 -timeout=5 -cputime=2 -stacksize=524288 -cmd=python3 file.py
 //
+//	process -uid=1234 -gid=1234 -nprocs=80 -fsize=20000 -timeout=5 -cputime=2 -stacksize=524288 -cmd=runcmd runargs...
+//	process -uid=1234 -gid=1234 -nprocs=80 -fsize=20000 -timeout=5 -cputime=2 -stacksize=524288 -cmd=python3 file.py
 func main() {
 	nprocs := flag.Uint("nprocs", DefaultMaxNprocs, "max number of processes")
 	fsize := flag.Uint("fsize", DefaultMaxFileSize, "max file size process can create")

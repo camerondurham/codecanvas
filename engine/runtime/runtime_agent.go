@@ -149,10 +149,11 @@ func (r *RuntimeAgent) setState(state State) {
 }
 
 // SafeRunCmd will acquire lock and set state to NotReady while running the command
-// 		This function should ensure that threads can see if RuntimeAgent IsReady() to run a
-// 		command with minimal blocking. Since the IsReady() command uses a rwmutex, it
-// 		should only require a read lock which should be faster to acquire than a normal
-// 		mutex.
+//
+//	This function should ensure that threads can see if RuntimeAgent IsReady() to run a
+//	command with minimal blocking. Since the IsReady() command uses a rwmutex, it
+//	should only require a read lock which should be faster to acquire than a normal
+//	mutex.
 func (r *RuntimeAgent) SafeRunCmd(props *RunProps) (*RunOutput, error) {
 	r.setState(NotReady)
 	defer r.setState(Ready)
