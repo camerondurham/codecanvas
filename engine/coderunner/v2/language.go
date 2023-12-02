@@ -64,6 +64,8 @@ var (
 		Python3.Name: true,
 		NodeJs.Name:  true,
 		Cpp.Name:     true,
+		Go.Name:      true,
+		Shell.Name:   true,
 	}
 
 	allLanguages = []Language{
