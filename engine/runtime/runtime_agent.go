@@ -20,9 +20,9 @@ const (
 	DefaultFsize     = 131072 // default 0.125 MB (1/8)
 	DefaultStackSize = 131072 // default 0.125 MB (1/8)
 
-	// defaults for compile command: should probably be a little higher for compiling
-	DefaultCompileFsize     = 262144 // default 0.25 MB (1/4)
-	DefaultCompileStackSize = 262144 // default 0.25 MB (1/4)
+	// defaults are large only because even the basic Go "hello world" can be over 1.5MB
+	DefaultCompileFsize     = 2097152 // default 2.00 MB (1/4)
+	DefaultCompileStackSize = 2097152 // default 2.00 MB (1/4)
 
 	MaxOutputBufSize = 128000
 
@@ -149,10 +149,11 @@ func (r *RuntimeAgent) setState(state State) {
 }
 
 // SafeRunCmd will acquire lock and set state to NotReady while running the command
-// 		This function should ensure that threads can see if RuntimeAgent IsReady() to run a
-// 		command with minimal blocking. Since the IsReady() command uses a rwmutex, it
-// 		should only require a read lock which should be faster to acquire than a normal
-// 		mutex.
+//
+//	This function should ensure that threads can see if RuntimeAgent IsReady() to run a
+//	command with minimal blocking. Since the IsReady() command uses a rwmutex, it
+//	should only require a read lock which should be faster to acquire than a normal
+//	mutex.
 func (r *RuntimeAgent) SafeRunCmd(props *RunProps) (*RunOutput, error) {
 	r.setState(NotReady)
 	defer r.setState(Ready)

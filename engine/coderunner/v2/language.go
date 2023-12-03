@@ -56,12 +56,16 @@ var (
 		Python3.Name,
 		NodeJs.Name,
 		Cpp.Name,
+		Go.Name,
+		Shell.Name,
 	}
 
 	SupportedLanguageSet = map[string]bool{
 		Python3.Name: true,
 		NodeJs.Name:  true,
 		Cpp.Name:     true,
+		Go.Name:      true,
+		Shell.Name:   true,
 	}
 
 	allLanguages = []Language{
