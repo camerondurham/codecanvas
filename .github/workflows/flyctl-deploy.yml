@@ -4,11 +4,13 @@ on:
     branches:
       - main
     paths:
-      - '!assets/**'
-      - '!**.md'
-      - '!.devcontainer/**'
-      - '!docs/**'
-      - '!**.yml'
+      - '.github/workflows/**'
+      - 'docker/**'
+      - 'engine/**'
+      - 'server/**'
+      - 'util/**'
+      - 'web-frontend/**'
+      - 'fly.toml'
 
 env:
   FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
