@@ -20,9 +20,9 @@ const (
 	DefaultFsize     = 131072 // default 0.125 MB (1/8)
 	DefaultStackSize = 131072 // default 0.125 MB (1/8)
 
-	// defaults for compile command: should probably be a little higher for compiling
-	DefaultCompileFsize     = 262144 // default 0.25 MB (1/4)
-	DefaultCompileStackSize = 262144 // default 0.25 MB (1/4)
+	// defaults are large only because even the basic Go "hello world" can be over 1.5MB
+	DefaultCompileFsize     = 2097152 // default 2.00 MB (1/4)
+	DefaultCompileStackSize = 2097152 // default 2.00 MB (1/4)
 
 	MaxOutputBufSize = 128000
 
