@@ -4,7 +4,6 @@ function langRequest() {
   return new Promise(function (resolve, reject) {
     let xhr = new XMLHttpRequest();
     const fullUrl = runnerConfig.url + runnerConfig.langEndpoint;
-    console.log("FULL URL LANG: ", fullUrl);
     xhr.open("GET", fullUrl);
     xhr.onload = function () {
       if (this.status >= 200 && this.status < 400) {

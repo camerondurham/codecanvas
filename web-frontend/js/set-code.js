@@ -30,25 +30,13 @@ int main() {
       `package main
 import "fmt"
 func main() {
-    fmt.Println("hello world")
+    fmt.Println("hello world from Go!")
 }`
     );
-  } else if (lang === "bash") {
+  } else if (lang === "bash" || lange === "sh") {
     codeMirror.setValue(
-      `N=6
-a=0
-b=1
-
-echo "The Fibonacci series is : "
-for (( i=0; i<N; i++ ))
-do
-    echo -n "$a "
-    fn=$((a + b))
-    a=$b
-    b=$fn
-done`
+      "echo hello world from bash!"
     );
-
   } else {
     codeMirror.setValue(
       "def fibonacci(n):\n\tif n<=1:\n\t\treturn n\n\telse:\n\t\treturn(fibonacci(n-1) + fibonacci(n-2))\n\nn = 5\n\nfibo_series = []\n\nfor i in range(0,n):\n\tfibo_series.append(fibonacci(i))\n\nprint('Hello, World from Python! Here\\'s some fibonacci numbers:')\nprint(fibo_series)"
