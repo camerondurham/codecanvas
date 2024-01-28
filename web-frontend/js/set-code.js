@@ -35,7 +35,25 @@ func main() {
     );
   } else if (lang === "bash" || lange === "sh") {
     codeMirror.setValue(
-      "echo hello world from bash!"
+      `
+# Function to print Fibonacci Sequence
+function print_fibonacci() {
+    num=$1
+    a=0
+    b=1
+    echo "The Fibonacci sequence for $num terms is: "
+
+    for (( i=0; i<num; i++ ))
+    do
+        echo -n "$a "
+        fn=$((a + b))
+        a=$b
+        b=$fn
+    done
+}
+
+print_fibonacci 5
+			`
     );
   } else {
     codeMirror.setValue(
