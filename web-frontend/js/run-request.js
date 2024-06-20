@@ -3,7 +3,7 @@ import runnerConfig from "./config-utils";
 import "codemirror/lib/codemirror.css";
 
 function runRequest() {
-  return new Promise(function (resolve, reject) {
+  return new Promise(function(resolve, reject) {
     var req = {
       source: codeMirror.getValue(),
       language: runnerConfig.getSelectedLanguage(),
@@ -12,7 +12,7 @@ function runRequest() {
     const fullUrl = runnerConfig.url + runnerConfig.runEndpoint;
     xhr.open("POST", fullUrl);
     xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.onload = function () {
+    xhr.onload = function() {
       if (this.status >= 200 && this.status < 400) {
         resolve(xhr.response);
       } else {
@@ -22,7 +22,7 @@ function runRequest() {
         });
       }
     };
-    xhr.onerror = function () {
+    xhr.onerror = function() {
       reject({
         status: this.status,
         statusText: xhr.statusText,
@@ -32,19 +32,56 @@ function runRequest() {
   });
 }
 
+function stringify(obj) {
+  const SEP = ", ";
+  const EMPTY_TEXT = "none";
+
+  if (obj === null) return EMPTY_TEXT;
+
+  let inner = "";
+  const keys = Object.keys(obj);
+  keys.forEach((key, i) => {
+    if (obj[key] === null) {
+      return;
+    }
+
+    inner += key + ": " + String(obj[key]);
+
+    if (i < keys.length - 1) inner += SEP;
+  });
+
+  if (inner == "") inner = EMPTY_TEXT;
+
+  return inner;
+}
+
 async function runCall() {
+  let stdout = document.getElementById("stdout-field");
+  let stderr = document.getElementById("stderr-field");
+  let error = document.getElementById("err-field");
+
+
   await runRequest()
-    .then(function (result) {
+    .then(function(result) {
       let out = JSON.parse(result);
-      document.getElementById("stdout-field").innerHTML =
+
+      out["error"] = stringify(out["error"]);
+
+      stdout.innerHTML =
         "Stdout: " + out["stdout"].replace(/\n/g, "<br>");
-      document.getElementById("stderr-field").innerHTML =
+      stdout.removeAttribute("hidden");
+
+      stderr.innerHTML =
         "Stderr: " + out["stderr"];
-      document.getElementById("err-field").innerHTML = "Error: " + out["error"];
+      stderr.removeAttribute("hidden");
+
+      error.innerHTML = "Error: " + out["error"];
     })
-    .catch(function (err) {
+    .catch(function(err) {
       console.log(err);
-      document.getElementById("output-field").textContent = "Error: " + err;
+      stdout.setAttribute("hidden", true);
+      stderr.setAttribute("hidden", true);
+      error.innerHTML = "Error: " + stringify(err);
     });
 }
 
