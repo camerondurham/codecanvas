@@ -5,10 +5,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	v2 "github.com/runner-x/runner-x/server/api/v2"
 	"log"
 	"net/http"
 	"time"
+
+	v2 "github.com/runner-x/runner-x/server/api/v2"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -41,7 +42,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	output := v2.RunResponse{
 		Stdout: "hello world",
 		Stderr: "",
-		Error:  nil,
+		Error:  "",
 	}
 
 	err := json.NewEncoder(w).Encode(output)
