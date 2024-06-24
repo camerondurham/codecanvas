@@ -102,11 +102,11 @@ func (ac *AsyncController) SubmitRequest(runprops *Props) *CtrlRunOutput {
 
 			if runprops.PreRunProps != nil {
 				preRunOut, commandErr := agent.SafeRunCmd(preRunProps)
-				print2.DebugPrintf("error preparing command: output=%v\n \nerror=%v", preRunOut, commandErr)
 				if commandErr != nil {
+					print2.DebugPrintf("error preparing command: output=%v\n \nerror=%v", preRunOut, commandErr)
 					return &CtrlRunOutput{
 						ControllerErr: PreRunError,
-						RunOutput:     nil,
+						RunOutput:     preRunOut,
 						CommandErr:    nil,
 					}
 				}

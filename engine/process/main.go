@@ -98,10 +98,14 @@ func main() {
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+
 	err = cmd.Run()
 
 	if err != nil {
 		print.ProcDebug("error running process: %v\n", err)
-		os.Exit(ERunningProc)
+		// os.Exit(ERunningProc)
+		if cast, ok := err.(*exec.ExitError); ok {
+			os.Exit(cast.ExitCode())
+		}
 	}
 }

@@ -19,6 +19,7 @@ function runRequest() {
         reject({
           status: this.status,
           statusText: xhr.statusText,
+          body: xhr.response
         });
       }
     };
@@ -26,6 +27,7 @@ function runRequest() {
       reject({
         status: this.status,
         statusText: xhr.statusText,
+        body: xhr.response
       });
     };
     xhr.send(JSON.stringify(req));
