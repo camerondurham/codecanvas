@@ -6,8 +6,8 @@ function getSelectedLanguage() {
 const runnerConfig = {
   getSelectedLanguage: getSelectedLanguage,
   // Uncomment for local testing
-  url: "http://localhost:10100/api/v1/",
-  // url: "https://runner.fly.dev/api/v1/",
+  // url: "http://localhost:10100/api/v1/",
+  url: "https://runner.fly.dev/api/v1/",
   runEndpoint: "run",
   langEndpoint: "languages",
 };
