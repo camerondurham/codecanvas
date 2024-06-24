@@ -36,6 +36,7 @@ const (
 	// TODO: find better way to handle errors
 	EApplyingLimits = 10 // error code for applying limits
 	ERunningProc    = 20 // error code when running command
+	EFallbackError = 21 // error code if cannot find error code of child process
 )
 
 // The process CLI is used to handle set limits on the current process/user
@@ -100,8 +101,13 @@ func main() {
 	cmd.Stderr = os.Stderr
 	err = cmd.Run()
 
-	if err != nil {
+	if exiterr, ok := err.(*exec.ExitError); ok {
+		print.ProcDebug("process exit status: %d", exiterr.ExitCode())
+		os.Exit(exiterr.ExitCode())
+	} else {
 		print.ProcDebug("error running process: %v\n", err)
-		os.Exit(ERunningProc)
+		os.Exit(EFallbackError)
 	}
+
+	os.Exit(0)
 }

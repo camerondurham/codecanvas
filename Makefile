@@ -8,6 +8,7 @@ VERSION=v1
 MOCK_SERVER_NAME=mock-server
 SERVER_NAME=runner-server
 DEV_NAME=runner-dev
+CONTAINER_ENGINE ?= $(or $(CONTAINER_ENGINE_VAR),docker)
 
 all:
 	@echo "runner Makefile targets"
@@ -20,13 +21,13 @@ all:
 	@echo ""
 	@echo "  clean: remove build directory"
 	@echo ""
-	@echo "  lint: run Docker golang-lint-ci for the repository"
+	@echo "  lint: run ${CONTAINER_ENGINE} golang-lint-ci for the repository"
 	@echo ""
 	@echo "  install-hooks: install git-hooks in the cloned repo .git directory"
 	@echo ""
-	@echo "  dkr-mock: build and run mock server using Docker"
+	@echo "  dkr-mock: build and run mock server using ${CONTAINER_ENGINE}"
 	@echo ""
-	@echo "  dkr-server: build and run server using Docker"
+	@echo "  dkr-server: build and run server using ${CONTAINER_ENGINE}"
 	@echo ""
 	@echo "  dkr-stop-mock: stop and remove mock container"
 	@echo ""
@@ -34,23 +35,23 @@ all:
 	@echo ""
 
 dkr-mock: dkr-build-mock
-	docker build -t ${MOCK_SERVER_NAME}:${VERSION} -f docker/mock-server/Dockerfile .
-	docker run -d -p 10100:10100 --name ${MOCK_SERVER_NAME} ${MOCK_SERVER_NAME}:${VERSION}
+	${CONTAINER_ENGINE} build -t ${MOCK_SERVER_NAME}:${VERSION} -f docker/mock-server/Dockerfile .
+	${CONTAINER_ENGINE} run -d -p 10100:10100 --name ${MOCK_SERVER_NAME} ${MOCK_SERVER_NAME}:${VERSION}
 
 dkr-server:
-	docker build -t ${SERVER_NAME}:${VERSION} -f docker/server-debian/Dockerfile .
-	docker run -d -p 10100:10100 -e DEBUG=1 --name ${SERVER_NAME} ${SERVER_NAME}:${VERSION}
+	${CONTAINER_ENGINE} build -t ${SERVER_NAME}:${VERSION} -f docker/server-debian/Dockerfile .
+	${CONTAINER_ENGINE} run -d -p 10100:10100 -e DEBUG=1 --name ${SERVER_NAME} ${SERVER_NAME}:${VERSION}
 
 dkr-stop-mock:
-	docker stop ${MOCK_SERVER_NAME}
-	docker rm ${MOCK_SERVER_NAME}
+	${CONTAINER_ENGINE} stop ${MOCK_SERVER_NAME}
+	${CONTAINER_ENGINE} rm ${MOCK_SERVER_NAME}
 
 dkr-stop-server:
-	docker stop ${SERVER_NAME}
-	docker rm ${SERVER_NAME}
+	${CONTAINER_ENGINE} stop ${SERVER_NAME}
+	${CONTAINER_ENGINE} rm ${SERVER_NAME}
 
 dkr-stop-dev:
-	docker stop ${DEV_NAME}
+	${CONTAINER_ENGINE} stop ${DEV_NAME}
 
 gen-mocks:
 	mockgen -source ./engine/runtime/types.go -package=mocks -destination ./engine/runtime/mocks/Runtime.go Runtime

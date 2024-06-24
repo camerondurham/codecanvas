@@ -3,7 +3,7 @@ FROM golang:1.17.9 as builder
 WORKDIR /runner
 COPY . .
 RUN GOPROXY=direct go build -v -o /runner/process /runner/engine/process/ \
- && go build -v -o /runner/runner-server /runner/server/
+ && GOPROXY=direct go build -v -o /runner/runner-server /runner/server/
 
 FROM golang:1.17.9
 
