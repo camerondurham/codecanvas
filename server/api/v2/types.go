@@ -22,5 +22,5 @@ type RunResponse struct {
 	// Stderr is standard error stream from running program
 	Stderr string `json:"stderr"`
 	// Error result from either compilation or runtime errors. Will be nil if both compilation and runtime were successful.
-	Error error `json:"error"`
+	Error string `json:"error"`
 }

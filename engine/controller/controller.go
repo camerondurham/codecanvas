@@ -105,9 +105,9 @@ func (ac *AsyncController) SubmitRequest(runprops *Props) *CtrlRunOutput {
 				if commandErr != nil {
 					print2.DebugPrintf("error preparing command: output=%v\n \nerror=%v", preRunOut, commandErr)
 					return &CtrlRunOutput{
-						ControllerErr: PreRunError,
+						ControllerErr: nil,
 						RunOutput:     preRunOut,
-						CommandErr:    nil,
+						CommandErr:    commandErr,
 					}
 				}
 			}

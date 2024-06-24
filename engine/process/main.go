@@ -103,8 +103,19 @@ func main() {
 
 	if err != nil {
 		print.ProcDebug("error running process: %v\n", err)
-		// os.Exit(ERunningProc)
 		if cast, ok := err.(*exec.ExitError); ok {
+			if ws, ok := cast.Sys().(syscall.WaitStatus); ok {
+				if ws.Signaled() {
+					// more verbose err message
+					cmd.Stderr.Write([]byte(err.Error()))
+
+					// signal exit code: 128 + signal code
+					os.Exit(128 + int(ws.Signal()))
+				}
+			}
+
+			// if for some reason we can't get the wait status then we
+			// can just get the (probably incorrect) error code from the cast
 			os.Exit(cast.ExitCode())
 		}
 	}
