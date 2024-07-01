@@ -33,9 +33,7 @@ const (
 	DefaultCpuTime     = 1      // default max 1s in CPU
 	DefaultStackSize   = 262144 // set default stack size to 0.25MB
 
-	// TODO: find better way to handle errors
 	EApplyingLimits = 10 // error code for applying limits
-	ERunningProc    = 20 // error code when running command
 )
 
 // The process CLI is used to handle set limits on the current process/user
@@ -102,21 +100,28 @@ func main() {
 	err = cmd.Run()
 
 	if err != nil {
-		print.ProcDebug("error running process: %v\n", err)
 		if cast, ok := err.(*exec.ExitError); ok {
+			print.ProcDebug("exit error encountered: %v\n", err)
 			if ws, ok := cast.Sys().(syscall.WaitStatus); ok {
 				if ws.Signaled() {
 					// more verbose err message
-					cmd.Stderr.Write([]byte(err.Error()))
+					_, err := cmd.Stderr.Write([]byte(err.Error()))
+					if err != nil {
+						print.ProcDebug("error writing to command stderr: %v", err)
+					}
 
 					// signal exit code: 128 + signal code
 					os.Exit(128 + int(ws.Signal()))
 				}
+			} else {
+				print.ProcDebug("unable to capture WaitStatus on exit error\n")
 			}
 
 			// if for some reason we can't get the wait status then we
 			// can just get the (probably incorrect) error code from the cast
 			os.Exit(cast.ExitCode())
+		} else {
+			print.ProcDebug("encountered non exit-error failure: %v\n", err)
 		}
 	}
 }
