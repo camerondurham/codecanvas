@@ -98,7 +98,7 @@ int main() {
 			args: args{
 				r: newRequest("POST", "url", api.RunRequest{
 					Source: "print(\"hello\")",
-					Lang:   coderunner.Go.Name,
+					Lang:   "random-lang",
 				}),
 				expectedStatusCode: 400,
 			},
