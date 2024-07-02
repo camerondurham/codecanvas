@@ -19,6 +19,7 @@ function runRequest() {
         reject({
           status: this.status,
           statusText: xhr.statusText,
+          body: xhr.response
         });
       }
     };
@@ -26,6 +27,7 @@ function runRequest() {
       reject({
         status: this.status,
         statusText: xhr.statusText,
+        body: xhr.response
       });
     };
     xhr.send(JSON.stringify(req));
@@ -65,23 +67,22 @@ async function runCall() {
     .then(function(result) {
       let out = JSON.parse(result);
 
-      out["error"] = stringify(out["error"]);
 
       stdout.innerHTML =
-        "Stdout: " + out["stdout"].replace(/\n/g, "<br>");
+        "<pre>Stdout: " + out["stdout"] + "</pre>";
       stdout.removeAttribute("hidden");
 
       stderr.innerHTML =
-        "Stderr: " + out["stderr"];
+        "<pre>Stderr: " + out["stderr"] + "</pre>";
       stderr.removeAttribute("hidden");
 
-      error.innerHTML = "Error: " + out["error"];
+      error.innerHTML = "<pre>Error: " + out["error"] + "</pre>";
     })
     .catch(function(err) {
       console.log(err);
       stdout.setAttribute("hidden", true);
       stderr.setAttribute("hidden", true);
-      error.innerHTML = "Error: " + stringify(err);
+      error.innerHTML = "<pre>Error: " + stringify(err) + "</pre>";
     });
 }
 

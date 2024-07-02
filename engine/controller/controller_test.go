@@ -98,6 +98,13 @@ func TestSubmitRequest(t *testing.T) {
 		Stderr: "world",
 	}
 
+	errorCaseOutput := &runtime.RunOutput{
+		Stdout: "",
+		Stderr: "compilation error",
+	}
+
+	errorCaseOutputError := errors.New("Error")
+
 	preRunProps := &runtime.RunProps{
 		RunArgs: []string{"echo", "hello", "world"},
 		Timeout: 0,
@@ -296,7 +303,7 @@ func TestSubmitRequest(t *testing.T) {
 			},
 		},
 		{
-			name: "Last runner is ready: pre run cmd error",
+			name: "Last runner is ready: command error",
 			runProps: &Props{
 				PreRunProps: preRunProps,
 				RunProps:    &runtime.RunProps{},
@@ -313,17 +320,17 @@ func TestSubmitRequest(t *testing.T) {
 				{
 					state:                  runtime.Ready,
 					shouldBePickedAsRunner: true,
-					returnOutput:           happyCaseOutput,
-					returnErr:              nil,
+					returnOutput:           errorCaseOutput,
+					returnErr:              errorCaseOutputError,
 					writeErr:               nil,
-					preRunErr:              errors.New("some error"),
+					preRunErr:              nil,
 					preRunCmd:              preRunProps,
 				},
 			},
 			want: CtrlRunOutput{
-				ControllerErr: PreRunError,
-				RunOutput:     nil,
-				CommandErr:    nil,
+				ControllerErr: nil,
+				RunOutput:     errorCaseOutput,
+				CommandErr:    errorCaseOutputError,
 			},
 		}}
 
