@@ -51,6 +51,12 @@ var (
 		CompileCmd:    nil,
 		RunCmd:        []string{"node"},
 	}
+	Rust = Language{
+		Name:          "rust",
+		FileExtension: ".rs",
+		CompileCmd:    []string{"rustc"},
+		RunCmd:        []string{"./run"},
+	}
 
 	SupportedLanguages = []string{
 		Python3.Name,
@@ -58,6 +64,7 @@ var (
 		Cpp.Name,
 		Go.Name,
 		Shell.Name,
+		Rust.Name,
 	}
 
 	SupportedLanguageSet = map[string]bool{
@@ -66,6 +73,7 @@ var (
 		Cpp.Name:     true,
 		Go.Name:      true,
 		Shell.Name:   true,
+		Rust.Name:    true,
 	}
 
 	allLanguages = []Language{
@@ -74,6 +82,7 @@ var (
 		Cpp,
 		Go,
 		NodeJs,
+		Rust,
 	}
 
 	FileExtensionToLangMap, LangNameToLangMap = createLangMaps(allLanguages)
