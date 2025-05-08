@@ -33,6 +33,15 @@ func (cr *CodeRunner) Run(props *RunnerProps) (*RunnerOutput, error) {
 		Cputime:   runtime.DefaultCputime,
 	}
 
+	// Language-specific modifications
+	// Rust has large binaries, even for simple applications
+	//
+	// ... is there a better way to do this without switching on names?
+	switch language.Name {
+	case "rust":
+		compileCommands.Fsize = 1 << 25 // 32 mB
+	}
+
 	runCommands := language.RunCmd
 	if language.CompileCmd == nil || len(language.CompileCmd) == 0 {
 		runCommands = append(runCommands, "./"+filename)

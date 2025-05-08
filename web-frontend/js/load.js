@@ -4,6 +4,10 @@ import "codemirror/theme/neat.css";
 import "codemirror/mode/xml/xml";
 import "codemirror/mode/javascript/javascript";
 import "codemirror/mode/python/python";
+import "codemirror/mode/shell/shell";
+import "codemirror/mode/go/go";
+import "codemirror/mode/clike/clike";
+import "codemirror/mode/rust/rust";
 
 // other themes
 import "codemirror/theme/3024-day.css";

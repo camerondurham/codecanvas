@@ -14,7 +14,7 @@ COPY --from=builder /runner/process /usr/bin
 COPY --from=builder /runner/runner-server ./
 COPY docker/server-debian/entrypoint.sh /runner/entrypoint.sh
 RUN apt-get update \
-    && apt-get install -y python3 nodejs
+    && apt-get install -y python3 nodejs rustc
 EXPOSE 10100
 ENV NUM_RUNNERS=${NUM_RUNNERS:-100}
 ENTRYPOINT ["/runner/entrypoint.sh", "server"]
