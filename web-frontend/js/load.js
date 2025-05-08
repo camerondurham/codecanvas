@@ -48,7 +48,7 @@ langRequest()
   })
   .catch(function (err) {
     langs = ["Error!"];
-		console.log("Error when fetching languages: " + err);
+    console.log("Error when fetching languages: " + err);
   })
   .finally(function () {
     var lang_menu = document.getElementById("lang-select");
