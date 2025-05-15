@@ -5,11 +5,12 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/runner-x/runner-x/server/api/v1"
 	"os"
+	"path/filepath"
 
 	"github.com/runner-x/runner-x/cli/runner/client"
-	coderunner "github.com/runner-x/runner-x/engine/coderunner/v1"
+	coderunner "github.com/runner-x/runner-x/engine/coderunner/v2"
+	v2 "github.com/runner-x/runner-x/server/api/v2"
 	"github.com/spf13/cobra"
 )
 
@@ -27,26 +28,25 @@ var runCmd = &cobra.Command{
 			fmt.Println("Multiple file compilation not yet supported. Please only specify a single file for compilation.")
 			return
 		}
-		str, err := cmd.Flags().GetString("lang")
-		if err != nil {
-			panic(err)
-		}
 
 		url, err := rootCmd.PersistentFlags().GetString("url")
 		if err != nil {
 			panic(err)
 		}
 
+		timeout, err := cmd.Flags().GetInt("timeout")
+		if err != nil {
+			panic(err)
+		}
+
 		filename := args[0]
-		ext := extractExtension(filename)
-		var langCheck coderunner.Language
-		if str == "implicit" {
-			if lang, found := coderunner.ExtensionFileMap[ext]; found {
-				langCheck = lang
-			} else {
-				fmt.Printf("unrecognized file type: %s", ext)
-				return
-			}
+		ext := filepath.Ext(filename)
+		var langCheck string
+		if lang, found := coderunner.FileExtensionToLangMap[ext]; found {
+			langCheck = lang.Name
+		} else {
+			fmt.Printf("unrecognized file type: %s", ext)
+			return
 		}
 
 		source, err := os.ReadFile(filename)
@@ -55,15 +55,13 @@ var runCmd = &cobra.Command{
 			return
 		}
 
-		// add a flag to modify timeout?
-		var cmdClient client.Requester
-		clint := client.Config{
+		config := client.Config{
 			BaseUrl: url,
-			Timeout: coderunner.TIMEOUT_DEFAULT,
+			Timeout: timeout,
 		}
-		cmdClient = client.NewClientFromConfig(clint)
+		cmdClient := client.NewClientFromConfig(config)
 
-		r := &v1.RunRequest{
+		r := &v2.RunRequest{
 			Source: string(source[:]),
 			Lang:   langCheck,
 		}
@@ -71,7 +69,7 @@ var runCmd = &cobra.Command{
 		resp, err := cmdClient.Run(r)
 		if err != nil {
 			fmt.Println(err)
-		} else if resp.Error != nil {
+		} else if resp.Error != "" {
 			fmt.Println(resp.Error)
 		} else {
 			fmt.Printf("Stdout: %s\nStderr: %s\n", resp.Stdout, resp.Stderr)
@@ -82,24 +80,5 @@ var runCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(runCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// runCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// runCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	runCmd.Flags().StringP("lang", "l", "implicit", "specifies the language for the source file. If not specified, CLI will try to guess language type before making API call.")
-}
-
-func extractExtension(filename string) string {
-	f := []rune(filename)
-	for i := len(f) - 1; i >= 0; i -= 1 {
-		if f[i] == '.' {
-			return string(f[i+1:])
-		}
-	}
-	return filename
+	runCmd.Flags().IntP("timeout", "t", 5, "the timeout delay for each request. default 5 seconds")
 }

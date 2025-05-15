@@ -3,26 +3,28 @@ package client
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/runner-x/runner-x/server/api/v1"
 	"io"
 	"net/http"
 	"strings"
 	"time"
 
-	coderunner "github.com/runner-x/runner-x/engine/coderunner/v1"
+	v2 "github.com/runner-x/runner-x/server/api/v2"
 )
 
-// TODO: fill in this client package as needed and create, use Client as needed in CLI commands
-
 const (
-	DEFAULT_URL   = "http://localhost:10100"
+	DEFAULT_URL = "http://localhost:10100"
+
+	// Notably, the server still serves under these endpoints
+	// Despite the migration to v2 on the backend.
 	LANG_ENDPOINT = "/api/v1/languages"
 	RUN_ENDPOINT  = "/api/v1/run"
+
+	TIMEOUT_DEFAULT = time.Second * 5
 )
 
 type Requester interface {
-	Run(r *v1.RunRequest) (*v1.RunResponse, error)
-	Languages() (*v1.LanguagesResponse, error)
+	Run(r *v2.RunRequest) (*v2.RunResponse, error)
+	Languages() (*v2.LanguagesResponse, error)
 }
 
 type Client struct {
@@ -37,18 +39,16 @@ type Config struct {
 }
 
 func NewClient() *Client {
-	// TODO: implement client with defaults like localhost url (nice to have)
 	var c Client
 	c.BaseUrl = DEFAULT_URL
 	c.HttpClient = http.Client{
-		Timeout: time.Second * coderunner.TIMEOUT_DEFAULT,
+		Timeout: TIMEOUT_DEFAULT,
 	}
 
 	return &c
 }
 
 func NewClientFromConfig(c Config) *Client {
-	// TODO: create client from config
 	var client Client
 	client.BaseUrl = c.BaseUrl
 	client.HttpClient = http.Client{
@@ -58,17 +58,18 @@ func NewClientFromConfig(c Config) *Client {
 	return &client
 }
 
-func (c *Client) Run(r *v1.RunRequest) (*v1.RunResponse, error) {
-	// TODO: implement/refactor
+func (c *Client) Run(r *v2.RunRequest) (*v2.RunResponse, error) {
 	source := r.Source
 
-	reqBody := v1.RunRequest{
+	reqBody := v2.RunRequest{
 		Source: source,
 		Lang:   r.Lang,
 	}
 
 	jsonBody, err := json.Marshal(reqBody)
-	PanicCheck(err)
+	if err != nil {
+		return nil, err
+	}
 
 	body := strings.NewReader(string(jsonBody))
 
@@ -91,15 +92,16 @@ func (c *Client) Run(r *v1.RunRequest) (*v1.RunResponse, error) {
 		return nil, err
 	}
 
-	var ret v1.RunResponse
-	decodeErr := json.Unmarshal(respReader, &ret)
-	PanicCheck(decodeErr)
+	var ret v2.RunResponse
+	err = json.Unmarshal(respReader, &ret)
+	if err != nil {
+		return nil, err
+	}
 
 	return &ret, nil
 }
 
-func (c *Client) Languages() (*v1.LanguagesResponse, error) {
-	// TODO: implement/refactor
+func (c *Client) Languages() (*v2.LanguagesResponse, error) {
 	req, err := http.NewRequest("GET", c.BaseUrl+LANG_ENDPOINT, nil)
 	if err != nil {
 		return nil, err
@@ -118,15 +120,11 @@ func (c *Client) Languages() (*v1.LanguagesResponse, error) {
 		return nil, err
 	}
 
-	var jsonLangs v1.LanguagesResponse
-	decodeErr := json.Unmarshal(body, &jsonLangs)
-	PanicCheck(decodeErr)
+	var jsonLangs v2.LanguagesResponse
+	err = json.Unmarshal(body, &jsonLangs)
+	if err != nil {
+		return nil, err
+	}
 
 	return &jsonLangs, nil
-}
-
-func PanicCheck(err error) {
-	if err != nil {
-		panic(err)
-	}
 }
