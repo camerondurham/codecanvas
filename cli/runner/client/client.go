@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -12,7 +13,8 @@ import (
 )
 
 const (
-	DEFAULT_URL = "http://localhost:10100"
+	// DEFAULT_URL = "http://localhost:10100"
+	DEFAULT_URL = "https://runner.fly.dev"
 
 	// Notably, the server still serves under these endpoints
 	// Despite the migration to v2 on the backend.
@@ -32,33 +34,48 @@ type Client struct {
 	HttpClient http.Client // http client to use for GET, POST requests
 }
 
+// abstracts the inner requester to allow us to generate mocks
+type CliClient struct {
+	client Requester
+}
+
 type Config struct {
 	BaseUrl string
 	// add any other configurable values we may want here
 	Timeout int
 }
 
-func NewClient() *Client {
-	var c Client
-	c.BaseUrl = DEFAULT_URL
-	c.HttpClient = http.Client{
+func NewClient() *CliClient {
+	var client Client
+	client.BaseUrl = DEFAULT_URL
+	client.HttpClient = http.Client{
 		Timeout: TIMEOUT_DEFAULT,
 	}
 
-	return &c
+	return &CliClient{
+		client,
+	}
 }
 
-func NewClientFromConfig(c Config) *Client {
+func NewClientFromConfig(c Config) *CliClient {
 	var client Client
 	client.BaseUrl = c.BaseUrl
 	client.HttpClient = http.Client{
 		Timeout: time.Second * time.Duration(c.Timeout),
 	}
 
-	return &client
+	return &CliClient{
+		client,
+	}
 }
 
-func (c *Client) Run(r *v2.RunRequest) (*v2.RunResponse, error) {
+func NewClientWithRequester(r Requester) *CliClient {
+	return &CliClient{
+		client: r,
+	}
+}
+
+func (c Client) Run(r *v2.RunRequest) (*v2.RunResponse, error) {
 	source := r.Source
 
 	reqBody := v2.RunRequest{
@@ -101,7 +118,7 @@ func (c *Client) Run(r *v2.RunRequest) (*v2.RunResponse, error) {
 	return &ret, nil
 }
 
-func (c *Client) Languages() (*v2.LanguagesResponse, error) {
+func (c Client) Languages() (*v2.LanguagesResponse, error) {
 	req, err := http.NewRequest("GET", c.BaseUrl+LANG_ENDPOINT, nil)
 	if err != nil {
 		return nil, err
@@ -127,4 +144,39 @@ func (c *Client) Languages() (*v2.LanguagesResponse, error) {
 	}
 
 	return &jsonLangs, nil
+}
+
+func (cli *CliClient) LanguageRequest() (*v2.LanguagesResponse, error) {
+	return cli.client.Languages()
+}
+
+func (cli *CliClient) RunRequest(language string, filename string) (*v2.RunResponse, error) {
+	// check if the language is supported
+	langs, err := cli.client.Languages()
+	if err != nil {
+		return nil, err
+	}
+
+	validLanguage := false
+	for _, lang := range langs.Languages {
+		if lang == language {
+			validLanguage = true
+			break
+		}
+	}
+	if !validLanguage {
+		return nil, fmt.Errorf("invalid language: %s", language)
+	}
+
+	source, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, fmt.Errorf("file not found: %s", filename)
+	}
+
+	req := &v2.RunRequest{
+		Source: string(source),
+		Lang:   language,
+	}
+
+	return cli.client.Run(req)
 }

@@ -6,6 +6,7 @@ package cmd
 import (
 	"os"
 
+	"github.com/runner-x/runner-x/cli/runner/client"
 	"github.com/spf13/cobra"
 )
 
@@ -41,6 +42,7 @@ func init() {
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	rootCmd.PersistentFlags().StringP("url", "u", "http://localhost:10100", "specifies the url host for the runner API")
+	// rootCmd.Flags().BoolP("toggle", "", false, "Help message for toggle")
+	rootCmd.PersistentFlags().StringP("url", "u", client.DEFAULT_URL, "specifies the url host for the runner API")
+	rootCmd.PersistentFlags().IntP("timeout", "t", 5, "the timeout delay for each request. default 5 seconds")
 }
