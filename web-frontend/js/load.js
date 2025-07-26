@@ -36,7 +36,7 @@ import setLang from "./set-code";
 var langs;
 
 codeMirror.setValue(
-      "def fibonacci(n):\n\tif n<=1:\n\t\treturn n\n\telse:\n\t\treturn(fibonacci(n-1) + fibonacci(n-2))\n\nn = 5\n\nfibo_series = []\n\nfor i in range(0,n):\n\tfibo_series.append(fibonacci(i))\n\nprint('Hello, World from Python! Here\\'s some fibonacci numbers:')\nprint(fibo_series)"
+  "def fibonacci(n):\n\tif n<=1:\n\t\treturn n\n\telse:\n\t\treturn(fibonacci(n-1) + fibonacci(n-2))\n\nn = 5\n\nfibo_series = []\n\nfor i in range(0,n):\n\tfibo_series.append(fibonacci(i))\n\nprint('Hello, World from Python! Here\\'s some fibonacci numbers:')\nprint(fibo_series)"
 );
 
 langRequest()
@@ -74,3 +74,71 @@ selector.addEventListener("change", selectTheme);
 
 const langSelector = document.getElementById("lang-select");
 langSelector.addEventListener("change", setLang);
+
+// Initialize environment selector
+runnerConfig.initializeEnvironment();
+
+// Add environment status indicator
+function updateEnvironmentStatus() {
+  const currentEnv = runnerConfig.getSelectedEnvironment();
+  const envConfig = runnerConfig.environments[currentEnv];
+
+  // Create or update environment status indicator
+  let statusIndicator = document.getElementById("env-status");
+  if (!statusIndicator) {
+    statusIndicator = document.createElement("div");
+    statusIndicator.id = "env-status";
+    statusIndicator.style.cssText = `
+      margin: 10px 0;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+      text-align: center;
+    `;
+
+    const selectors = document.querySelector(".selectors");
+    selectors.parentNode.insertBefore(statusIndicator, selectors.nextSibling);
+  }
+
+  // Update status indicator with API URL
+  statusIndicator.innerHTML = `
+    <strong>Environment:</strong> ${envConfig.name}<br>
+    <small>${envConfig.description}</small><br>
+    <small><strong>API:</strong> ${envConfig.url}</small>
+  `;
+
+  // Color coding for different environments
+  if (currentEnv === 'local') {
+    statusIndicator.style.backgroundColor = '#e3f2fd';
+    statusIndicator.style.color = '#1976d2';
+    statusIndicator.style.border = '1px solid #bbdefb';
+  } else if (currentEnv === 'staging') {
+    statusIndicator.style.backgroundColor = '#fff3e0';
+    statusIndicator.style.color = '#f57c00';
+    statusIndicator.style.border = '1px solid #ffcc02';
+  } else {
+    statusIndicator.style.backgroundColor = '#e8f5e8';
+    statusIndicator.style.color = '#2e7d32';
+    statusIndicator.style.border = '1px solid #c8e6c9';
+  }
+}
+
+// Optional: Add environment health check
+async function checkEnvironmentHealth(env) {
+  try {
+    const response = await fetch(runnerConfig.environments[env].url + 'health', {
+      method: 'GET',
+      timeout: 5000
+    });
+    return response.ok;
+  } catch (error) {
+    return false;
+  }
+}
+
+// Listen for environment changes
+document.addEventListener('environmentChanged', updateEnvironmentStatus);
+
+// Initial status update
+updateEnvironmentStatus();
