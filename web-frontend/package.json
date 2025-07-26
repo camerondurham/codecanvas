@@ -10,9 +10,12 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack",
-    "watch": "webpack --watch",
-    "start": "webpack serve --open",
+    "build": "webpack --mode=production --env ENVIRONMENT=production",
+    "build:local": "webpack --mode=development --env ENVIRONMENT=local",
+    "build:staging": "webpack --mode=production --env ENVIRONMENT=staging",
+    "build:production": "webpack --mode=production --env ENVIRONMENT=production",
+    "watch": "webpack --watch --env ENVIRONMENT=local",
+    "start": "webpack serve --open --env ENVIRONMENT=local",
     "deploy": "gh-pages -d dist"
   },
   "devDependencies": {
