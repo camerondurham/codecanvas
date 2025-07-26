@@ -1,49 +1,48 @@
-app = "runner-staging"
+# fly.toml app configuration file generated for runner-staging on 2025-07-26T12:42:00-07:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'runner-staging'
+primary_region = 'lax'
+
+[build]
+  dockerfile = 'docker/server-debian/Dockerfile'
+
+[deploy]
+  strategy = 'rolling'
+  wait_timeout = '5m0s'
 
 [env]
-  PORT = "10100"
-  ENVIRONMENT = "staging"
+  ENVIRONMENT = 'staging'
+  PORT = '10100'
 
-[[services]]
-  internal_port = 10100
-  protocol = "tcp"
-
-  [[services.ports]]
-    handlers = ["tls", "http"]
-    port = "10100"
-
-  # API should work on https://runner-staging.fly.dev/api/v1
-  [[services.ports]]
-    handlers = ["tls", "http"]
-    port = "443"
-
-# Staging-specific resource allocation
-[build]
-  dockerfile = "docker/server-debian/Dockerfile"
-
-# Staging environment scaling parameters
-[[vm]]
-  size = "shared-cpu-1x"
-  memory = "256mb"
-
-# Auto-scaling configuration for staging
 [http_service]
   internal_port = 10100
   force_https = true
-  auto_stop_machines = true
+  auto_stop_machines = 'stop'
   auto_start_machines = true
   min_machines_running = 1
-  max_machines_running = 2
 
-# Health checks for staging environment
-[[http_service.checks]]
-  grace_period = "10s"
-  interval = "30s"
-  method = "GET"
-  timeout = "5s"
-  path = "/api/v1/health"
+  [[http_service.checks]]
+    interval = '30s'
+    timeout = '5s'
+    grace_period = '10s'
+    method = 'GET'
+    path = '/api/v1/health'
 
-# Staging-specific deployment settings
-[deploy]
-  strategy = "rolling"
-  wait_timeout = "5m"
+[[services]]
+  protocol = 'tcp'
+  internal_port = 10100
+
+  [[services.ports]]
+    port = 10100
+    handlers = ['tls', 'http']
+
+  [[services.ports]]
+    port = 443
+    handlers = ['tls', 'http']
+
+[[vm]]
+  size = 'shared-cpu-1x'
+  memory = '256mb'
