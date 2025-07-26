@@ -76,27 +76,39 @@ graph TB
 - Add staging-specific environment variables
 - Configure staging app in Fly.io dashboard
 
-### 2. Frontend Environment Configuration
+### 2. Frontend Environment Selection
 
-**Environment Configuration System**
-- Replace hardcoded URLs in `config-utils.js` with build-time environment detection
+**Dynamic Environment Configuration System**
+- Add environment selector dropdown to the frontend UI alongside existing language and theme selectors
+- Implement runtime environment switching without requiring page reload
 - Support for multiple environments: `local`, `staging`, `production`
-- Webpack configuration updates for environment-specific builds
+- Visual indicators to show which environment is currently active
 
 **Configuration Structure**:
 ```javascript
 const environments = {
   local: {
     url: "http://localhost:10100/api/v1/",
+    name: "Local Development",
+    description: "Local development server"
   },
   staging: {
     url: "https://runner-staging.fly.dev/api/v1/",
+    name: "Staging",
+    description: "Pre-production testing environment"
   },
   production: {
     url: "https://runner.fly.dev/api/v1/",
+    name: "Production",
+    description: "Live production environment"
   }
 };
 ```
+
+**UI Components**:
+- Environment selector dropdown in the `.selectors` div
+- Visual indicator (badge/label) showing current environment
+- Optional environment status indicator (online/offline)
 
 ### 3. CI/CD Pipeline Enhancements
 

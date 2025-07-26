@@ -7,16 +7,25 @@ function getSelectedLanguage() {
 const environments = {
   local: {
     url: "http://localhost:10100/api/v1/",
+    name: "Local Development",
+    description: "Local development server"
   },
   staging: {
     url: "https://runner-staging.fly.dev/api/v1/",
+    name: "Staging",
+    description: "Pre-production testing environment"
   },
   production: {
     url: "https://runner.fly.dev/api/v1/",
+    name: "Production",
+    description: "Live production environment"
   }
 };
 
-// Environment detection logic
+// Current environment state
+let currentEnvironment = 'production'; // Default to production
+
+// Environment detection logic (fallback for initial load)
 function detectEnvironment() {
   // Check if environment was set at build time
   if (typeof ENVIRONMENT !== 'undefined') {
@@ -35,18 +44,75 @@ function detectEnvironment() {
   }
 }
 
+// Get selected environment from dropdown
+function getSelectedEnvironment() {
+  const selector = document.getElementById("env-select");
+  if (selector) {
+    return selector.value;
+  }
+  return detectEnvironment();
+}
+
+// Set environment and update configuration
+function setEnvironment(env) {
+  if (environments[env]) {
+    currentEnvironment = env;
+    
+    // Update dropdown if it exists
+    const selector = document.getElementById("env-select");
+    if (selector) {
+      selector.value = env;
+    }
+    
+    // Update the runnerConfig URL
+    runnerConfig.url = environments[env].url;
+    runnerConfig.environment = env;
+    
+    // Trigger environment change event
+    const event = new CustomEvent('environmentChanged', { 
+      detail: { 
+        environment: env, 
+        config: environments[env] 
+      } 
+    });
+    document.dispatchEvent(event);
+  }
+}
+
 // Get current environment configuration
 function getEnvironmentConfig() {
-  const env = detectEnvironment();
+  const env = getSelectedEnvironment();
   return environments[env] || environments.production;
+}
+
+// Initialize environment on page load
+function initializeEnvironment() {
+  const detectedEnv = detectEnvironment();
+  setEnvironment(detectedEnv);
+  
+  // Set up environment selector change handler
+  const selector = document.getElementById("env-select");
+  if (selector) {
+    selector.addEventListener('change', function() {
+      setEnvironment(this.value);
+    });
+  }
 }
 
 const runnerConfig = {
   getSelectedLanguage: getSelectedLanguage,
-  url: getEnvironmentConfig().url,
+  get url() {
+    return getEnvironmentConfig().url;
+  },
   runEndpoint: "run",
   langEndpoint: "languages",
-  environment: detectEnvironment(),
+  get environment() {
+    return getSelectedEnvironment();
+  },
+  setEnvironment: setEnvironment,
+  getSelectedEnvironment: getSelectedEnvironment,
+  initializeEnvironment: initializeEnvironment,
+  environments: environments
 };
 
 // only single export per .js file allowed

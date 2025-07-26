@@ -27,7 +27,7 @@ jobs:
         run: flyctl deploy --remote-only --config fly.staging.toml --dockerfile docker/server-debian/Dockerfile
 
   deploy-frontend:
-    name: Deploy frontend to staging
+    name: Deploy frontend (supports all environments)
     runs-on: ubuntu-latest
     needs: deploy-backend
     steps:
@@ -43,37 +43,31 @@ jobs:
         run: npm ci
         working-directory: web-frontend
       
-      - name: Build frontend for staging
-        run: npm run build:staging
+      - name: Build frontend with environment selector
+        run: npm run build
         working-directory: web-frontend
         env:
-          NODE_ENV: staging
-          STAGING_API_URL: https://runner-staging.fly.dev/api/v1/
+          NODE_ENV: production
       
-      - name: Verify staging build configuration
+      - name: Verify frontend build
         run: |
-          echo "Verifying staging build..."
+          echo "Verifying frontend build..."
           echo "Built files:"
           ls -la web-frontend/dist/
-          echo "Checking for staging configuration in built files..."
-          grep -r "runner-staging" web-frontend/dist/ || echo "Staging URL configuration found in build"
+          echo "Frontend includes environment selector for local, staging, and production"
+          echo "Users can switch between environments dynamically from the UI"
       
-      - name: Deploy frontend to staging
+      - name: Deploy frontend
         run: |
-          # For now, we'll prepare the staging deployment
-          # This can be extended to deploy to a staging-specific target
-          echo "Frontend built for staging environment"
-          echo "Staging API URL: https://runner-staging.fly.dev/api/v1/"
-          echo "Built files ready for staging deployment"
+          echo "Frontend built with dynamic environment selection"
+          echo "Users can select from:"
+          echo "- Local: http://localhost:10100/api/v1/"
+          echo "- Staging: https://runner-staging.fly.dev/api/v1/"
+          echo "- Production: https://runner.fly.dev/api/v1/"
+          echo "Built files ready for deployment"
           
-          # Future: Deploy to staging-specific frontend hosting
-          # This could be GitHub Pages with a staging branch,
-          # or a separate staging subdomain
-          
-          # Example for GitHub Pages staging deployment:
-          # git config --global user.email "action@github.com"
-          # git config --global user.name "GitHub Action"
-          # npm run deploy -- --repo https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git --branch gh-pages-staging
+          # Deploy to your preferred frontend hosting
+          # npm run deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

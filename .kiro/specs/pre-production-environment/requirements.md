@@ -19,14 +19,14 @@ This feature will establish a dedicated pre-production development test environm
 
 ### Requirement 2
 
-**User Story:** As a developer, I want the frontend to automatically connect to the appropriate backend environment, so that I can test the complete user experience in the staging environment.
+**User Story:** As a developer, I want to easily switch between different backend environments from the same frontend interface, so that I can test and compare behavior across local, staging, and production environments.
 
 #### Acceptance Criteria
 
-1. WHEN the frontend is built for staging THEN it SHALL automatically configure API endpoints to point to the staging backend URL
-2. WHEN a developer builds the frontend locally THEN they SHALL be able to specify which environment (local, staging, production) to target
-3. WHEN the staging frontend is deployed THEN it SHALL be accessible at a staging-specific URL distinct from production
-4. WHEN environment configuration changes THEN the frontend SHALL rebuild automatically with the correct API endpoints
+1. WHEN a user accesses the frontend THEN they SHALL see an environment selector dropdown with options for local, staging, and production
+2. WHEN a user selects a different environment THEN the frontend SHALL immediately switch to use the selected backend API endpoint
+3. WHEN a user submits code THEN it SHALL be executed against the currently selected environment's backend
+4. WHEN the environment selection changes THEN the interface SHALL provide visual feedback indicating which environment is active
 
 ### Requirement 3
 
