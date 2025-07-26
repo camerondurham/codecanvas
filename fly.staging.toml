@@ -1,0 +1,49 @@
+app = "runner-staging"
+
+[env]
+  PORT = "10100"
+  ENVIRONMENT = "staging"
+
+[[services]]
+  internal_port = 10100
+  protocol = "tcp"
+
+  [[services.ports]]
+    handlers = ["tls", "http"]
+    port = "10100"
+
+  # API should work on https://runner-staging.fly.dev/api/v1
+  [[services.ports]]
+    handlers = ["tls", "http"]
+    port = "443"
+
+# Staging-specific resource allocation
+[build]
+  dockerfile = "docker/server-debian/Dockerfile"
+
+# Staging environment scaling parameters
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
+
+# Auto-scaling configuration for staging
+[http_service]
+  internal_port = 10100
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 1
+  max_machines_running = 2
+
+# Health checks for staging environment
+[[http_service.checks]]
+  grace_period = "10s"
+  interval = "30s"
+  method = "GET"
+  timeout = "5s"
+  path = "/api/v1/health"
+
+# Staging-specific deployment settings
+[deploy]
+  strategy = "rolling"
+  wait_timeout = "5m"

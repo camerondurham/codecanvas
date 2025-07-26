@@ -1,8 +1,14 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const webpack = require("webpack");
 
-module.exports = {
-  mode: "development",
+module.exports = (env, argv) => {
+  // Get environment from command line or default to development
+  const environment = env.ENVIRONMENT || process.env.NODE_ENV || 'local';
+  const isProduction = argv.mode === 'production';
+
+  return {
+  mode: isProduction ? "production" : "development",
   entry: {
     // Splitting code into separate modules with diff dependencies depending on
     // shared imports to help with sharing imports.
@@ -45,6 +51,10 @@ module.exports = {
       template: "index.html",
       clean: true,
     }),
+    // Inject environment variables at build time
+    new webpack.DefinePlugin({
+      ENVIRONMENT: JSON.stringify(environment),
+    }),
   ],
   output: {
     // Using [contenthash] can help with caching and different versions of the
@@ -64,4 +74,5 @@ module.exports = {
       },
     ],
   },
+  };
 };
