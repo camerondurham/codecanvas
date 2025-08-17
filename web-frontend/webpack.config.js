@@ -1,11 +1,13 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const webpack = require("webpack");
+const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
 
 module.exports = (env, argv) => {
   // Get environment from command line or default to development
   const environment = env.ENVIRONMENT || process.env.NODE_ENV || 'local';
   const isProduction = argv.mode === 'production';
+  const shouldAnalyze = env.ANALYZE === 'true';
 
   return {
   mode: isProduction ? "production" : "development",
@@ -55,6 +57,16 @@ module.exports = (env, argv) => {
     new webpack.DefinePlugin({
       ENVIRONMENT: JSON.stringify(environment),
     }),
+    // Bundle analyzer plugin - only run when ANALYZE=true
+    ...(shouldAnalyze ? [
+      new BundleAnalyzerPlugin({
+        analyzerMode: 'static',
+        openAnalyzer: false,
+        reportFilename: 'bundle-report.html',
+        generateStatsFile: true,
+        statsFilename: 'bundle-stats.json',
+      })
+    ] : []),
   ],
   output: {
     // Using [contenthash] can help with caching and different versions of the

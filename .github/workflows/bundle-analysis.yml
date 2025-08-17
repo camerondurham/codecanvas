@@ -1,0 +1,249 @@
+name: Bundle Size Analysis
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'web-frontend/**'
+      - '.github/workflows/bundle-analysis.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'web-frontend/**'
+
+jobs:
+  bundle-analysis:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: web-frontend/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd web-frontend
+          npm ci
+
+      - name: Build and analyze bundle
+        run: |
+          cd web-frontend
+          npm run build:analyze
+
+      - name: Validate bundle sizes
+        run: |
+          cd web-frontend
+          npm run validate-bundle
+
+      - name: Upload bundle analysis report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: bundle-analysis-report
+          path: |
+            web-frontend/dist/bundle-report.html
+            web-frontend/dist/bundle-stats.json
+          retention-days: 30
+
+      - name: Comment bundle size on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            try {
+              const statsPath = path.join(process.cwd(), 'web-frontend/dist/bundle-stats.json');
+              const stats = JSON.parse(fs.readFileSync(statsPath, 'utf8'));
+              const assets = stats.assets || [];
+              
+              let totalSize = 0;
+              let bundleInfo = '## 📊 Bundle Size Analysis\n\n';
+              bundleInfo += '| Bundle | Size | Status |\n';
+              bundleInfo += '|--------|------|--------|\n';
+              
+              const formatBytes = (bytes) => {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KiB', 'MiB', 'GiB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+              };
+              
+              const THRESHOLDS = {
+                maxChunkSize: 249856, // 244 KiB
+                editor: 524288, // 512 KiB
+                index: 249856,  // 244 KiB
+              };
+              
+              assets.forEach(asset => {
+                totalSize += asset.size;
+                let status = '✅';
+                
+                if (asset.size > THRESHOLDS.maxChunkSize) {
+                  status = '❌ Exceeds 244 KiB limit';
+                } else if (asset.name.includes('editor') && asset.size > THRESHOLDS.editor) {
+                  status = '❌ Exceeds editor limit';
+                } else if (asset.name.includes('index') && asset.size > THRESHOLDS.index) {
+                  status = '❌ Exceeds index limit';
+                }
+                
+                bundleInfo += `| ${asset.name} | ${formatBytes(asset.size)} | ${status} |\n`;
+              });
+              
+              bundleInfo += `\n**Total Bundle Size:** ${formatBytes(totalSize)}\n`;
+              bundleInfo += `**Bundle Analysis Report:** Available in workflow artifacts\n`;
+              
+              // Find existing comment
+              const { data: comments } = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+              });
+              
+              const existingComment = comments.find(comment => 
+                comment.body.includes('📊 Bundle Size Analysis')
+              );
+              
+              if (existingComment) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existingComment.id,
+                  body: bundleInfo
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  body: bundleInfo
+                });
+              }
+            } catch (error) {
+              console.error('Failed to post bundle analysis comment:', error);
+            }
+
+  bundle-size-regression:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: web-frontend/package-lock.json
+
+      - name: Install dependencies and build PR
+        run: |
+          cd web-frontend
+          npm ci
+          npm run build:analyze
+
+      - name: Save PR bundle stats
+        run: |
+          cp web-frontend/dist/bundle-stats.json pr-bundle-stats.json
+
+      - name: Checkout main branch
+        uses: actions/checkout@v3
+        with:
+          ref: main
+
+      - name: Install dependencies and build main
+        run: |
+          cd web-frontend
+          npm ci
+          npm run build:analyze
+
+      - name: Compare bundle sizes
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            
+            const formatBytes = (bytes) => {
+              if (bytes === 0) return '0 Bytes';
+              const k = 1024;
+              const sizes = ['Bytes', 'KiB', 'MiB', 'GiB'];
+              const i = Math.floor(Math.log(bytes) / Math.log(k));
+              return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            };
+            
+            try {
+              const prStats = JSON.parse(fs.readFileSync('pr-bundle-stats.json', 'utf8'));
+              const mainStats = JSON.parse(fs.readFileSync('web-frontend/dist/bundle-stats.json', 'utf8'));
+              
+              const prAssets = prStats.assets || [];
+              const mainAssets = mainStats.assets || [];
+              
+              let prTotal = prAssets.reduce((sum, asset) => sum + asset.size, 0);
+              let mainTotal = mainAssets.reduce((sum, asset) => sum + asset.size, 0);
+              
+              const sizeDiff = prTotal - mainTotal;
+              const percentChange = mainTotal > 0 ? ((sizeDiff / mainTotal) * 100).toFixed(2) : 0;
+              
+              let comment = '## 📈 Bundle Size Comparison\n\n';
+              comment += `| Branch | Total Size | Change |\n`;
+              comment += `|--------|------------|--------|\n`;
+              comment += `| main | ${formatBytes(mainTotal)} | - |\n`;
+              comment += `| PR | ${formatBytes(prTotal)} | `;
+              
+              if (sizeDiff > 0) {
+                comment += `🔴 +${formatBytes(sizeDiff)} (+${percentChange}%)`;
+              } else if (sizeDiff < 0) {
+                comment += `🟢 ${formatBytes(sizeDiff)} (${percentChange}%)`;
+              } else {
+                comment += `⚪ No change`;
+              }
+              comment += ` |\n\n`;
+              
+              // Warn if size increased significantly
+              if (sizeDiff > 10240) { // 10 KiB threshold
+                comment += `⚠️ **Warning:** Bundle size increased by more than 10 KiB. Consider:\n`;
+                comment += `- Code splitting for new features\n`;
+                comment += `- Dynamic imports for non-critical code\n`;
+                comment += `- Tree shaking optimization\n\n`;
+              }
+              
+              // Find and update existing comment
+              const { data: comments } = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+              });
+              
+              const existingComment = comments.find(comment => 
+                comment.body.includes('📈 Bundle Size Comparison')
+              );
+              
+              if (existingComment) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existingComment.id,
+                  body: comment
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  body: comment
+                });
+              }
+              
+            } catch (error) {
+              console.error('Failed to compare bundle sizes:', error);
+            }

@@ -14,6 +14,10 @@
     "build:local": "webpack --mode=development --env ENVIRONMENT=local",
     "build:staging": "webpack --mode=production --env ENVIRONMENT=staging",
     "build:production": "webpack --mode=production --env ENVIRONMENT=production",
+    "build:analyze": "webpack --mode=production --env ENVIRONMENT=production --env ANALYZE=true",
+    "analyze-bundle": "node scripts/analyze-bundle.js",
+    "validate-bundle": "node scripts/validate-bundle-size.js",
+    "clean-bundle": "node scripts/clean-bundle-artifacts.js",
     "watch": "webpack --watch --env ENVIRONMENT=local",
     "start": "webpack serve --open --env ENVIRONMENT=local",
     "deploy": "gh-pages -d dist"
@@ -22,6 +26,7 @@
     "gh-pages": "^5.0.0",
     "html-webpack-plugin": "^5.5.0",
     "webpack": "^5.94.0",
+    "webpack-bundle-analyzer": "^4.10.2",
     "webpack-cli": "^4.9.2",
     "webpack-dev-server": "^5.2.1"
   }

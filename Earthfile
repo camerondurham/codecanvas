@@ -88,6 +88,17 @@ test-web:
   && npm install \
   && npm run build
 
+test-bundle-size:
+  # Test bundle sizes and generate analysis report
+  RUN cd web-frontend \
+  && apt-get update -y \
+  && apt-get install -y nodejs npm \
+  && npm install \
+  && npm run build:analyze \
+  && npm run validate-bundle
+  SAVE ARTIFACT web-frontend/dist/bundle-report.html AS LOCAL ./bundle-report.html
+  SAVE ARTIFACT web-frontend/dist/bundle-stats.json AS LOCAL ./bundle-stats.json
+
 test-server-image-build:
   FROM DOCKERFILE -f ./docker/server-debian/Dockerfile .
 
@@ -96,6 +107,7 @@ run-ci:
   BUILD +lint
   BUILD +test-server-image-build
   BUILD +test-web
+  BUILD +test-bundle-size
 
 build-frontend:
   FROM public.ecr.aws/debian/debian:buster-slim
