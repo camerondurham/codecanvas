@@ -29,13 +29,6 @@ export const DEFAULT_CONFIG = {
 export const CODEMIRROR_THEMES = [
   'default',
   'dark',
-  'monokai',
-  'solarized-light',
-  'solarized-dark',
-  'material',
-  'dracula',
-  'github-light',
-  'github-dark',
 ] as const;
 
 export type CodeMirrorTheme = typeof CODEMIRROR_THEMES[number];
