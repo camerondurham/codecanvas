@@ -1,0 +1,307 @@
+/* Enhanced OutputDisplay component styles */
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-md);
+  width: 100%;
+  container-type: inline-size;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.label {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-base);
+  color: var(--foreground);
+  font-weight: 400;
+  margin: 0;
+  line-height: var(--line-height-tight);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.output {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-base);
+  background-color: var(--field-background);
+  color: var(--field-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  min-height: 60px;
+  max-height: 200px;
+  overflow-y: auto;
+  box-sizing: border-box;
+  line-height: var(--line-height);
+  transition: border-color var(--transition-fast);
+  /* Custom scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) var(--field-background);
+}
+
+/* Webkit scrollbar styling */
+.output::-webkit-scrollbar {
+  width: 8px;
+}
+
+.output::-webkit-scrollbar-track {
+  background: var(--field-background);
+}
+
+.output::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: var(--radius-sm);
+}
+
+.output::-webkit-scrollbar-thumb:hover {
+  background: var(--foreground-muted);
+}
+
+.output:empty::before {
+  content: 'none';
+  color: var(--foreground-muted);
+  font-style: italic;
+  opacity: 0.7;
+}
+
+/* Enhanced loading state styles */
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-xl);
+  background-color: var(--field-background);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  margin: var(--spacing-md) 0;
+  min-height: 120px;
+}
+
+.loadingSpinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--border-color);
+  border-top: 3px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  flex-shrink: 0;
+}
+
+.loadingText {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-base);
+  color: var(--foreground-muted);
+  text-align: center;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Enhanced focus and interaction states */
+.output:focus {
+  outline: none;
+  border-color: var(--focus-color);
+  box-shadow: 0 0 0 3px var(--focus-shadow);
+}
+
+.output:hover {
+  border-color: var(--primary-color);
+}
+
+/* Status-based styling */
+.section[data-type="stdout"] .output:not(:empty):not([data-content="none"]) {
+  border-left: 3px solid var(--success-color);
+}
+
+.section[data-type="stderr"] .output:not(:empty):not([data-content="none"]) {
+  border-left: 3px solid var(--warning-color);
+}
+
+.section[data-type="error"] .output:not(:empty):not([data-content="none"]) {
+  border-left: 3px solid var(--error-color);
+}
+
+/* Enhanced responsive design */
+@media (max-width: 1024px) {
+  .output {
+    max-height: 180px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-sm);
+  }
+  
+  .output {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    min-height: 50px;
+    max-height: 150px;
+    font-size: var(--font-size-sm);
+  }
+  
+  .label {
+    font-size: var(--font-size-sm);
+  }
+  
+  .loadingContainer {
+    padding: var(--spacing-lg);
+    min-height: 100px;
+  }
+  
+  .loadingSpinner {
+    width: 20px;
+    height: 20px;
+    border-width: 2px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    gap: var(--spacing-xs);
+    margin-top: var(--spacing-xs);
+  }
+  
+  .output {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-xs);
+    min-height: 40px;
+    max-height: 120px;
+  }
+  
+  .label {
+    font-size: var(--font-size-xs);
+  }
+  
+  .loadingContainer {
+    padding: var(--spacing-md);
+    gap: var(--spacing-sm);
+    min-height: 80px;
+  }
+  
+  .loadingText {
+    font-size: var(--font-size-xs);
+  }
+  
+  .loadingSpinner {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+@media (max-width: 320px) {
+  .output {
+    min-height: 35px;
+    max-height: 100px;
+  }
+}
+
+/* Container queries for more granular responsive design */
+@container (max-width: 600px) {
+  .container {
+    gap: var(--spacing-sm);
+  }
+  
+  .output {
+    max-height: 140px;
+  }
+}
+
+@container (max-width: 400px) {
+  .output {
+    max-height: 120px;
+    font-size: var(--font-size-xs);
+  }
+  
+  .label {
+    font-size: var(--font-size-xs);
+  }
+}
+
+/* Landscape orientation on mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+  .output {
+    max-height: 100px;
+  }
+  
+  .loadingContainer {
+    min-height: 60px;
+    padding: var(--spacing-md);
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .output {
+    border-width: 2px;
+  }
+  
+  .loadingContainer {
+    border-width: 2px;
+  }
+  
+  .section[data-type="stdout"] .output:not(:empty):not([data-content="none"]),
+  .section[data-type="stderr"] .output:not(:empty):not([data-content="none"]),
+  .section[data-type="error"] .output:not(:empty):not([data-content="none"]) {
+    border-left-width: 4px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .loadingSpinner {
+    animation: none;
+  }
+  
+  .output {
+    transition: none;
+  }
+}
+
+/* Print styles */
+@media print {
+  .loadingContainer {
+    display: none;
+  }
+  
+  .output {
+    max-height: none;
+    overflow: visible;
+    border: 1px solid #000;
+    break-inside: avoid;
+  }
+  
+  .container {
+    break-inside: avoid;
+  }
+}
+
+/* Accessibility improvements */
+.output[aria-live="polite"] {
+  /* Screen reader will announce changes */
+}
+
+/* Focus management for keyboard navigation */
+.output[tabindex="0"] {
+  cursor: text;
+}
+
+/* Better visual hierarchy */
+.label::after {
+  content: ':';
+  margin-left: 2px;
+}

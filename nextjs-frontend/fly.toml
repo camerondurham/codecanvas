@@ -1,0 +1,46 @@
+# Fly.io configuration for Next.js frontend
+app = "nextjs-frontend"
+primary_region = "dfw"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  NEXT_PUBLIC_APP_ENV = "production"
+  NEXT_PUBLIC_API_BASE_URL = "https://runner.fly.dev/api/v1"
+  PORT = "3000"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "connections"
+    hard_limit = 1000
+    soft_limit = 1000
+
+[[http_service.checks]]
+  interval = "15s"
+  grace_period = "5s"
+  method = "GET"
+  path = "/api/health"
+  protocol = "http"
+  timeout = "10s"
+  tls_skip_verify = false
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 1024
+
+[deploy]
+  release_command = "echo 'Deployment completed'"
+
+# Secrets (set via fly secrets set)
+# NEXT_PUBLIC_ANALYTICS_ID
+# NEXT_PUBLIC_SENTRY_DSN

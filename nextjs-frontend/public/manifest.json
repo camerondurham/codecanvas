@@ -1,0 +1,20 @@
+{
+  "name": "Code Runner",
+  "short_name": "CodeRunner",
+  "description": "Execute code in multiple programming languages",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f5f5",
+  "theme_color": "#282828",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["developer", "productivity", "utilities"],
+  "lang": "en",
+  "dir": "ltr",
+  "orientation": "portrait-primary"
+}

@@ -1,0 +1,107 @@
+.editorContainer {
+  width: 100%;
+  margin: var(--spacing-md) 0;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--editor-border);
+  background: var(--editor-bg);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  position: relative;
+}
+
+.editorWrapper {
+  width: 100%;
+  min-height: 400px;
+  position: relative;
+  font-family: var(--font-mono);
+}
+
+/* Focus state with improved accessibility */
+.editorContainer:focus-within {
+  border-color: var(--editor-focus-border);
+  box-shadow: 0 0 0 3px var(--editor-focus-shadow);
+}
+
+/* Enhanced responsive design */
+@media (max-width: 1024px) {
+  .editorWrapper {
+    min-height: 350px;
+  }
+}
+
+@media (max-width: 768px) {
+  .editorContainer {
+    margin: var(--spacing-sm) 0;
+    border-radius: var(--radius-sm);
+  }
+  
+  .editorWrapper {
+    min-height: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .editorContainer {
+    margin: var(--spacing-xs) 0;
+  }
+  
+  .editorWrapper {
+    min-height: 250px;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 320px) {
+  .editorWrapper {
+    min-height: 200px;
+  }
+}
+
+/* Landscape orientation on mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+  .editorWrapper {
+    min-height: 200px;
+  }
+}
+
+/* Large screens */
+@media (min-width: 1200px) {
+  .editorWrapper {
+    min-height: 450px;
+  }
+}
+
+/* Container queries for more granular control */
+@container (max-width: 600px) {
+  .editorContainer {
+    border-radius: var(--radius-sm);
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .editorContainer {
+    border-width: 2px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .editorContainer {
+    transition: none;
+  }
+}
+
+/* Print styles */
+@media print {
+  .editorContainer {
+    border: 2px solid #000;
+    box-shadow: none;
+    break-inside: avoid;
+  }
+  
+  .editorWrapper {
+    min-height: auto;
+  }
+}

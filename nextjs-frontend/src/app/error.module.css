@@ -1,0 +1,111 @@
+.errorContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+  background: var(--background);
+}
+
+.errorContent {
+  text-align: center;
+  max-width: 600px;
+  padding: 3rem;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background-color: var(--field-background);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.errorContent h1 {
+  color: var(--foreground);
+  margin-bottom: 1rem;
+  font-size: 2rem;
+  font-weight: 500;
+}
+
+.errorContent > p {
+  color: var(--foreground-muted);
+  margin-bottom: 2rem;
+  line-height: 1.6;
+  font-size: 1.1rem;
+}
+
+.errorDetails {
+  margin: 2rem 0;
+  text-align: left;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--background);
+}
+
+.errorDetails summary {
+  cursor: pointer;
+  color: var(--foreground-muted);
+  padding: 1rem;
+  font-weight: 500;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.errorDetails summary:hover {
+  background-color: var(--field-background);
+}
+
+.errorInfo {
+  padding: 1rem;
+}
+
+.errorInfo p {
+  margin: 0.5rem 0;
+  color: var(--foreground);
+}
+
+.errorInfo strong {
+  color: var(--foreground);
+}
+
+.errorInfo pre {
+  background-color: var(--field-background);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 1rem;
+  overflow-x: auto;
+  font-size: 0.875rem;
+  color: var(--foreground);
+  margin-top: 0.5rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.retryButton,
+.homeButton {
+  background-color: var(--field-background);
+  color: var(--field-color);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-base);
+  font-weight: 400;
+  transition: all 0.2s ease;
+  min-width: 120px;
+}
+
+.retryButton:hover,
+.homeButton:hover {
+  opacity: 0.8;
+  transform: translateY(-1px);
+}
+
+.retryButton:active,
+.homeButton:active {
+  transform: translateY(0);
+}

@@ -1,0 +1,20 @@
+.codeEditor {
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: var(--bg-secondary);
+}
+
+.textarea {
+  width: 100%;
+  height: 300px;
+  border: none;
+  outline: none;
+  padding: 1rem;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  background-color: transparent;
+  color: var(--text-primary);
+  resize: vertical;
+}

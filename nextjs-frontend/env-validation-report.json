@@ -1,0 +1,14 @@
+{
+  "timestamp": "2025-08-18T15:45:31.714Z",
+  "environment": "development",
+  "apiUrl": "http://localhost:10100/api/v1",
+  "requiredVars": {
+    "NEXT_PUBLIC_API_BASE_URL": true,
+    "NEXT_PUBLIC_APP_ENV": true
+  },
+  "optionalVars": {
+    "NEXT_PUBLIC_ANALYTICS_ID": false,
+    "NEXT_PUBLIC_SENTRY_DSN": false
+  },
+  "warnings": 2
+}

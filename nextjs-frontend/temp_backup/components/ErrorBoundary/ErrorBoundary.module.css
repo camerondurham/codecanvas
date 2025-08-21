@@ -1,0 +1,65 @@
+.errorContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  padding: 2rem;
+}
+
+.errorContent {
+  text-align: center;
+  max-width: 500px;
+  padding: 2rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--field-background);
+}
+
+.errorContent h2 {
+  color: var(--foreground);
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+}
+
+.errorContent p {
+  color: var(--foreground-muted);
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.errorDetails {
+  margin: 1rem 0;
+  text-align: left;
+}
+
+.errorDetails summary {
+  cursor: pointer;
+  color: var(--foreground-muted);
+  margin-bottom: 0.5rem;
+}
+
+.errorDetails pre {
+  background-color: var(--background);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 1rem;
+  overflow-x: auto;
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+
+.retryButton {
+  background-color: var(--field-background);
+  color: var(--field-color);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-base);
+  transition: opacity 0.2s ease;
+}
+
+.retryButton:hover {
+  opacity: 0.8;
+}

@@ -1,0 +1,65 @@
+[build]
+  base = "nextjs-frontend/"
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "20"
+  NPM_FLAGS = "--prefix=/dev/null"
+  NODE_ENV = "production"
+  NEXT_PUBLIC_API_BASE_URL = "https://runner.fly.dev/api/v1"
+  NEXT_PUBLIC_APP_ENV = "production"
+
+# Production context
+[context.production]
+  command = "npm run build:production"
+
+[context.production.environment]
+  NODE_ENV = "production"
+  NEXT_PUBLIC_API_BASE_URL = "https://runner.fly.dev/api/v1"
+  NEXT_PUBLIC_APP_ENV = "production"
+
+# Deploy preview context
+[context.deploy-preview]
+  command = "npm run build"
+
+[context.deploy-preview.environment]
+  NODE_ENV = "development"
+  NEXT_PUBLIC_API_BASE_URL = "https://runner.fly.dev/api/v1"
+  NEXT_PUBLIC_APP_ENV = "staging"
+
+# Branch deploy context
+[context.branch-deploy]
+  command = "npm run build"
+
+# Headers for security and performance
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+[[headers]]
+  for = "/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/_next/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Redirects and rewrites
+[[redirects]]
+  from = "/health"
+  to = "/api/health"
+  status = 200
+
+# Plugin configuration
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[plugins.inputs]
+  target = "server"

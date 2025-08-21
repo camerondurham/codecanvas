@@ -1,0 +1,226 @@
+/* Layout container with responsive grid using CSS custom properties */
+.container {
+  min-height: 100vh;
+  min-height: 100dvh; /* Dynamic viewport height for mobile browsers */
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas: 
+    "header"
+    "main"
+    "footer";
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* Header styles with improved spacing */
+.header {
+  grid-area: header;
+  padding: var(--spacing-lg) var(--spacing-xl);
+  text-align: center;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--background);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-3xl);
+  font-weight: 400;
+  color: var(--foreground);
+  line-height: var(--line-height-tight);
+}
+
+/* Main content area with improved spacing and centering */
+.main {
+  grid-area: main;
+  padding: var(--spacing-xl) var(--spacing-md);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 0; /* Allow content to shrink */
+}
+
+.wrapper {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  /* Ensure content doesn't get too wide on large screens */
+  container-type: inline-size;
+}
+
+/* Footer styles with improved spacing */
+.footer {
+  grid-area: footer;
+  padding: var(--spacing-lg) var(--spacing-xl);
+  text-align: center;
+  font-size: var(--font-size-sm);
+  color: var(--foreground-muted);
+  border-top: 1px solid var(--border-color);
+  background: var(--background);
+  line-height: var(--line-height);
+}
+
+.footer p {
+  margin: 0;
+}
+
+.footer a {
+  color: var(--link-color);
+  transition: color var(--transition-fast);
+}
+
+.footer a:hover {
+  color: var(--primary-color-hover);
+}
+
+/* Enhanced responsive design with better breakpoints */
+@media (max-width: 1024px) {
+  .wrapper {
+    max-width: 90%;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: var(--spacing-md) var(--spacing-lg);
+    position: static; /* Remove sticky on mobile for better space usage */
+  }
+  
+  .main {
+    padding: var(--spacing-lg) var(--spacing-sm);
+  }
+  
+  .wrapper {
+    width: 100%;
+    max-width: none;
+  }
+  
+  .footer {
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-size: var(--font-size-xs);
+  }
+  
+  .title {
+    font-size: var(--font-size-2xl);
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+  
+  .main {
+    padding: var(--spacing-md) var(--spacing-xs);
+  }
+  
+  .footer {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+  
+  .title {
+    font-size: var(--font-size-xl);
+  }
+}
+
+/* Extra small screens (phones in portrait) */
+@media (max-width: 320px) {
+  .header {
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+  
+  .main {
+    padding: var(--spacing-sm) var(--spacing-xs);
+  }
+  
+  .footer {
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+  
+  .title {
+    font-size: var(--font-size-lg);
+  }
+}
+
+/* Large screens optimization */
+@media (min-width: 1200px) {
+  .wrapper {
+    max-width: 1000px;
+  }
+  
+  .header {
+    padding: var(--spacing-2xl) var(--spacing-xl);
+  }
+  
+  .main {
+    padding: var(--spacing-2xl) var(--spacing-lg);
+  }
+  
+  .footer {
+    padding: var(--spacing-2xl) var(--spacing-xl);
+  }
+}
+
+/* Ultra-wide screens */
+@media (min-width: 1600px) {
+  .wrapper {
+    max-width: 1200px;
+  }
+}
+
+/* Container queries for more granular responsive design */
+@container (max-width: 600px) {
+  .wrapper {
+    padding: 0;
+  }
+}
+
+/* Print styles */
+@media print {
+  .header, .footer {
+    display: none;
+  }
+  
+  .main {
+    padding: 0;
+  }
+  
+  .container {
+    min-height: auto;
+    display: block;
+  }
+}
+
+/* Landscape orientation on mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+  .header {
+    padding: var(--spacing-xs) var(--spacing-md);
+  }
+  
+  .main {
+    padding: var(--spacing-sm) var(--spacing-sm);
+  }
+  
+  .title {
+    font-size: var(--font-size-xl);
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .header, .footer {
+    border-width: 2px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .header {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
