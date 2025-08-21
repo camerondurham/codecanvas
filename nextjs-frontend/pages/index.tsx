@@ -1,18 +1,12 @@
-import Head from 'next/head'
+import Layout from '../components/Layout'
 
 export default function Home() {
   return (
-    <>
-      <Head>
-        <title>Code Runner</title>
-        <meta name="description" content="Online code runner and editor" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-      <main>
-        <h1>Code Runner</h1>
+    <Layout title="Code Canvas">
+      <div>
         <p>Next.js frontend initialization complete!</p>
-      </main>
-    </>
+        <p>Layout component with responsive design is now implemented.</p>
+      </div>
+    </Layout>
   )
 }
