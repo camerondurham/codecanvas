@@ -29,14 +29,14 @@
   - Write CodeEditor.module.css for editor container styling
   - _Requirements: 1.1, 1.2, 1.3_
 
-- [ ] 5. Create LanguageSelector component
+- [x] 5. Create LanguageSelector component
   - Implement components/LanguageSelector/LanguageSelector.tsx with dropdown functionality
   - Add loading state display while fetching languages
   - Handle language change events and sample code updates
   - Style component with LanguageSelector.module.css matching current design
   - _Requirements: 3.1, 3.2, 3.3, 3.4_
 
-- [ ] 6. Build ThemeSelector component
+- [x] 6. Build ThemeSelector component
   - Create components/ThemeSelector/ThemeSelector.tsx with theme dropdown
   - Implement theme change handling and CodeMirror theme application
   - Add ThemeSelector.module.css for consistent styling with language selector

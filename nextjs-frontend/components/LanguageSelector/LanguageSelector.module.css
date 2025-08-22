@@ -1,0 +1,144 @@
+.container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+  width: 100%;
+}
+
+.label {
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  font-weight: 400;
+  white-space: nowrap;
+  min-width: fit-content;
+}
+
+.select {
+  background-color: var(--field-background);
+  color: var(--field-text);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  min-width: 120px;
+  flex: 1;
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.select:hover:not(:disabled) {
+  border-color: var(--link-color);
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--link-color);
+  box-shadow: 0 0 0 2px var(--link-color)20;
+}
+
+.select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: var(--field-background);
+}
+
+.select option {
+  background-color: var(--field-background);
+  color: var(--field-text);
+  padding: 0.25rem 0.5rem;
+}
+
+.loadingIndicator {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--border-color);
+  border-top: 2px solid var(--link-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  
+  .label {
+    font-size: 0.8rem;
+  }
+  
+  .select {
+    width: 100%;
+    min-width: unset;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .select {
+    border-width: 2px;
+  }
+  
+  .select:focus {
+    border-width: 3px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .select {
+    transition: none;
+  }
+  
+  .spinner {
+    animation: none;
+  }
+  
+  .loadingIndicator::after {
+    content: "...";
+    animation: none;
+  }
+}
+
+/* Dark mode specific adjustments */
+@media (prefers-color-scheme: dark) {
+  .select option {
+    background-color: var(--background-secondary);
+  }
+}
+
+/* Ensure proper styling in different browsers */
+.select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 1rem;
+  padding-right: 2rem;
+}
+
+/* Focus styles for better accessibility */
+.select:focus-visible {
+  outline: 2px solid var(--link-color);
+  outline-offset: 2px;
+}

@@ -1,0 +1,72 @@
+.container {
+  width: 100%;
+  margin: 1rem 0;
+}
+
+.editor {
+  border: 1px solid var(--border-color, #e1e5e9);
+  border-radius: 4px;
+  background: var(--editor-bg, #ffffff);
+  transition: border-color 0.2s ease;
+  overflow: hidden;
+}
+
+.editor:focus-within {
+  border-color: var(--focus-color, #0066cc);
+  box-shadow: 0 0 0 2px var(--focus-shadow, rgba(0, 102, 204, 0.1));
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .editor {
+    --border-color: #404040;
+    --editor-bg: #1e1e1e;
+    --focus-color: #4a9eff;
+    --focus-shadow: rgba(74, 158, 255, 0.1);
+  }
+}
+
+/* Light mode explicit */
+[data-theme="light"] .editor {
+  --border-color: #e1e5e9;
+  --editor-bg: #ffffff;
+  --focus-color: #0066cc;
+  --focus-shadow: rgba(0, 102, 204, 0.1);
+}
+
+/* Dark mode explicit */
+[data-theme="dark"] .editor {
+  --border-color: #404040;
+  --editor-bg: #1e1e1e;
+  --focus-color: #4a9eff;
+  --focus-shadow: rgba(74, 158, 255, 0.1);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .container {
+    margin: 0.75rem 0;
+  }
+  
+  .editor {
+    border-radius: 2px;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .editor {
+    border-width: 2px;
+  }
+  
+  .editor:focus-within {
+    border-width: 3px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .editor {
+    transition: none;
+  }
+}

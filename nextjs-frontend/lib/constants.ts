@@ -28,7 +28,20 @@ export const DEFAULT_CONFIG = {
 // CodeMirror Theme Options
 export const CODEMIRROR_THEMES = [
   'default',
-  'dark',
+  '3024-day',
+  '3024-night',
+  'blackboard',
+  'darcula',
+  'dracula',
+  'eclipse',
+  'elegant',
+  'erlang-dark',
+  'idea',
+  'isotope',
+  'lucario',
+  'material',
+  'monokai',
+  'solarized',
 ] as const;
 
 export type CodeMirrorTheme = typeof CODEMIRROR_THEMES[number];
