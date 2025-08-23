@@ -1,0 +1,180 @@
+.container {
+  width: 100%;
+  margin: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.label {
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  font-weight: 400;
+  margin: 0;
+}
+
+.output {
+  background-color: var(--field-background);
+  color: var(--field-text);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  line-height: 1.4;
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  min-height: 2.5rem;
+  max-height: 200px;
+  overflow-y: auto;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.output:empty::before {
+  content: 'none';
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem;
+  background-color: var(--field-background);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-secondary);
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border-color);
+  border-top: 2px solid var(--link-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loadingText {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .container {
+    margin: 0.75rem 0;
+    gap: 0.5rem;
+  }
+  
+  .label {
+    font-size: 0.8rem;
+  }
+  
+  .output {
+    padding: 0.5rem;
+    font-size: 0.8rem;
+    max-height: 150px;
+  }
+  
+  .loadingContainer {
+    padding: 1.5rem;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .output {
+    border-width: 2px;
+  }
+  
+  .loadingContainer {
+    border-width: 2px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .output {
+    transition: none;
+  }
+  
+  .spinner {
+    animation: none;
+  }
+  
+  .loadingText::after {
+    content: "...";
+    animation: none;
+  }
+}
+
+/* Dark mode specific adjustments */
+@media (prefers-color-scheme: dark) {
+  .output {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-color) transparent;
+  }
+  
+  .output::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .output::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .output::-webkit-scrollbar-thumb {
+    background-color: var(--border-color);
+    border-radius: 3px;
+  }
+}
+
+/* Focus styles for accessibility */
+.output:focus {
+  outline: 2px solid var(--link-color);
+  outline-offset: 2px;
+}
+
+/* Ensure proper text selection */
+.output {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+/* Handle long lines gracefully */
+.output {
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.output::-webkit-scrollbar {
+  height: 6px;
+}
+
+.output::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.output::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 3px;
+}
