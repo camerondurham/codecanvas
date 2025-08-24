@@ -1,0 +1,125 @@
+.errorBoundary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  padding: 2rem;
+  background-color: var(--color-background);
+  border: 1px solid var(--color-error);
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+.errorContent {
+  text-align: center;
+  max-width: 600px;
+}
+
+.errorTitle {
+  color: var(--color-error);
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.errorMessage {
+  color: var(--color-text-secondary);
+  font-size: 1rem;
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+}
+
+.errorDetails {
+  text-align: left;
+  margin: 1.5rem 0;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background-color: var(--color-background-secondary);
+}
+
+.errorSummary {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--color-text);
+  background-color: var(--color-background-tertiary);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.errorSummary:hover {
+  background-color: var(--color-background-hover);
+}
+
+.errorStack {
+  padding: 1rem;
+  font-family: 'IBM Plex Mono', 'Fira Code', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  color: var(--color-text-secondary);
+  background-color: var(--color-background-secondary);
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+}
+
+.resetButton {
+  background-color: var(--color-primary);
+  color: var(--color-primary-text);
+  border: none;
+  border-radius: 4px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.resetButton:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.resetButton:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.resetButton:active {
+  background-color: var(--color-primary-active);
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .errorBoundary {
+    background-color: var(--color-background-dark, #1a1a1a);
+    border-color: var(--color-error-dark, #ff6b6b);
+  }
+  
+  .errorTitle {
+    color: var(--color-error-dark, #ff6b6b);
+  }
+  
+  .errorMessage {
+    color: var(--color-text-secondary-dark, #a0a0a0);
+  }
+  
+  .errorDetails {
+    background-color: var(--color-background-secondary-dark, #2a2a2a);
+    border-color: var(--color-border-dark, #404040);
+  }
+  
+  .errorSummary {
+    background-color: var(--color-background-tertiary-dark, #333333);
+    color: var(--color-text-dark, #ffffff);
+    border-color: var(--color-border-dark, #404040);
+  }
+  
+  .errorSummary:hover {
+    background-color: var(--color-background-hover-dark, #404040);
+  }
+  
+  .errorStack {
+    background-color: var(--color-background-secondary-dark, #2a2a2a);
+    color: var(--color-text-secondary-dark, #a0a0a0);
+  }
+}

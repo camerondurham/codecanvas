@@ -1,0 +1,16 @@
+{
+  "name": "Code Runner",
+  "short_name": "CodeRunner",
+  "description": "Online code runner with syntax highlighting and multiple language support",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f5f5",
+  "theme_color": "#007acc",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+}

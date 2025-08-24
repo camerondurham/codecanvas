@@ -7,8 +7,11 @@
   /* Light mode colors (default) */
   --background-primary: #f5f5f5;
   --background-secondary: #ffffff;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f0f0f0;
   --text-primary: #282828;
   --text-secondary: #666666;
+  --text-disabled: #999999;
   --border-color: #e0e0e0;
   --field-background: #d8d8d8;
   --field-text: #282828;
@@ -19,6 +22,15 @@
   --button-text: #282828;
   --button-hover-background: #d0d0d0;
   --shadow-color: rgba(0, 0, 0, 0.1);
+  
+  /* Primary action colors */
+  --primary-color: #007acc;
+  --primary-hover: #005a9e;
+  
+  /* Error colors */
+  --error-bg: #fef2f2;
+  --error-text: #dc2626;
+  --error-border: #fecaca;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -26,8 +38,11 @@
     /* Dark mode colors */
     --background-primary: #181818;
     --background-secondary: #282828;
+    --bg-secondary: #282828;
+    --bg-tertiary: #404040;
     --text-primary: #d8d8d8;
     --text-secondary: #a0a0a0;
+    --text-disabled: #666666;
     --border-color: #404040;
     --field-background: #282828;
     --field-text: #d8d8d8;
@@ -38,6 +53,15 @@
     --button-text: #d8d8d8;
     --button-hover-background: #505050;
     --shadow-color: rgba(0, 0, 0, 0.3);
+    
+    /* Primary action colors */
+    --primary-color: #0ea5e9;
+    --primary-hover: #0284c7;
+    
+    /* Error colors */
+    --error-bg: #1f1f1f;
+    --error-text: #f87171;
+    --error-border: #404040;
   }
   
   html {

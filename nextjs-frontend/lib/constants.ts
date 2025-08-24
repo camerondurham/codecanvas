@@ -1,11 +1,24 @@
-/**
- * API Configuration and Constants
- */
+// API Configuration and Constants
 
-// API Base URLs
-export const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://runner.fly.dev/api/v1'
-  : process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:10100/api/v1';
+// Environment Configuration
+export const ENV_CONFIG = {
+  NODE_ENV: process.env.NODE_ENV || 'development',
+  APP_ENV: process.env.NEXT_PUBLIC_APP_ENV || 'development',
+  DEBUG_MODE: process.env.NEXT_PUBLIC_DEBUG_MODE === 'true',
+  ANALYTICS_ID: process.env.NEXT_PUBLIC_ANALYTICS_ID,
+  SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
+} as const;
+
+// API Base URLs with fallback logic
+export const API_BASE_URL = (() => {
+  if (process.env.NEXT_PUBLIC_API_BASE_URL) {
+    return process.env.NEXT_PUBLIC_API_BASE_URL;
+  }
+  
+  return process.env.NODE_ENV === 'production'
+    ? 'https://runner.fly.dev/api/v1'
+    : 'http://localhost:10100/api/v1';
+})();
 
 // API Endpoints
 export const API_ENDPOINTS = {
@@ -45,3 +58,18 @@ export const CODEMIRROR_THEMES = [
 ] as const;
 
 export type CodeMirrorTheme = typeof CODEMIRROR_THEMES[number];
+
+// Application Configuration
+export const APP_CONFIG = {
+  NAME: 'Code Runner',
+  DESCRIPTION: 'Online code runner with syntax highlighting and multiple language support',
+  VERSION: '1.0.0',
+  AUTHOR: 'Code Runner Team',
+} as const;
+
+// Feature Flags
+export const FEATURE_FLAGS = {
+  ANALYTICS_ENABLED: Boolean(ENV_CONFIG.ANALYTICS_ID),
+  ERROR_REPORTING_ENABLED: Boolean(ENV_CONFIG.SENTRY_DSN),
+  DEBUG_MODE: ENV_CONFIG.DEBUG_MODE,
+} as const;
