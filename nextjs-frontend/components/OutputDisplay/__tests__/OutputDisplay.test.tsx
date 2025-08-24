@@ -1,12 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import OutputDisplay from '../OutputDisplay';
-import { it } from 'node:test';
-import { it } from 'node:test';
-import { it } from 'node:test';
-import { it } from 'node:test';
-import { it } from 'node:test';
-import { describe } from 'node:test';
 
 describe('OutputDisplay', () => {
   it('displays loading state when loading is true', () => {
@@ -63,7 +57,9 @@ describe('OutputDisplay', () => {
 
     render(<OutputDisplay output={mockOutput} loading={false} />);
     
-    const preElement = screen.getByText('Line 1\nLine 2\n  Indented line');
+    const preElement = screen.getByText((content, element) => {
+      return element?.tagName === 'PRE' && content.includes('Line 1') && content.includes('Line 2') && content.includes('Indented line');
+    });
     expect(preElement.tagName).toBe('PRE');
   });
 });

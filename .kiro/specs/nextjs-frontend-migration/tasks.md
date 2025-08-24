@@ -50,14 +50,14 @@
   - Style with OutputDisplay.module.css matching current field styling
   - _Requirements: 2.2, 2.3, 2.4, 2.5_
 
-- [ ] 8. Create useLanguages custom hook
+- [x] 8. Create useLanguages custom hook
   - Implement hooks/useLanguages.ts for fetching available languages
   - Add error handling and loading state management
   - Include caching logic to prevent unnecessary API calls
   - Handle API failure gracefully with error state
   - _Requirements: 3.1, 3.2, 3.3_
 
-- [ ] 9. Build useCodeExecution custom hook
+- [x] 9. Build useCodeExecution custom hook
   - Create hooks/useCodeExecution.ts for code execution API calls
   - Implement async code execution with proper error handling
   - Add loading state management during execution
