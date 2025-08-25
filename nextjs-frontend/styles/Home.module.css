@@ -1,46 +1,51 @@
-/* Home page styles */
+/* Home page styles using design system */
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 1rem;
+  padding: var(--space-lg);
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: var(--space-xl);
+  min-height: 100vh;
 }
 
 /* Header Section */
 .header {
   text-align: center;
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-lg);
 }
 
 .title {
-  font-size: 2.5rem;
+  font-size: var(--text-4xl);
   font-weight: 600;
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 var(--space-sm) 0;
   color: var(--text-primary);
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--font-mono);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.025em;
 }
 
 .subtitle {
-  font-size: 1.1rem;
+  font-size: var(--text-lg);
   color: var(--text-secondary);
   margin: 0;
   font-weight: 400;
+  line-height: var(--leading-normal);
 }
 
 /* Controls Section */
 .controls {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--space-lg);
 }
 
 .selectors {
   display: flex;
-  gap: 1rem;
+  gap: var(--space-lg);
   align-items: center;
   flex-wrap: wrap;
+  justify-content: center;
 }
 
 /* Error Display */
@@ -48,10 +53,11 @@
   background-color: var(--error-bg);
   color: var(--error-text);
   border: 1px solid var(--error-border);
-  border-radius: 4px;
-  padding: 0.75rem;
-  font-size: 0.9rem;
-  line-height: 1.4;
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+  box-shadow: var(--shadow-sm);
 }
 
 .error strong {
@@ -62,141 +68,297 @@
 .editorSection {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-sm);
+  flex: 1;
 }
 
 .editorHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--space-sm);
+  flex-wrap: wrap;
+  gap: var(--space-sm);
 }
 
 .editorHeader h2 {
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   font-weight: 600;
   margin: 0;
   color: var(--text-primary);
+  font-family: var(--font-mono);
 }
 
 .languageIndicator {
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   color: var(--text-secondary);
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--font-mono);
   background-color: var(--bg-secondary);
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border-color);
+  font-weight: 500;
+  letter-spacing: 0.025em;
 }
 
 .editorFooter {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 0.5rem;
+  margin-top: var(--space-sm);
+  flex-wrap: wrap;
+  gap: var(--space-sm);
 }
 
 .submitButton {
   background-color: var(--primary-color);
   color: white;
   border: none;
-  border-radius: 4px;
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
+  border-radius: var(--radius-md);
+  padding: var(--space-md) var(--space-xl);
+  font-size: var(--text-base);
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: inherit;
+  transition: all var(--transition-normal);
+  font-family: var(--font-mono);
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
 }
 
 .submitButton:hover:not(:disabled) {
   background-color: var(--primary-hover);
   transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 .submitButton:active:not(:disabled) {
   transform: translateY(0);
+  background-color: var(--primary-active);
 }
 
 .submitButton:disabled {
-  background-color: var(--bg-tertiary);
+  background-color: var(--primary-disabled);
   color: var(--text-disabled);
   cursor: not-allowed;
   transform: none;
+  box-shadow: none;
 }
 
 .shortcut {
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   color: var(--text-secondary);
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--font-mono);
+  font-weight: 400;
 }
 
 /* Output Section */
 .outputSection {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-sm);
+  flex: 1;
 }
 
 .outputSection h2 {
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   font-weight: 600;
   margin: 0;
   color: var(--text-primary);
+  font-family: var(--font-mono);
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
+/* Enhanced Responsive Design */
+
+/* Large screens (1200px+) */
+@media (min-width: 1200px) {
   .container {
-    padding: 0.75rem;
-    gap: 1rem;
+    max-width: 1400px;
+    padding: var(--space-2xl);
+    gap: var(--space-2xl);
   }
   
   .title {
-    font-size: 2rem;
+    font-size: var(--text-4xl);
+  }
+  
+  .selectors {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+}
+
+/* Medium screens (768px - 1199px) */
+@media (min-width: 768px) and (max-width: 1199px) {
+  .container {
+    padding: var(--space-xl);
+    gap: var(--space-xl);
+  }
+  
+  .title {
+    font-size: 3rem;
+  }
+}
+
+/* Tablet screens (640px - 767px) */
+@media (max-width: 767px) {
+  .container {
+    padding: var(--space-lg);
+    gap: var(--space-lg);
+  }
+  
+  .title {
+    font-size: var(--text-3xl);
+    line-height: var(--leading-tight);
   }
   
   .subtitle {
-    font-size: 1rem;
+    font-size: var(--text-lg);
   }
   
   .selectors {
     flex-direction: column;
     align-items: stretch;
+    gap: var(--space-md);
   }
   
   .editorHeader {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.5rem;
+    gap: var(--space-sm);
   }
   
   .editorFooter {
     flex-direction: column;
     align-items: stretch;
-    gap: 0.5rem;
+    gap: var(--space-md);
   }
   
   .submitButton {
     width: 100%;
+    padding: var(--space-lg) var(--space-xl);
+    font-size: var(--text-lg);
   }
   
   .shortcut {
     text-align: center;
+    font-size: var(--text-sm);
   }
 }
 
-@media (max-width: 480px) {
+/* Mobile screens (480px - 639px) */
+@media (max-width: 639px) {
   .container {
-    padding: 0.5rem;
+    padding: var(--space-md);
+    gap: var(--space-lg);
   }
   
   .title {
-    font-size: 1.75rem;
+    font-size: var(--text-2xl);
   }
   
   .subtitle {
-    font-size: 0.9rem;
+    font-size: var(--text-base);
+  }
+  
+  .controls {
+    gap: var(--space-md);
+  }
+  
+  .editorSection {
+    gap: var(--space-md);
+  }
+  
+  .outputSection {
+    gap: var(--space-md);
+  }
+}
+
+/* Small mobile screens (320px - 479px) */
+@media (max-width: 479px) {
+  .container {
+    padding: var(--space-sm);
+    gap: var(--space-md);
+  }
+  
+  .title {
+    font-size: var(--text-xl);
+    margin-bottom: var(--space-sm);
+  }
+  
+  .subtitle {
+    font-size: var(--text-sm);
+  }
+  
+  .header {
+    margin-bottom: var(--space-md);
+  }
+  
+  .controls {
+    gap: var(--space-sm);
+  }
+  
+  .selectors {
+    gap: var(--space-sm);
+  }
+  
+  .editorSection {
+    gap: var(--space-sm);
+  }
+  
+  .outputSection {
+    gap: var(--space-sm);
+  }
+  
+  .submitButton {
+    padding: var(--space-md) var(--space-lg);
+    font-size: var(--text-base);
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .submitButton {
+    min-height: 44px; /* iOS touch target minimum */
+    padding: var(--space-md) var(--space-xl);
+  }
+  
+  .selectors select {
+    min-height: 44px;
+    padding: var(--space-md);
+  }
+  
+  /* Increase touch targets for better mobile UX */
+  .languageIndicator {
+    padding: var(--space-sm) var(--space-md);
+  }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .title, .subtitle {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Landscape mobile orientation */
+@media (max-width: 767px) and (orientation: landscape) {
+  .container {
+    gap: var(--space-md);
+  }
+  
+  .header {
+    margin-bottom: var(--space-sm);
+  }
+  
+  .title {
+    font-size: var(--text-2xl);
+    margin-bottom: var(--space-xs);
+  }
+  
+  .subtitle {
+    font-size: var(--text-sm);
   }
 }
 

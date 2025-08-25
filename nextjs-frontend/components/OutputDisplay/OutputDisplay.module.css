@@ -1,22 +1,22 @@
 .container {
   width: 100%;
-  margin: 1rem 0;
+  margin: var(--space-lg) 0;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-md);
 }
 
 .section {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: var(--space-xs);
 }
 
 .label {
   color: var(--text-primary);
   font-family: var(--font-mono);
-  font-size: 0.875rem;
-  font-weight: 400;
+  font-size: var(--text-sm);
+  font-weight: 500;
   margin: 0;
 }
 
@@ -24,11 +24,11 @@
   background-color: var(--field-background);
   color: var(--field-text);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
-  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
   font-family: var(--font-mono);
-  font-size: 0.875rem;
-  line-height: 1.4;
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
   margin: 0;
   white-space: pre-wrap;
   word-wrap: break-word;
@@ -36,7 +36,8 @@
   min-height: 2.5rem;
   max-height: 200px;
   overflow-y: auto;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-sm);
 }
 
 .output:empty::before {
@@ -49,26 +50,27 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 2rem;
+  gap: var(--space-sm);
+  padding: var(--space-2xl);
   background-color: var(--field-background);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   color: var(--text-secondary);
+  box-shadow: var(--shadow-sm);
 }
 
 .spinner {
   width: 16px;
   height: 16px;
   border: 2px solid var(--border-color);
-  border-top: 2px solid var(--link-color);
+  border-top: 2px solid var(--primary-color);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
 
 .loadingText {
   font-family: var(--font-mono);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
 }
 
 @keyframes spin {
@@ -77,24 +79,34 @@
 }
 
 /* Responsive design */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .container {
-    margin: 0.75rem 0;
-    gap: 0.5rem;
+    margin: var(--space-md) 0;
+    gap: var(--space-sm);
   }
   
   .label {
-    font-size: 0.8rem;
+    font-size: var(--text-xs);
   }
   
   .output {
-    padding: 0.5rem;
-    font-size: 0.8rem;
+    padding: var(--space-sm);
+    font-size: var(--text-xs);
     max-height: 150px;
   }
   
   .loadingContainer {
-    padding: 1.5rem;
+    padding: var(--space-xl);
+  }
+}
+
+@media (max-width: 479px) {
+  .container {
+    margin: var(--space-sm) 0;
+  }
+  
+  .output {
+    max-height: 120px;
   }
 }
 
@@ -148,8 +160,9 @@
 
 /* Focus styles for accessibility */
 .output:focus {
-  outline: 2px solid var(--link-color);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
+  border-color: var(--primary-color);
 }
 
 /* Ensure proper text selection */

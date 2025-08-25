@@ -11,13 +11,24 @@ export const ENV_CONFIG = {
 
 // API Base URLs with fallback logic
 export const API_BASE_URL = (() => {
-  if (process.env.NEXT_PUBLIC_API_BASE_URL) {
-    return process.env.NEXT_PUBLIC_API_BASE_URL;
-  }
-  
-  return process.env.NODE_ENV === 'production'
+  const customUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const defaultUrl = process.env.NODE_ENV === 'production'
     ? 'https://runner.fly.dev/api/v1'
     : 'http://localhost:10100/api/v1';
+  
+  const finalUrl = customUrl || defaultUrl;
+  
+  // Log API configuration in development
+  if (typeof window !== 'undefined' && ENV_CONFIG.DEBUG_MODE) {
+    console.log('🔗 API Configuration:', {
+      baseUrl: finalUrl,
+      environment: ENV_CONFIG.NODE_ENV,
+      appEnv: ENV_CONFIG.APP_ENV,
+      customUrl: customUrl ? 'Yes' : 'No'
+    });
+  }
+  
+  return finalUrl;
 })();
 
 // API Endpoints

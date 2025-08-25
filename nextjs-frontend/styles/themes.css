@@ -1,0 +1,209 @@
+/* Theme-specific optimizations and utilities */
+
+/* Theme transition animations */
+.theme-transition {
+  transition: 
+    background-color var(--transition-normal),
+    color var(--transition-normal),
+    border-color var(--transition-normal),
+    box-shadow var(--transition-normal);
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --border-color: currentColor;
+    --shadow-sm: none;
+    --shadow-md: none;
+    --shadow-lg: none;
+  }
+  
+  .field {
+    border-width: 2px;
+  }
+  
+  button {
+    border-width: 2px;
+  }
+  
+  select {
+    border-width: 2px;
+  }
+}
+
+/* Forced colors mode (Windows High Contrast) */
+@media (forced-colors: active) {
+  :root {
+    --primary-color: ButtonText;
+    --primary-hover: ButtonText;
+    --background-primary: Canvas;
+    --background-secondary: Canvas;
+    --text-primary: CanvasText;
+    --text-secondary: CanvasText;
+    --border-color: ButtonBorder;
+    --field-background: Field;
+    --field-text: FieldText;
+    --button-background: ButtonFace;
+    --button-text: ButtonText;
+    --link-color: LinkText;
+    --focus-ring: Highlight;
+  }
+  
+  .field {
+    forced-color-adjust: none;
+    background-color: Field;
+    color: FieldText;
+    border: 1px solid ButtonBorder;
+  }
+  
+  button {
+    forced-color-adjust: none;
+    background-color: ButtonFace;
+    color: ButtonText;
+    border: 1px solid ButtonBorder;
+  }
+  
+  .submitButton {
+    forced-color-adjust: none;
+    background-color: Highlight;
+    color: HighlightText;
+    border: 1px solid ButtonBorder;
+  }
+}
+
+/* Print styles */
+@media print {
+  :root {
+    --background-primary: white;
+    --background-secondary: white;
+    --text-primary: black;
+    --text-secondary: #666;
+    --border-color: #ccc;
+  }
+  
+  * {
+    background: transparent !important;
+    color: black !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+  
+  .submitButton,
+  .selectors {
+    display: none !important;
+  }
+  
+  .container {
+    max-width: none;
+    padding: 0;
+  }
+  
+  .field {
+    border: 1px solid #ccc;
+    page-break-inside: avoid;
+  }
+  
+  pre {
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+}
+
+/* Theme-aware scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-disabled);
+  border-radius: var(--radius-sm);
+  transition: background-color var(--transition-normal);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Firefox scrollbar styling */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-disabled) var(--bg-tertiary);
+}
+
+/* Selection styling */
+::selection {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+::-moz-selection {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* Placeholder styling */
+::placeholder {
+  color: var(--text-disabled);
+  opacity: 1;
+}
+
+::-webkit-input-placeholder {
+  color: var(--text-disabled);
+}
+
+::-moz-placeholder {
+  color: var(--text-disabled);
+  opacity: 1;
+}
+
+:-ms-input-placeholder {
+  color: var(--text-disabled);
+}
+
+/* Theme-specific component states */
+.theme-light {
+  --shadow-color: rgba(15, 23, 42, 0.08);
+}
+
+.theme-dark {
+  --shadow-color: rgba(0, 0, 0, 0.4);
+}
+
+/* Auto theme detection enhancement */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    color-scheme: light;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+  }
+}
+
+/* Manual theme overrides */
+[data-theme="light"] {
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+/* Smooth theme transitions */
+html {
+  transition: color-scheme var(--transition-normal);
+}
+
+body {
+  transition: 
+    background-color var(--transition-normal),
+    color var(--transition-normal);
+}

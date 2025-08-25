@@ -10,7 +10,9 @@ import {
   isDevelopment 
 } from '@/lib/config'
 import { ENV_CONFIG, APP_CONFIG } from '@/lib/constants'
+import '@/styles/critical.css'
 import '@/styles/globals.css'
+import '@/styles/themes.css'
 
 // Analytics integration (placeholder for future implementation)
 const initializeAnalytics = () => {

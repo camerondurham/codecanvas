@@ -27,7 +27,8 @@ export default function Home() {
 
   // Local state for UI
   const [isInitialized, setIsInitialized] = useState(false);
-  const [isAppLoading, setIsAppLoading] = useState(true);
+
+  // Debug logging can be removed in production
 
   // Initialize code with sample when language changes or on first load
   useEffect(() => {
@@ -39,13 +40,6 @@ export default function Home() {
       setIsInitialized(true);
     }
   }, [selectedLanguage, code, setCode, isInitialized]);
-
-  // Set app loading state based on languages loading and initialization
-  useEffect(() => {
-    if (!languagesLoading && isInitialized) {
-      setIsAppLoading(false);
-    }
-  }, [languagesLoading, isInitialized]);
 
   // Handle language selection change
   const handleLanguageChange = useCallback((language: string) => {
@@ -95,8 +89,8 @@ export default function Home() {
   // Get current language mode for CodeMirror
   const currentLanguageMode = getLanguageMode(selectedLanguage);
 
-  // Show loading screen while app is initializing
-  if (isAppLoading) {
+  // Show loading screen while languages are loading
+  if (languagesLoading) {
     return (
       <Layout title="Code Canvas">
         <div className={styles.container}>

@@ -36,9 +36,8 @@ let languagesCache: LanguagesCache | null = null;
  */
 export function useLanguages(): UseLanguagesReturn {
   const [languages, setLanguages] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const isMountedRef = useRef(true);
 
   /**
    * Check if cached data is still valid
@@ -60,6 +59,7 @@ export function useLanguages(): UseLanguagesReturn {
     // Use cache if valid and not forcing refresh
     if (!forceRefresh && isCacheValid() && languagesCache) {
       setLanguages(languagesCache.data);
+      setLoading(false);
       return;
     }
 
@@ -69,33 +69,29 @@ export function useLanguages(): UseLanguagesReturn {
     try {
       const fetchedLanguages = await fetchLanguages();
       
-      // Only update state if component is still mounted
-      if (isMountedRef.current) {
-        // Validate that we received an array
-        if (!Array.isArray(fetchedLanguages)) {
-          throw new Error('Invalid response format: expected array of languages');
-        }
-
-        // Filter out empty or invalid language names
-        const validLanguages = fetchedLanguages.filter(
-          (lang): lang is string => typeof lang === 'string' && lang.trim().length > 0
-        );
-
-        if (validLanguages.length === 0) {
-          throw new Error('No valid languages received from API');
-        }
-
-        // Update cache
-        languagesCache = {
-          data: validLanguages,
-          timestamp: Date.now(),
-        };
-
-        setLanguages(validLanguages);
+      // Validate that we received an array
+      if (!Array.isArray(fetchedLanguages)) {
+        throw new Error('Invalid response format: expected array of languages');
       }
+
+      // Filter out empty or invalid language names
+      const validLanguages = fetchedLanguages.filter(
+        (lang): lang is string => typeof lang === 'string' && lang.trim().length > 0
+      );
+
+      if (validLanguages.length === 0) {
+        throw new Error('No valid languages received from API');
+      }
+
+      // Update cache
+      languagesCache = {
+        data: validLanguages,
+        timestamp: Date.now(),
+      };
+
+      setLanguages(validLanguages);
     } catch (err) {
-      // Only update error state if component is still mounted
-      if (isMountedRef.current) {
+      // Update error state (React handles component lifecycle automatically)
         let errorMessage: string;
         
         if (err instanceof ApiError) {
@@ -122,15 +118,31 @@ export function useLanguages(): UseLanguagesReturn {
 
         // If we have cached data, use it as fallback
         if (languagesCache && languagesCache.data.length > 0) {
-          console.warn('Using cached languages as fallback');
           setLanguages(languagesCache.data);
           setError(`${errorMessage} (using cached data)`);
+        } else {
+          // Use default languages as fallback when API is not available
+          const defaultLanguages = [
+            'python3',
+            'javascript',
+            'typescript',
+            'java',
+            'cpp',
+            'c',
+            'go',
+            'rust',
+            'php',
+            'ruby',
+            'swift',
+            'kotlin',
+            'csharp',
+            'bash'
+          ];
+          setLanguages(defaultLanguages);
+          setError(`${errorMessage} (using default languages)`);
         }
-      }
     } finally {
-      if (isMountedRef.current) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
   }, [isCacheValid]);
 
@@ -146,12 +158,7 @@ export function useLanguages(): UseLanguagesReturn {
     fetchLanguagesData();
   }, [fetchLanguagesData]);
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
+  // No cleanup needed - React handles state lifecycle automatically
 
   return {
     languages,

@@ -57,6 +57,19 @@ export function useCodeExecution(): UseCodeExecutionReturn {
       let errorMessage: string;
       
       if (err instanceof ApiError) {
+        // Check if this is a network error (API not available)
+        if (err.message.includes('Network error') || err.message.includes('fetch')) {
+          // Provide a demo response when API is not available
+          console.warn('API not available, providing demo response');
+          setOutput({
+            stdout: `Demo Mode: Code execution API is not available.\n\nYour ${language} code would be executed here:\n\n${code.split('\n').map((line, i) => `${i + 1}: ${line}`).join('\n')}\n\n[This is a demo response - connect to the backend API for real code execution]`,
+            stderr: '',
+            error: ''
+          });
+          setError('Demo Mode: Connect to backend API for real code execution');
+          return;
+        }
+        
         // API-specific errors with status codes
         if (err.status === 400) {
           errorMessage = 'Invalid request: Please check your code and language selection';
@@ -69,6 +82,17 @@ export function useCodeExecution(): UseCodeExecutionReturn {
         }
       } else if (err instanceof Error) {
         // Client-side validation or network errors
+        if (err.message.includes('fetch') || err.message.includes('Network')) {
+          // Provide a demo response for network errors
+          console.warn('Network error, providing demo response');
+          setOutput({
+            stdout: `Demo Mode: Code execution API is not available.\n\nYour ${language} code would be executed here:\n\n${code.split('\n').map((line, i) => `${i + 1}: ${line}`).join('\n')}\n\n[This is a demo response - connect to the backend API for real code execution]`,
+            stderr: '',
+            error: ''
+          });
+          setError('Demo Mode: Connect to backend API for real code execution');
+          return;
+        }
         errorMessage = err.message;
       } else {
         // Unknown error types

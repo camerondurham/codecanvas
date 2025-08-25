@@ -1,0 +1,130 @@
+/* Critical CSS for above-the-fold content - manually optimized */
+
+/* Essential CSS custom properties */
+:root {
+  --font-mono: 'IBM Plex Mono', 'IBM Plex Mono Fallback', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+  --transition-normal: 0.2s ease;
+  --space-lg: 1rem;
+  --space-xl: 1.5rem;
+  --text-4xl: 2.5rem;
+  --text-lg: 1.125rem;
+  --leading-tight: 1.2;
+  --leading-normal: 1.5;
+  --radius-md: 6px;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Light mode colors */
+:root {
+  --background-primary: #f8fafc;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --primary-color: #0ea5e9;
+  --primary-hover: #0284c7;
+  --border-color: #e2e8f0;
+  --field-background: #f1f5f9;
+  --field-text: #1e293b;
+}
+
+/* Dark mode colors */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background-primary: #0f172a;
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --border-color: #475569;
+    --field-background: #1e293b;
+    --field-text: #f1f5f9;
+  }
+}
+
+/* Essential reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Body and HTML essentials */
+html, body {
+  font-family: var(--font-mono);
+  line-height: var(--leading-normal);
+  background-color: var(--background-primary);
+  color: var(--text-primary);
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+  overflow-x: hidden;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Critical layout styles */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+  min-height: 100vh;
+}
+
+/* Critical typography */
+h1 {
+  font-size: var(--text-4xl);
+  font-weight: 600;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  line-height: var(--leading-tight);
+  text-align: center;
+}
+
+/* Critical button styles */
+button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: background-color var(--transition-normal);
+}
+
+button:hover {
+  background-color: var(--primary-hover);
+}
+
+/* Critical form styles */
+select {
+  background-color: var(--field-background);
+  color: var(--field-text);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  font-family: var(--font-mono);
+}
+
+/* Loading state */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+/* Mobile critical styles */
+@media (max-width: 767px) {
+  .container {
+    padding: var(--space-lg);
+  }
+  
+  h1 {
+    font-size: 2rem;
+  }
+  
+  button, select {
+    width: 100%;
+    padding: var(--space-lg);
+  }
+}

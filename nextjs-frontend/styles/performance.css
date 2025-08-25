@@ -1,0 +1,233 @@
+/* Performance optimizations for CSS */
+
+/* Critical CSS loading optimization */
+.critical-css-loaded {
+  /* This class is added when critical CSS is loaded */
+  --css-loaded: true;
+}
+
+/* Lazy loading for non-critical styles */
+.lazy-load {
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+}
+
+.lazy-load.loaded {
+  opacity: 1;
+}
+
+/* GPU acceleration for animations */
+.animate {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.animate.complete {
+  will-change: auto;
+}
+
+/* Optimize repaints and reflows */
+.optimize-layout {
+  contain: layout style paint;
+}
+
+.optimize-paint {
+  contain: paint;
+}
+
+/* Efficient scrolling */
+.smooth-scroll {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .smooth-scroll {
+    scroll-behavior: auto;
+  }
+}
+
+/* Container queries for better responsive design */
+@supports (container-type: inline-size) {
+  .responsive-container {
+    container-type: inline-size;
+  }
+  
+  @container (min-width: 768px) {
+    .responsive-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-lg);
+    }
+  }
+}
+
+/* Optimize font loading */
+.font-display-swap {
+  font-display: swap;
+}
+
+/* Reduce layout shift */
+.aspect-ratio-16-9 {
+  aspect-ratio: 16 / 9;
+}
+
+.aspect-ratio-4-3 {
+  aspect-ratio: 4 / 3;
+}
+
+.aspect-ratio-1-1 {
+  aspect-ratio: 1 / 1;
+}
+
+/* Efficient transforms */
+.transform-gpu {
+  transform: translate3d(0, 0, 0);
+}
+
+/* Optimize for mobile performance */
+@media (max-width: 767px) {
+  .mobile-optimize {
+    /* Reduce complexity on mobile */
+    box-shadow: none;
+    border-radius: var(--radius-sm);
+  }
+  
+  .mobile-optimize .complex-animation {
+    animation: none;
+  }
+}
+
+/* Battery optimization */
+@media (prefers-reduced-motion: reduce) {
+  .battery-save * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High refresh rate optimization */
+@media (min-resolution: 120dpi) {
+  .high-refresh {
+    animation-duration: calc(var(--transition-normal) * 0.8);
+  }
+}
+
+/* Memory optimization */
+.memory-efficient {
+  /* Avoid expensive properties on low-end devices */
+  filter: none;
+  backdrop-filter: none;
+}
+
+@media (max-width: 479px) and (max-height: 800px) {
+  .memory-efficient {
+    box-shadow: none;
+    text-shadow: none;
+  }
+}
+
+/* Network-aware loading */
+@media (prefers-reduced-data: reduce) {
+  .data-save {
+    /* Reduce data usage */
+    background-image: none;
+  }
+  
+  .data-save::before,
+  .data-save::after {
+    display: none;
+  }
+}
+
+/* Intersection Observer optimization */
+.intersection-target {
+  /* Optimize for intersection observer */
+  contain: layout;
+}
+
+/* Virtual scrolling optimization */
+.virtual-scroll-item {
+  contain: strict;
+  height: var(--item-height, 50px);
+}
+
+/* CSS Grid optimization */
+.grid-optimize {
+  display: grid;
+  grid-template-rows: masonry; /* Future CSS feature */
+}
+
+@supports not (grid-template-rows: masonry) {
+  .grid-optimize {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+/* Flexbox optimization */
+.flex-optimize {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+
+.flex-optimize > * {
+  flex: 1 1 auto;
+  min-width: 0; /* Prevent flex items from overflowing */
+}
+
+/* Print optimization */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-optimize {
+    color: black !important;
+    background: white !important;
+    box-shadow: none !important;
+  }
+}
+
+/* Dark mode optimization */
+@media (prefers-color-scheme: dark) {
+  .dark-optimize {
+    /* Optimize for OLED displays */
+    background-color: #000000;
+    color: #ffffff;
+  }
+}
+
+/* Accessibility optimization */
+@media (prefers-contrast: high) {
+  .contrast-optimize {
+    border-width: 2px;
+    outline-width: 3px;
+  }
+}
+
+/* Focus optimization */
+.focus-optimize:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Hover optimization */
+@media (hover: hover) {
+  .hover-optimize:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+}
+
+/* Touch optimization */
+@media (hover: none) and (pointer: coarse) {
+  .touch-optimize {
+    min-height: 44px;
+    min-width: 44px;
+    padding: var(--space-md);
+  }
+}

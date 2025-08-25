@@ -4,12 +4,23 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:prod-endpoint": "NEXT_PUBLIC_API_BASE_URL=https://runner.fly.dev/api/v1 NEXT_PUBLIC_APP_ENV=development NEXT_PUBLIC_DEBUG_MODE=true next dev",
+    "dev:prod-env": "cp .env.dev-prod .env.local && next dev",
+    "dev:local": "NEXT_PUBLIC_API_BASE_URL=http://localhost:10100/api/v1 NEXT_PUBLIC_APP_ENV=development NEXT_PUBLIC_DEBUG_MODE=true next dev",
+    "dev:demo": "NEXT_PUBLIC_API_BASE_URL=http://demo-mode-no-api NEXT_PUBLIC_APP_ENV=development NEXT_PUBLIC_DEBUG_MODE=true next dev",
     "build": "next build",
+    "build:analyze": "ANALYZE=true next build",
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "css:check": "echo 'Checking CSS bundle size...' && ls -la .next/static/css/ 2>/dev/null || echo 'Build first with: npm run build'",
+    "perf:lighthouse": "echo 'Run Lighthouse performance audit manually on the deployed site'",
+    "api:local": "node scripts/switch-api.js local",
+    "api:prod": "node scripts/switch-api.js prod",
+    "api:demo": "node scripts/switch-api.js demo",
+    "api:validate": "node scripts/validate-prod-endpoint.js"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.18.6",
