@@ -1,53 +1,13 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <title>
-        <%= htmlWebpackPlugin.options.title %>
-    </title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>codecanvas</title>
     <script data-goatcounter="https://u64cam.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </head>
-
 <body>
-    <div id="wrapper">
-        <h1>
-            <%= htmlWebpackPlugin.options.title %>
-        </h1>
-        <div class="selectors">
-            <select id="lang-select">langs</select>
-            <select id="theme-select">
-                <option selected>default</option>
-                <option>3024-day</option>
-                <option>3024-night</option>
-                <option>blackboard</option>
-                <option>darcula</option>
-                <option>dracula</option>
-                <option>eclipse</option>
-                <option>elegant</option>
-                <option>erlang-dark</option>
-                <option>idea</option>
-                <option>isotope</option>
-                <option>lucario</option>
-                <option>material</option>
-                <option>monokai</option>
-                <option>solarized</option>
-            </select>
-        </div>
-        <p>
-            <textarea id='code'></textarea>
-        </p>
-
-        <button id="submit-btn">Submit</button>
-        <div class="field output" id="output-field">
-            <div class="field box" id="stdout-field">Stdout: </div>
-            <div class="field box" id="stderr-field">Stderr: </div>
-            <div class="field box" id="err-field">Error: </div>
-        </div>
-        <footer>
-            <%= htmlWebpackPlugin.options.title %> project. <a href="https://github.com/camerondurham/codecanvas">source code</a>
-        </footer>
-    </div>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
 </body>
-
 </html>

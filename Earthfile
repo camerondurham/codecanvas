@@ -80,8 +80,7 @@ test-go:
   RUN cd server && ./test_server_startup.sh
 
 test-web:
-  # make sure webpack builds
-  # TODO: this build takes a while it might be hard to do this as a test
+  # make sure vite builds
   RUN cd web-frontend \
   && apt-get update -y \
   && apt-get install -y nodejs npm \
@@ -103,10 +102,11 @@ build-frontend:
   COPY ./web-frontend .
   RUN apt-get update -y \
     && apt-get install -y npm \
-    && npm install
-  SAVE ARTIFACT /frontend
+    && npm install \
+    && npm run build
+  SAVE ARTIFACT /frontend/dist
 
 frontend:
   FROM pierrezemb/gostatic
-  COPY +build-frontend/frontend/ /srv/http/
+  COPY +build-frontend/dist/ /srv/http/
   SAVE IMAGE runner-frontend

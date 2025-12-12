@@ -3,9 +3,10 @@ WORKDIR /frontend
 COPY ./web-frontend .
 RUN apt-get update -y \
   && apt-get install -y npm \
-  && npm install
+  && npm install \
+  && npm run build
 
 
 FROM pierrezemb/gostatic as frontend
-COPY --from=builder /frontend/ /srv/http/
+COPY --from=builder /frontend/dist/ /srv/http/
 
