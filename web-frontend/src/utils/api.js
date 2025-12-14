@@ -1,17 +1,9 @@
 // API configuration and utilities for codecanvas backend
 
-// Detect if we're running locally or in production
-const getApiUrl = () => {
-  // Check if running on localhost
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    // Check if local backend is available, otherwise use production
-    return 'http://localhost:10100/api/v1/';
-  }
-  // Production URL
-  return 'https://runner.fly.dev/api/v1/';
-};
-
-const API_BASE_URL = getApiUrl();
+// Use environment variable if set, otherwise default to production
+// To use local backend during development, create a .env file with:
+// VITE_API_URL=http://localhost:10100/api/v1/
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://runner.fly.dev/api/v1/';
 
 /**
  * Fetch available programming languages from the backend
