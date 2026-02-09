@@ -33,9 +33,8 @@ type RunnerOptions struct {
 
 // Runner is the Linux sandbox implementation.
 type Runner struct {
-	opts          RunnerOptions
-	cgroups       *cgroupManager
-	jobIDSequence uint64
+	opts    RunnerOptions
+	cgroups *cgroupManager
 }
 
 func NewRunner() *Runner {
@@ -67,7 +66,7 @@ func (r *Runner) Run(input sandbox.SandboxInput, policy sandbox.SandboxPolicy) (
 
 	workDir := input.WorkDir
 	if workDir == "" {
-		workDir = filepath.Join(os.TempDir(), "sandbox-work-"+r.nextJobID())
+		workDir = filepath.Join(os.TempDir(), "sandbox-work-"+nextGlobalJobID())
 	}
 	if err := ensureWorkDir(workDir); err != nil {
 		return nil, err
@@ -100,7 +99,10 @@ func (r *Runner) Run(input sandbox.SandboxInput, policy sandbox.SandboxPolicy) (
 }
 
 func (r *Runner) runIsolated(ctx context.Context, cmdArgs []string, workDir string, policy sandbox.SandboxPolicy) (*sandbox.SandboxOutput, error) {
-	jobID := r.nextJobID()
+	jobID := nextGlobalJobID()
+	if err := os.MkdirAll(r.opts.StateRoot, 0o755); err != nil {
+		return nil, err
+	}
 	stateDir := filepath.Join(r.opts.StateRoot, jobID)
 	rootDir := filepath.Join(stateDir, "rootfs")
 	if err := os.MkdirAll(rootDir, 0o755); err != nil {
@@ -216,9 +218,12 @@ func runDirect(ctx context.Context, args []string, workDir string) (*sandbox.San
 	}, err
 }
 
-func (r *Runner) nextJobID() string {
-	id := atomic.AddUint64(&r.jobIDSequence, 1)
-	return strconv.FormatUint(id, 10)
+var globalJobIDSequence uint64
+
+func nextGlobalJobID() string {
+	id := atomic.AddUint64(&globalJobIDSequence, 1)
+	// Include PID to avoid collisions when multiple test binaries share the same StateRoot.
+	return strconv.Itoa(os.Getpid()) + "-" + strconv.FormatUint(id, 10)
 }
 
 func boolToIntString(v bool) string {

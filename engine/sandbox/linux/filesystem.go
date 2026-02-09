@@ -12,13 +12,6 @@ type FilesystemConfig struct {
 	RootDir      string
 }
 
-func defaultFilesystemConfig(workDir string, readonlyRoot bool) FilesystemConfig {
-	return FilesystemConfig{
-		WorkDir:      workDir,
-		ReadonlyRoot: readonlyRoot,
-	}
-}
-
 func ensureWorkDir(workDir string) error {
 	return os.MkdirAll(workDir, 0o755)
 }
