@@ -38,9 +38,16 @@ type agentData struct {
 	rwmutex       sync.RWMutex
 	agent         runtime.Runtime
 	writerRemover writerremover.BlobWriterRemover
+	claim         chan struct{}
 }
 
 func NewAsyncControllerWithMap(agents map[uint]*agentData) *AsyncController {
+	for _, a := range agents {
+		if a.claim == nil {
+			a.claim = make(chan struct{}, 1)
+			a.claim <- struct{}{}
+		}
+	}
 	return &AsyncController{agents}
 }
 
@@ -54,9 +61,39 @@ func NewAsyncController(size uint, provider runtime.ArgProvider, parentWorkdir s
 			rwmutex:       sync.RWMutex{},
 			agent:         runtime.NewRuntimeAgentWithIds("agent"+strconv.FormatInt(int64(key), 10), int(key), provider, workdir),
 			writerRemover: writerremover.NewWorkdirWriter(workdir, 0644),
+			claim:         newClaim(),
 		}
 	}
 	return &AsyncController{agents}
+}
+
+func newClaim() chan struct{} {
+	ch := make(chan struct{}, 1)
+	ch <- struct{}{}
+	return ch
+}
+
+func (a *agentData) tryClaim() bool {
+	if a.claim == nil {
+		// legacy: behave like "no claim" semantics
+		return true
+	}
+	select {
+	case <-a.claim:
+		return true
+	default:
+		return false
+	}
+}
+
+func (a *agentData) releaseClaim() {
+	if a.claim == nil {
+		return
+	}
+	select {
+	case a.claim <- struct{}{}:
+	default:
+	}
 }
 
 var (
@@ -80,64 +117,90 @@ func (ac *AsyncController) SubmitRequest(runprops *Props) *CtrlRunOutput {
 	}
 
 	for _, agentData := range ac.agents {
-		if agentData.agent.IsReady() {
+		if !agentData.agent.IsReady() {
+			continue
+		}
+		if !agentData.tryClaim() {
+			continue
+		}
+		defer agentData.releaseClaim()
 
-			// unpack these, easier to reference below
-			agent := agentData.agent
-			writerRemover := agentData.writerRemover
-			preRunProps := runprops.PreRunProps
-			runProps := runprops.RunProps
-			data := runprops.Data
+		// unpack these, easier to reference below
+		agent := agentData.agent
+		writerRemover := agentData.writerRemover
+		preRunProps := runprops.PreRunProps
+		runProps := runprops.RunProps
+		data := runprops.Data
 
-			// pre-pre run props is to actually write some the blob
-			err := writerRemover.Write(data)
-			if err != nil {
-				print2.DebugPrintf("error writing file before running command: %v", err)
-				return &CtrlRunOutput{
-					ControllerErr: PreRunWriteError,
-					RunOutput:     nil,
-					CommandErr:    nil,
-				}
+		// pre-pre run props is to actually write some the blob
+		err := writerRemover.Write(data)
+		if err != nil {
+			print2.DebugPrintf("error writing file before running command: %v", err)
+			return &CtrlRunOutput{
+				ControllerErr: PreRunWriteError,
+				RunOutput:     nil,
+				CommandErr:    nil,
 			}
+		}
 
-			if runprops.PreRunProps != nil {
-				preRunOut, commandErr := agent.SafeRunCmd(preRunProps)
-				if commandErr != nil {
-					print2.DebugPrintf("error preparing command: output=%v\n \nerror=%v", preRunOut, commandErr)
-					return &CtrlRunOutput{
-						ControllerErr: nil,
-						RunOutput:     preRunOut,
-						CommandErr:    commandErr,
-					}
-				}
-			}
-
-			// the actual command must be run as non-root user
-			runOutput, commandErr := agent.SafeRunCmd(&runtime.RunProps{
-				RunArgs:   runProps.RunArgs,
-				Timeout:   runtime.DefaultTimeout,
-				Nprocs:    runtime.DefaultNproc,
-				Fsize:     runtime.DefaultFsize,
-				Cputime:   runtime.DefaultCputime,
-				Stacksize: runtime.DefaultStackSize,
-				Uid:       agentData.agent.RuntimeUid(),
-				Gid:       agentData.agent.RuntimeGid(),
-			})
-
-			err = writerRemover.Remove()
-			if err != nil {
-				print2.DebugPrintf("error cleaning up")
+		if preRunProps != nil && len(preRunProps.RunArgs) > 0 {
+			preRunOut, commandErr := agent.SafeRunCmd(preRunProps)
+			if commandErr != nil {
+				print2.DebugPrintf("error preparing command: output=%v\n \nerror=%v", preRunOut, commandErr)
 				return &CtrlRunOutput{
-					ControllerErr: PostRunPurgeError,
-					RunOutput:     runOutput,
+					ControllerErr: nil,
+					RunOutput:     preRunOut,
 					CommandErr:    commandErr,
 				}
 			}
+		}
+
+		timeout := runProps.Timeout
+		if timeout <= 0 {
+			timeout = runtime.DefaultTimeout
+		}
+		nprocs := runProps.Nprocs
+		if nprocs <= 0 {
+			nprocs = runtime.DefaultNproc
+		}
+		fsize := runProps.Fsize
+		if fsize <= 0 {
+			fsize = runtime.DefaultFsize
+		}
+		cputime := runProps.Cputime
+		if cputime <= 0 {
+			cputime = runtime.DefaultCputime
+		}
+		stacksize := runProps.Stacksize
+		if stacksize <= 0 {
+			stacksize = runtime.DefaultStackSize
+		}
+
+		// the actual command must be run as non-root user
+		runOutput, commandErr := agent.SafeRunCmd(&runtime.RunProps{
+			RunArgs:   runProps.RunArgs,
+			Timeout:   timeout,
+			Nprocs:    nprocs,
+			Fsize:     fsize,
+			Cputime:   cputime,
+			Stacksize: stacksize,
+			Uid:       agentData.agent.RuntimeUid(),
+			Gid:       agentData.agent.RuntimeGid(),
+		})
+
+		err = writerRemover.Remove()
+		if err != nil {
+			print2.DebugPrintf("error cleaning up")
 			return &CtrlRunOutput{
-				ControllerErr: nil,
+				ControllerErr: PostRunPurgeError,
 				RunOutput:     runOutput,
 				CommandErr:    commandErr,
 			}
+		}
+		return &CtrlRunOutput{
+			ControllerErr: nil,
+			RunOutput:     runOutput,
+			CommandErr:    commandErr,
 		}
 	}
 

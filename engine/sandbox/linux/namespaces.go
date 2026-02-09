@@ -7,6 +7,7 @@ type NamespaceConfig struct {
 	UTS     bool
 	IPC     bool
 	Network bool
+	User    bool
 }
 
 func defaultNamespaceConfig(enableNet bool) NamespaceConfig {
@@ -16,5 +17,6 @@ func defaultNamespaceConfig(enableNet bool) NamespaceConfig {
 		UTS:     true,
 		IPC:     true,
 		Network: enableNet,
+		User:    true,
 	}
 }
