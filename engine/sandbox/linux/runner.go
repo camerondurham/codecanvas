@@ -18,10 +18,13 @@ import (
 )
 
 var (
-	ErrInvalidCommand = errors.New("sandbox input command cannot be empty")
+	ErrInvalidCommand      = errors.New("sandbox input command cannot be empty")
+	ErrUnsupportedPlatform = errors.New("linux sandbox only supports linux hosts")
 )
 
 type RunnerOptions struct {
+	// Strict enforces requested cgroup limits. Isolation setup failures fail
+	// closed regardless of this setting.
 	Strict bool
 	// Best effort cgroup root (v2); defaults to /sys/fs/cgroup.
 	CgroupRoot string
@@ -82,20 +85,13 @@ func (r *Runner) Run(input sandbox.SandboxInput, policy sandbox.SandboxPolicy) (
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	// Non-linux platforms fallback to direct execution.
+	// Fail closed on unsupported platforms.
 	if runtime.GOOS != "linux" {
-		return runDirect(ctx, input.Command, workDir)
+		return nil, fmt.Errorf("%w: %s", ErrUnsupportedPlatform, runtime.GOOS)
 	}
 
 	out, err := r.runIsolated(ctx, input.Command, workDir, policy)
-	if err == nil || r.opts.Strict {
-		return out, err
-	}
-
-	// Best-effort fallback preserves availability while sandbox features are
-	// being rolled out to environments with different privilege models.
-	sandbox.DebugPrintf("sandbox fallback to direct run after isolation error: %v", err)
-	return runDirect(ctx, input.Command, workDir)
+	return out, err
 }
 
 func (r *Runner) runIsolated(ctx context.Context, cmdArgs []string, workDir string, policy sandbox.SandboxPolicy) (*sandbox.SandboxOutput, error) {

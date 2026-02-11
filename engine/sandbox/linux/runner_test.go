@@ -141,13 +141,13 @@ func isCgroupPermissionErr(err error) bool {
 			strings.Contains(msg, "operation not permitted"))
 }
 
-func TestRunnerFallbackToDirectWhenNotStrict(t *testing.T) {
-	// Force unshare lookup failure and validate fallback behavior.
+func TestRunnerNoDirectFallbackWhenNotStrict(t *testing.T) {
+	// Force unshare lookup failure and validate fail-closed behavior.
 	r := NewRunnerWithOptions(RunnerOptions{
 		Strict:     false,
 		UnshareBin: "definitely-not-a-real-unshare-bin",
 	})
-	out, err := r.Run(
+	_, err := r.Run(
 		sandbox.SandboxInput{
 			Command: []string{"echo", "hello"},
 			WorkDir: t.TempDir(),
@@ -158,11 +158,8 @@ func TestRunnerFallbackToDirectWhenNotStrict(t *testing.T) {
 			ReadonlyRoot: false,
 		},
 	)
-	if err != nil {
-		t.Fatalf("expected fallback success, got error: %v", err)
-	}
-	if strings.TrimSpace(out.Stdout) != "hello" {
-		t.Fatalf("unexpected stdout from fallback: %q", out.Stdout)
+	if err == nil {
+		t.Fatalf("expected sandbox run to fail when isolation setup fails")
 	}
 }
 
