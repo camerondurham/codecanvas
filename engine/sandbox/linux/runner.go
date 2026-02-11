@@ -181,39 +181,6 @@ func (r *Runner) runIsolated(ctx context.Context, cmdArgs []string, workDir stri
 	}, err
 }
 
-func runDirect(ctx context.Context, args []string, workDir string) (*sandbox.SandboxOutput, error) {
-	cmd := exec.CommandContext(ctx, args[0], args[1:]...)
-	cmd.Dir = workDir
-
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-
-	err := cmd.Run()
-	exitCode := 0
-	if err != nil {
-		var exitErr *exec.ExitError
-		if errors.As(err, &exitErr) {
-			exitCode = exitErr.ExitCode()
-		}
-	} else if cmd.ProcessState != nil {
-		exitCode = cmd.ProcessState.ExitCode()
-	}
-
-	if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-		err = ctx.Err()
-		if exitCode == 0 {
-			exitCode = 124
-		}
-	}
-
-	return &sandbox.SandboxOutput{
-		Stdout:   stdout.String(),
-		Stderr:   stderr.String(),
-		ExitCode: exitCode,
-	}, err
-}
-
 var globalJobIDSequence uint64
 
 func nextGlobalJobID() string {
