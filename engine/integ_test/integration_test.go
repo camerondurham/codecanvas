@@ -27,7 +27,7 @@ func Test_ControllerRunMultipleRequests(t *testing.T) {
 		},
 	}
 	probeOut := asyncCtrl.SubmitRequest(probe)
-	if probeOut.CommandErr != nil && isIsolationCapabilityErr(probeOut.CommandErr) {
+	if probeOut.CommandErr != nil && isIsolationCapabilityErr(probeOut) {
 		t.Skipf("skipping integration test on host without sandbox isolation support: %v", probeOut.CommandErr)
 	}
 	if probeOut.CommandErr != nil {
@@ -79,12 +79,20 @@ func runSafeCmdAndAssertControllerError(ac *ctrl.AsyncController, props *ctrl.Pr
 	}
 }
 
-func isIsolationCapabilityErr(err error) bool {
-	if err == nil {
+func isIsolationCapabilityErr(out *ctrl.CtrlRunOutput) bool {
+	if out == nil {
 		return false
 	}
-	msg := strings.ToLower(err.Error())
+	var msg string
+	if out.CommandErr != nil {
+		msg += out.CommandErr.Error() + " "
+	}
+	if out.RunOutput != nil {
+		msg += out.RunOutput.Stderr + " "
+	}
+	msg = strings.ToLower(msg)
 	return strings.Contains(msg, "operation not permitted") ||
 		strings.Contains(msg, "cannot open /proc/self/uid_map") ||
+		strings.Contains(msg, "unshare:") ||
 		strings.Contains(msg, "uid_map")
 }
