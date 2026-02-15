@@ -37,6 +37,12 @@ npm run check
 npm run build
 ```
 
+GitHub Pages production build (repo project site at `/codecanvas`):
+
+```sh
+npm run build:pages
+```
+
 ## Smoke Test
 
 Runs an end-to-end UI smoke test with Playwright. It starts both the API server and frontend dev server automatically.
@@ -50,3 +56,12 @@ On NixOS, use the Chromium wrapper from `nixpkgs`:
 ```sh
 npm run test:smoke:nix
 ```
+
+## GitHub Pages Deployment
+
+Concrete deployment target:
+- URL: `https://camerondurham.github.io/codecanvas/`
+- API backend URL used in Pages build: `https://runner.fly.dev`
+- Workflow: `.github/workflows/deploy-web-frontend-v2-pages.yml`
+
+The workflow triggers on push to `main` when `web-frontend-v2/**` changes, and can also be run manually.
