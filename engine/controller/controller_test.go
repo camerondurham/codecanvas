@@ -3,7 +3,10 @@ package controller
 import (
 	"errors"
 	mocks3 "github.com/runner-x/runner-x/engine/controller/writerremover/mocks"
+	"os"
+	"path/filepath"
 	"reflect"
+	"strconv"
 	"sync"
 	"testing"
 
@@ -53,6 +56,25 @@ func TestNewAsyncController(t *testing.T) {
 		})
 	}
 
+}
+
+func TestNewAsyncController_CreatesRunnerWorkdirs(t *testing.T) {
+	parent := t.TempDir()
+	ac := NewAsyncController(2, &runtime.ProcessorArgsProvider{}, parent, "runner")
+	if ac == nil {
+		t.Fatalf("expected non-nil controller")
+	}
+
+	for i := 1; i <= 2; i++ {
+		workdir := filepath.Join(parent, "runner"+strconv.Itoa(i))
+		info, err := os.Stat(workdir)
+		if err != nil {
+			t.Fatalf("expected workdir %q to exist: %v", workdir, err)
+		}
+		if !info.IsDir() {
+			t.Fatalf("expected %q to be a directory", workdir)
+		}
+	}
 }
 
 // This is unbelieveably trivial and probably shouldn't be written but I want to make sure it works how expected anyway :P

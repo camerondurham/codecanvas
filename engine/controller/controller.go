@@ -2,6 +2,7 @@ package controller
 
 import (
 	"errors"
+	"os"
 	"path/filepath"
 	"strconv"
 	"sync"
@@ -57,6 +58,11 @@ func NewAsyncController(size uint, provider runtime.ArgProvider, parentWorkdir s
 	for i := uint(0); i < size; i++ {
 		key := uint(i + 1)
 		workdir := filepath.Join(parentWorkdir, pattern+strconv.FormatInt(int64(key), 10))
+		if parentWorkdir != "" {
+			if err := os.MkdirAll(workdir, 0o755); err != nil {
+				print2.DebugPrintf("failed to create runner workdir %q: %v", workdir, err)
+			}
+		}
 		agents[key] = &agentData{
 			rwmutex:       sync.RWMutex{},
 			agent:         runtime.NewRuntimeAgentWithIds("agent"+strconv.FormatInt(int64(key), 10), int(key), provider, workdir),
