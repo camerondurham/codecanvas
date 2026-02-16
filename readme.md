@@ -2,8 +2,11 @@
 
 [![codecov](https://codecov.io/gh/camerondurham/runner/branch/main/graph/badge.svg)](https://codecov.io/gh/camerondurham/runner)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/camerondurham/runner)](https://img.shields.io/github/go-mod/go-version/camerondurham/runner)
+[![Frontend v2 (GitHub Pages)](https://img.shields.io/badge/frontend%20v2-live-2ea44f?logo=github)](https://camerondurham.github.io/codecanvas/)
 
 Previously named "runner"
+
+Live frontend: <https://camerondurham.github.io/codecanvas/>
 
 ## Demo
 
