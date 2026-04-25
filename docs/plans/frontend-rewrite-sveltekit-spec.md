@@ -57,7 +57,8 @@ Choose `SvelteKit`.
   - `OutputPanel` (`stdout`, `stderr`, `error`)
 - API client:
   - Single module for `getLanguages()` and `runCode()`.
-  - `VITE_API_BASE_URL` env support for local/dev/prod.
+  - `PUBLIC_API_BASE_URL` env support for local/dev/prod.
+  - Runtime selector for quickly switching between local and production backends during development.
 - State:
   - Minimal Svelte stores for language/theme/source/output/loading.
 
@@ -85,6 +86,7 @@ Choose `SvelteKit`.
 
 ## Acceptance Criteria
 - Frontend starts locally and can run code against local API server.
+- Frontend can also be run locally against the production backend used by GitHub Pages.
 - Language list loads from server at runtime.
 - Running sample `bash` and `python3` code returns output correctly when runtime binaries are available.
 - No regression in core workflow vs current frontend.
@@ -93,7 +95,8 @@ Choose `SvelteKit`.
 ## Local Dev Workflow (Target)
 - Start API server: `go run ./server/main.go`
 - Start frontend dev server in `web-frontend`: `npm install && npm run dev`
-- Configure API URL via `.env` (`VITE_API_BASE_URL=http://localhost:10100`)
+- Configure API URL via `.env` (`PUBLIC_API_BASE_URL=http://localhost:10100`) when you want to force the local backend.
+- Leave `PUBLIC_API_BASE_URL` unset to exercise the production backend locally before a GitHub Pages deploy.
 
 ## Risks
 - Runtime language availability differences (for example `python3` in sandbox rootfs).

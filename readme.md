@@ -88,7 +88,8 @@ Server-->>Client: return server transformed response
 
 These components live in the following paths:
 
-- browser front-end: [`web-frontend`](https://github.com/camerondurham/runner/tree/main/web-frontend) (thank you to @arekouzounian for this!)
+- browser front-end (legacy webpack app): [`web-frontend`](https://github.com/camerondurham/runner/tree/main/web-frontend) (thank you to @arekouzounian for this!)
+- browser front-end v2 (SvelteKit pilot): [`web-frontend-v2`](https://github.com/camerondurham/runner/tree/main/web-frontend-v2)
 - command-line interface: [`cli/runner/`](https://github.com/camerondurham/runner/tree/main/cli/runner) (another thank you to @arekouzounian for this!)
 - API Server: [`api/`](https://github.com/camerondurham/runner/tree/main/api) (thank you to @filipgraniczny for the help!)
 - CodeRunner: [`engine/coderunner`](https://github.com/camerondurham/runner/tree/main/engine/coderunner) (thank you to @siwei-li for the help!)

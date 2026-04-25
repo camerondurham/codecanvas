@@ -12,17 +12,121 @@
 		error: string;
 	};
 
-	const apiBaseUrl = env.PUBLIC_API_BASE_URL || 'http://localhost:10100';
+	type ApiTarget = {
+		id: string;
+		label: string;
+		description: string;
+		baseUrl: string;
+	};
 
+	const LOCAL_API_BASE_URL = 'http://localhost:10100';
+	const PRODUCTION_API_BASE_URL = 'https://runner.fly.dev';
+
+	const normalizeBaseUrl = (value: string | undefined) => value?.trim().replace(/\/+$/, '') || '';
+	const normalizeLanguage = (value: string) => value.trim().toLowerCase();
+
+	const configuredApiBaseUrl = normalizeBaseUrl(env.PUBLIC_API_BASE_URL);
+	const hideApiTargetSelector = env.PUBLIC_HIDE_API_TARGET_SELECTOR === 'true';
+
+	const baseTargets: ApiTarget[] = [
+		{
+			id: 'production',
+			label: 'Production',
+			description: 'Matches the GitHub Pages deployment target.',
+			baseUrl: PRODUCTION_API_BASE_URL
+		},
+		{
+			id: 'local',
+			label: 'Local',
+			description: 'Use a local API server running on port 10100.',
+			baseUrl: LOCAL_API_BASE_URL
+		}
+	];
+
+	const configuredTarget = configuredApiBaseUrl
+		? baseTargets.find((target) => target.baseUrl === configuredApiBaseUrl)
+		: undefined;
+
+	const apiTargets = configuredTarget
+		? baseTargets
+		: configuredApiBaseUrl
+			? [
+					{
+						id: 'configured',
+						label: 'Configured',
+						description: 'Uses the PUBLIC_API_BASE_URL value from the build environment.',
+						baseUrl: configuredApiBaseUrl
+					},
+					...baseTargets
+				]
+			: baseTargets;
+
+	const getBoilerplate = (language: string) => {
+		switch (normalizeLanguage(language)) {
+			case 'python':
+			case 'python3':
+				return `print("Hello from Python!")`;
+			case 'node':
+			case 'nodejs':
+			case 'javascript':
+			case 'js':
+				return `console.log("Hello from JavaScript!");`;
+			case 'c++':
+			case 'cpp':
+			case 'c++11':
+				return `#include <iostream>
+
+int main() {
+    std::cout << "Hello from C++!" << std::endl;
+    return 0;
+}`;
+			case 'go':
+			case 'golang':
+				return `package main
+
+import "fmt"
+
+func main() {
+    fmt.Println("Hello from Go!")
+}`;
+			case 'bash':
+			case 'sh':
+				return `echo "Hello from Bash!"`;
+			case 'rust':
+				return `fn main() {
+    println!("Hello from Rust!");
+}`;
+			default:
+				return `print("Hello from ${language}!")`;
+		}
+	};
+
+	let selectedApiTargetId = configuredTarget?.id || (configuredApiBaseUrl ? 'configured' : 'production');
 	let languages: string[] = [];
 	let selectedLanguage = 'bash';
-	let source = 'echo hello-from-sveltekit';
+	let source = getBoilerplate(selectedLanguage);
 	let stdout = '';
 	let stderr = '';
 	let runtimeError = '';
 	let loadError = '';
 	let loadingLanguages = true;
 	let running = false;
+
+	$: selectedApiTarget =
+		apiTargets.find((target) => target.id === selectedApiTargetId) || apiTargets[0];
+	$: apiBaseUrl = selectedApiTarget.baseUrl;
+
+	const resetOutputs = () => {
+		stdout = '';
+		stderr = '';
+		runtimeError = '';
+		loadError = '';
+	};
+
+	const applyBoilerplate = (language: string) => {
+		selectedLanguage = language;
+		source = getBoilerplate(language);
+	};
 
 	const runCode = async () => {
 		runtimeError = '';
@@ -67,14 +171,26 @@
 			const response = await fetch(`${apiBaseUrl}/api/v1/languages`);
 			const data = (await response.json()) as LanguagesResponse;
 			languages = data.languages || [];
-			if (languages.length > 0 && !languages.includes(selectedLanguage)) {
-				selectedLanguage = languages[0];
+			if (languages.length > 0) {
+				const nextLanguage = languages.includes(selectedLanguage) ? selectedLanguage : languages[0];
+				applyBoilerplate(nextLanguage);
 			}
 		} catch (err) {
+			languages = [];
 			loadError = err instanceof Error ? err.message : 'unknown request error';
 		} finally {
 			loadingLanguages = false;
 		}
+	};
+
+	const handleApiTargetChange = async () => {
+		resetOutputs();
+		await loadLanguages();
+	};
+
+	const handleLanguageChange = () => {
+		resetOutputs();
+		applyBoilerplate(selectedLanguage);
 	};
 
 	onMount(() => {
@@ -87,27 +203,50 @@
 		<header>
 			<p class="kicker">CodeCanvas</p>
 			<h1>Sandbox Runner</h1>
+			<p class="lede">
+				Run the frontend locally against the production backend before publishing to GitHub Pages.
+			</p>
 		</header>
 
-		<div class="controls">
-			<label for="language">Language</label>
-			<select
-				id="language"
-				data-testid="language-select"
-				bind:value={selectedLanguage}
-				disabled={loadingLanguages || languages.length === 0}
-			>
-				{#if loadingLanguages}
-					<option>loading...</option>
-				{:else if languages.length === 0}
-					<option>none available</option>
-				{:else}
-					{#each languages as language}
-						<option value={language}>{language}</option>
-					{/each}
-				{/if}
-			</select>
+		<div class="controls" class:compact-controls={hideApiTargetSelector}>
+			{#if !hideApiTargetSelector}
+				<div class="control-field">
+					<label for="api-target">Backend</label>
+					<select
+						id="api-target"
+						data-testid="api-target-select"
+						bind:value={selectedApiTargetId}
+						onchange={handleApiTargetChange}
+					>
+						{#each apiTargets as target}
+							<option value={target.id}>{target.label}</option>
+						{/each}
+					</select>
+				</div>
+			{/if}
 
+			<div class="control-field">
+				<label for="language">Language</label>
+				<select
+					id="language"
+					data-testid="language-select"
+					bind:value={selectedLanguage}
+					disabled={loadingLanguages || languages.length === 0}
+					onchange={handleLanguageChange}
+				>
+					{#if loadingLanguages}
+						<option>loading...</option>
+					{:else if languages.length === 0}
+						<option>none available</option>
+					{:else}
+						{#each languages as language}
+							<option value={language}>{language}</option>
+						{/each}
+					{/if}
+				</select>
+			</div>
+
+			<div class="control-field action-field">
 				<button
 					class="run-button"
 					data-testid="run-button"
@@ -117,9 +256,18 @@
 					{running ? 'Running...' : 'Run'}
 				</button>
 			</div>
+		</div>
 
-			<label for="source" class="editor-label">Source</label>
-			<textarea id="source" data-testid="source-input" bind:value={source} spellcheck="false"></textarea>
+		{#if !hideApiTargetSelector}
+			<section class="target-banner" data-testid="api-target-banner">
+				<p class="target-label">{selectedApiTarget.label} backend</p>
+				<p class="target-description">{selectedApiTarget.description}</p>
+				<code data-testid="api-base-url">{apiBaseUrl}</code>
+			</section>
+		{/if}
+
+		<label for="source" class="editor-label">Source</label>
+		<textarea id="source" data-testid="source-input" bind:value={source} spellcheck="false"></textarea>
 
 		{#if loadError}
 			<p class="error">Languages request failed: {loadError}</p>
@@ -128,16 +276,16 @@
 		<section class="output-grid">
 			<article>
 				<h2>Stdout</h2>
-					<pre data-testid="stdout-output">{stdout}</pre>
-				</article>
-				<article>
-					<h2>Stderr</h2>
-					<pre data-testid="stderr-output">{stderr}</pre>
-				</article>
-				<article>
-					<h2>Error</h2>
-					<pre data-testid="error-output">{runtimeError}</pre>
-				</article>
+				<pre data-testid="stdout-output">{stdout}</pre>
+			</article>
+			<article>
+				<h2>Stderr</h2>
+				<pre data-testid="stderr-output">{stderr}</pre>
+			</article>
+			<article>
+				<h2>Error</h2>
+				<pre data-testid="error-output">{runtimeError}</pre>
+			</article>
 		</section>
 	</section>
 </main>
@@ -180,12 +328,32 @@
 		font-size: clamp(1.5rem, 2.8vw, 2rem);
 	}
 
+	.lede {
+		margin: 0.5rem 0 0;
+		max-width: 38rem;
+		font-size: 0.95rem;
+		line-height: 1.45;
+	}
+
 	.controls {
 		display: grid;
-		grid-template-columns: 1fr auto;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
 		gap: 0.7rem;
 		align-items: end;
 		margin-top: 1rem;
+	}
+
+	.compact-controls {
+		grid-template-columns: minmax(0, 1fr) auto;
+	}
+
+	.control-field {
+		display: grid;
+		gap: 0.45rem;
+	}
+
+	.action-field {
+		align-self: stretch;
 	}
 
 	label {
@@ -208,6 +376,8 @@
 	}
 
 	.run-button {
+		height: 100%;
+		min-height: 3rem;
 		padding: 0.6rem 1rem;
 		background: #1f2937;
 		color: #fff;
@@ -217,6 +387,38 @@
 	.run-button:disabled {
 		cursor: not-allowed;
 		opacity: 0.7;
+	}
+
+	.target-banner {
+		margin-top: 1rem;
+		padding: 0.85rem 1rem;
+		border: 2px solid #1f2937;
+		border-radius: 0.8rem;
+		background: linear-gradient(135deg, rgba(255, 246, 227, 0.95), rgba(255, 255, 255, 0.98));
+	}
+
+	.target-label {
+		margin: 0;
+		font-size: 0.88rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: #b45309;
+	}
+
+	.target-description {
+		margin: 0.35rem 0 0;
+		font-size: 0.95rem;
+	}
+
+	code {
+		display: inline-block;
+		margin-top: 0.55rem;
+		padding: 0.3rem 0.45rem;
+		border-radius: 0.45rem;
+		background: #1f2937;
+		color: #fffaf0;
+		font-size: 0.88rem;
 	}
 
 	.editor-label {
@@ -263,6 +465,11 @@
 	}
 
 	@media (max-width: 820px) {
+		.controls,
+		.compact-controls {
+			grid-template-columns: 1fr;
+		}
+
 		.output-grid {
 			grid-template-columns: 1fr;
 		}

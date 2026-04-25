@@ -26,6 +26,7 @@ jobs:
     env:
       BASE_PATH: /codecanvas
       PUBLIC_API_BASE_URL: https://runner.fly.dev
+      PUBLIC_HIDE_API_TARGET_SELECTOR: "true"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
