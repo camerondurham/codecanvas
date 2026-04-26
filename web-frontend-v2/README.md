@@ -37,14 +37,14 @@ In local development, you can switch between `Production` and `Local` backends i
 
 ## GitHub Pages Parity Check
 
-To verify the exact deployment-style configuration locally, build with the Pages base path and the production API endpoint, then preview it locally:
+To verify the exact deployment-style configuration locally, build for the custom-domain Pages site with the production API endpoint, then preview it locally:
 
 ```sh
 npm run preview:pages
 ```
 
 This serves the static site with:
-- base path: `/codecanvas`
+- base path: `/`
 - API backend: `https://runner.fly.dev`
 - backend selector hidden, matching the deployed GitHub Pages app
 
@@ -78,8 +78,9 @@ npm run test:smoke:nix
 ## GitHub Pages Deployment
 
 Concrete deployment target:
-- URL: `https://camerondurham.github.io/codecanvas/`
+- URL: `https://codecanvas.u64.cam/`
 - API backend URL used in Pages build: `https://runner.fly.dev`
 - Workflow: `.github/workflows/deploy-web-frontend-v2-pages.yml`
 
 The workflow triggers on push to `main` when `web-frontend-v2/**` changes, and can also be run manually.
+In the CodeCanvas repository's GitHub Pages settings, set the repository custom domain to `codecanvas.u64.cam` and use a DNS `CNAME` record from `codecanvas.u64.cam` to `camerondurham.github.io`.

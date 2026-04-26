@@ -32,7 +32,7 @@
 		{
 			id: 'production',
 			label: 'Production',
-			description: 'Matches the GitHub Pages deployment target.',
+			description: 'Matches the custom-domain deployment target.',
 			baseUrl: PRODUCTION_API_BASE_URL
 		},
 		{
@@ -204,7 +204,7 @@ func main() {
 			<p class="kicker">CodeCanvas</p>
 			<h1>Sandbox Runner</h1>
 			<p class="lede">
-				Run the frontend locally against the production backend before publishing to GitHub Pages.
+				Run code against the production backend from the CodeCanvas frontend.
 			</p>
 		</header>
 
