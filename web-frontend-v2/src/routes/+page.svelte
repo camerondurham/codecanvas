@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { env } from '$env/dynamic/public';
+	import * as staticPublicEnv from '$env/static/public';
 	import { onMount } from 'svelte';
 
 	type LanguagesResponse = {
@@ -22,11 +22,12 @@
 	const LOCAL_API_BASE_URL = 'http://localhost:10100';
 	const PRODUCTION_API_BASE_URL = 'https://runner.fly.dev';
 
+	const publicEnv = staticPublicEnv as Record<string, string | undefined>;
 	const normalizeBaseUrl = (value: string | undefined) => value?.trim().replace(/\/+$/, '') || '';
 	const normalizeLanguage = (value: string) => value.trim().toLowerCase();
 
-	const configuredApiBaseUrl = normalizeBaseUrl(env.PUBLIC_API_BASE_URL);
-	const hideApiTargetSelector = env.PUBLIC_HIDE_API_TARGET_SELECTOR === 'true';
+	const configuredApiBaseUrl = normalizeBaseUrl(publicEnv.PUBLIC_API_BASE_URL);
+	const hideApiTargetSelector = publicEnv.PUBLIC_HIDE_API_TARGET_SELECTOR === 'true';
 
 	const baseTargets: ApiTarget[] = [
 		{
@@ -169,8 +170,15 @@ func main() {
 		loadingLanguages = true;
 		try {
 			const response = await fetch(`${apiBaseUrl}/api/v1/languages`);
-			const data = (await response.json()) as LanguagesResponse;
-			languages = data.languages || [];
+			const data = (await response.json()) as LanguagesResponse | { error: string };
+
+			if (!response.ok) {
+				languages = [];
+				loadError = 'error' in data ? data.error : `request failed: ${response.status}`;
+				return;
+			}
+
+			languages = 'languages' in data ? data.languages || [] : [];
 			if (languages.length > 0) {
 				const nextLanguage = languages.includes(selectedLanguage) ? selectedLanguage : languages[0];
 				applyBoilerplate(nextLanguage);
