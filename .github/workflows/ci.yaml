@@ -30,3 +30,22 @@ jobs:
         run: docker login --username "$DOCKERHUB_USERNAME" --password "$DOCKERHUB_TOKEN"
       - name: Runs golang tests, lints and web tests
         run: earthly --ci +run-ci
+
+  frontend-v2:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web-frontend-v2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web-frontend-v2/package-lock.json
+      - name: Install frontend v2 dependencies
+        run: npm ci
+      - name: Typecheck frontend v2
+        run: npm run check
+      - name: Build frontend v2 with GitHub Pages settings
+        run: npm run build:pages

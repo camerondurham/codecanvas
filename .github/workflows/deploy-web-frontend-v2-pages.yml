@@ -1,0 +1,56 @@
+name: Deploy Web Frontend v2 to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "web-frontend-v2/**"
+      - ".github/workflows/deploy-web-frontend-v2-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web-frontend-v2
+    env:
+      PUBLIC_API_BASE_URL: https://runner.fly.dev
+      PUBLIC_HIDE_API_TARGET_SELECTOR: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web-frontend-v2/package-lock.json
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Install dependencies
+        run: npm ci
+      - name: Build static site
+        run: npm run build
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: web-frontend-v2/build
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

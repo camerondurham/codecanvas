@@ -2,8 +2,11 @@
 
 [![codecov](https://codecov.io/gh/camerondurham/runner/branch/main/graph/badge.svg)](https://codecov.io/gh/camerondurham/runner)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/camerondurham/runner)](https://img.shields.io/github/go-mod/go-version/camerondurham/runner)
+[![Frontend v2 (GitHub Pages)](https://img.shields.io/badge/frontend%20v2-live-2ea44f?logo=github)](https://codecanvas.u64.cam/)
 
 Previously named "runner"
+
+Live frontend: <https://codecanvas.u64.cam/>
 
 ## Demo
 
@@ -85,7 +88,8 @@ Server-->>Client: return server transformed response
 
 These components live in the following paths:
 
-- browser front-end: [`web-frontend`](https://github.com/camerondurham/runner/tree/main/web-frontend) (thank you to @arekouzounian for this!)
+- browser front-end (legacy webpack app): [`web-frontend`](https://github.com/camerondurham/runner/tree/main/web-frontend) (thank you to @arekouzounian for this!)
+- browser front-end v2 (SvelteKit pilot): [`web-frontend-v2`](https://github.com/camerondurham/runner/tree/main/web-frontend-v2)
 - command-line interface: [`cli/runner/`](https://github.com/camerondurham/runner/tree/main/cli/runner) (another thank you to @arekouzounian for this!)
 - API Server: [`api/`](https://github.com/camerondurham/runner/tree/main/api) (thank you to @filipgraniczny for the help!)
 - CodeRunner: [`engine/coderunner`](https://github.com/camerondurham/runner/tree/main/engine/coderunner) (thank you to @siwei-li for the help!)
