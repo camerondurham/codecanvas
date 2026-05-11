@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"github.com/runner-x/runner-x/cli/runner/client"
-	coderunner "github.com/runner-x/runner-x/engine/coderunner/v1"
 	"github.com/spf13/cobra"
 )
 
@@ -21,14 +20,19 @@ var langsCmd = &cobra.Command{
 			panic(err)
 		}
 
-		var cmdClient client.Requester
+		timeout, err := rootCmd.PersistentFlags().GetInt("timeout")
+		if err != nil {
+			panic(err)
+		}
+
+		var cmdClient *client.CliClient
 		clint := client.Config{
 			BaseUrl: url,
-			Timeout: coderunner.TIMEOUT_DEFAULT,
+			Timeout: timeout,
 		}
 		cmdClient = client.NewClientFromConfig(clint)
 
-		resp, err := cmdClient.Languages()
+		resp, err := cmdClient.LanguageRequest()
 		if err != nil {
 			fmt.Println(err)
 			return
