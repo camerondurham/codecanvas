@@ -13,6 +13,8 @@ func Test_RunCmd(t *testing.T) {
 	}
 
 	runtimeAgent := NewTimeoutRuntime("test", &NilProvider{})
+	// This test verifies RuntimeAgent behavior, not Linux sandbox capabilities.
+	runtimeAgent.Sandbox = nil
 
 	tests := []struct {
 		name    string
@@ -70,6 +72,8 @@ func Test_RunCmd(t *testing.T) {
 // TODO: improve this test to avoid using sleeping
 func Test_SafeRunCmd(t *testing.T) {
 	runtimeAgent := NewRuntimeAgentWithIds("test", 1, &NilProvider{}, "/tmp")
+	// Keep this test focused on state transitions, independent of sandbox support.
+	runtimeAgent.Sandbox = nil
 
 	if !runtimeAgent.IsReady() {
 		t.Errorf("RuntimeAgent is not ready when created")

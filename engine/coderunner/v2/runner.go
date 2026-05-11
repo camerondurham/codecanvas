@@ -19,27 +19,28 @@ func (cr *CodeRunner) Run(props *RunnerProps) (*RunnerOutput, error) {
 
 	language := LangNameToLangMap[props.Lang]
 	filename := "run" + language.FileExtension
-	compileCmd := language.CompileCmd
-	if language.CompileCmd != nil {
+	var compileCommands *runtime.RunProps
+	if language.CompileCmd != nil && len(language.CompileCmd) > 0 {
+		compileCmd := append([]string{}, language.CompileCmd...)
 		compileCmd = append(compileCmd, filename)
-	}
 
-	compileCommands := &runtime.RunProps{
-		RunArgs:   compileCmd,
-		Timeout:   runtime.DefaultTimeout,
-		Nprocs:    runtime.DefaultNproc,
-		Fsize:     runtime.DefaultCompileFsize,
-		Stacksize: runtime.DefaultCompileStackSize,
-		Cputime:   runtime.DefaultCputime,
-	}
+		compileCommands = &runtime.RunProps{
+			RunArgs:   compileCmd,
+			Timeout:   runtime.DefaultTimeout,
+			Nprocs:    runtime.DefaultNproc,
+			Fsize:     runtime.DefaultCompileFsize,
+			Stacksize: runtime.DefaultCompileStackSize,
+			Cputime:   runtime.DefaultCputime,
+		}
 
-	// Language-specific modifications
-	// Rust has large binaries, even for simple applications
-	//
-	// ... is there a better way to do this without switching on names?
-	switch language.Name {
-	case "rust":
-		compileCommands.Fsize = 1 << 25 // 32 mB
+		// Language-specific modifications
+		// Rust has large binaries, even for simple applications
+		//
+		// ... is there a better way to do this without switching on names?
+		switch language.Name {
+		case "rust":
+			compileCommands.Fsize = 1 << 25 // 32 mB
+		}
 	}
 
 	runCommands := language.RunCmd
@@ -54,7 +55,9 @@ func (cr *CodeRunner) Run(props *RunnerProps) (*RunnerOutput, error) {
 	}
 
 	print2.DebugPrintf("writing file: %v", props.Source)
-	print2.DebugPrintf("compile commands: %v", compileCommands.RunArgs)
+	if compileCommands != nil {
+		print2.DebugPrintf("compile commands: %v", compileCommands.RunArgs)
+	}
 	print2.DebugPrintf("run commands: %v", runtimeProps.RunArgs)
 	runOut := cr.controller.SubmitRequest(&controller.Props{
 		Data:        writerremover.NewBlob([]byte(props.Source), filename),
