@@ -40,3 +40,17 @@ func Test_createLangMaps(t *testing.T) {
 		})
 	}
 }
+
+func TestSandboxImages(t *testing.T) {
+	got := SandboxImages(map[string]string{
+		Python3.Name: "codecanvas-sandbox:local",
+		NodeJs.Name:  "codecanvas-sandbox:local",
+	})
+
+	if len(got) != len(allLanguages)-1 {
+		t.Fatalf("SandboxImages() = %v, want deduped override", got)
+	}
+	if got[0] != "codecanvas-sandbox:local" {
+		t.Fatalf("SandboxImages()[0] = %q, want override", got[0])
+	}
+}

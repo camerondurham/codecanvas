@@ -97,12 +97,11 @@ func (r *RuntimeAgent) runCmd(props *RunProps) (*RunOutput, error) {
 	stderrChannel := iohelpers.GetWriterChannelOutput(stderrPipe, MaxOutputBufSize)
 
 	print.DebugPrintf("\nrunning command with RunProps: %v\n", props)
-	print.DebugPrintf("running command from PID: %v\n", os.Getpid())
-
 	if len(r.workdir) > 0 {
-		err := os.Chdir(r.workdir)
-		if err != nil {
-			print.DebugPrintf("unable to change directories: %v", err)
+		if _, err := os.Stat(r.workdir); err == nil {
+			cmd.Dir = r.workdir
+		} else {
+			print.DebugPrintf("unable to use workdir %q: %v", r.workdir, err)
 		}
 	}
 

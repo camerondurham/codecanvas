@@ -2,9 +2,7 @@ package runtime
 
 import (
 	"context"
-	"fmt"
 	"os/exec"
-	"reflect"
 	"testing"
 )
 
@@ -37,9 +35,7 @@ func TestNilProvider_Provide(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &NilProvider{}
-			if got := p.Provide(tt.args.ctx, tt.args.runprops); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Provide() = %v, want %v", got, tt.want)
-			}
+			assertCommand(t, p.Provide(tt.args.ctx, tt.args.runprops), tt.want)
 		})
 	}
 }
@@ -74,11 +70,42 @@ func TestProcessorArgsProvider_Provide(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &ProcessorArgsProvider{}
-			if got := p.Provide(tt.args.ctx, tt.args.runprops); !reflect.DeepEqual(got, tt.want) {
-				// TODO: uncomment this and assert on test
-				//t.Errorf("Provide() = %v, want %v", got, tt.want)
-				fmt.Printf("Provide() = %v, want %v", got, tt.want)
+			got := p.Provide(tt.args.ctx, tt.args.runprops)
+			if got.Path != ProcessCommandName {
+				t.Errorf("Provide() path = %v, want %v", got.Path, ProcessCommandName)
 			}
+			wantArgs := []string{
+				ProcessCommandName,
+				"-nprocs=2",
+				"-uid=0",
+				"-gid=0",
+				"-fsize=0",
+				"-timeout=1",
+				"-cputime=0",
+				"-cmd=echo",
+				"hello",
+			}
+			assertArgs(t, got.Args, wantArgs)
 		})
+	}
+}
+
+func assertCommand(t *testing.T, got *exec.Cmd, want *exec.Cmd) {
+	t.Helper()
+	if got.Path != want.Path {
+		t.Errorf("command path = %v, want %v", got.Path, want.Path)
+	}
+	assertArgs(t, got.Args, want.Args)
+}
+
+func assertArgs(t *testing.T, got []string, want []string) {
+	t.Helper()
+	if len(got) != len(want) {
+		t.Fatalf("args = %v, want %v", got, want)
+	}
+	for i := range got {
+		if got[i] != want[i] {
+			t.Fatalf("args = %v, want %v", got, want)
+		}
 	}
 }

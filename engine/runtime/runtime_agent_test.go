@@ -2,11 +2,15 @@ package runtime
 
 import (
 	"reflect"
+	stdruntime "runtime"
 	"testing"
 	"time"
 )
 
 func Test_RunCmd(t *testing.T) {
+	if stdruntime.GOOS == "windows" {
+		t.Skip("RuntimeAgent command tests depend on Unix commands")
+	}
 
 	type args struct {
 		props *RunProps
@@ -69,6 +73,10 @@ func Test_RunCmd(t *testing.T) {
 
 // TODO: improve this test to avoid using sleeping
 func Test_SafeRunCmd(t *testing.T) {
+	if stdruntime.GOOS == "windows" {
+		t.Skip("RuntimeAgent command tests depend on Unix commands")
+	}
+
 	runtimeAgent := NewRuntimeAgentWithIds("test", 1, &NilProvider{}, "/tmp")
 
 	if !runtimeAgent.IsReady() {

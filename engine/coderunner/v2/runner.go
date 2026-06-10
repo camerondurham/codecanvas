@@ -1,9 +1,12 @@
 package v2
 
 import (
+	"context"
+
 	"github.com/runner-x/runner-x/engine/controller"
 	"github.com/runner-x/runner-x/engine/controller/writerremover"
 	"github.com/runner-x/runner-x/engine/runtime"
+	"github.com/runner-x/runner-x/engine/sandbox"
 	print2 "github.com/runner-x/runner-x/util/print"
 )
 
@@ -15,17 +18,61 @@ func NewCodeRunner(numRunners uint, argProvider runtime.ArgProvider, parentDir, 
 	}
 }
 
-func (cr *CodeRunner) Run(props *RunnerProps) (*RunnerOutput, error) {
+func NewCodeRunnerWithSandbox(config SandboxConfig) CodeRunner {
+	return CodeRunner{
+		sandboxRunner: config.Runner,
+		sandboxPolicy: config.Policy,
+		sandboxImages: config.Images,
+	}
+}
 
-	language := LangNameToLangMap[props.Lang]
+func (cr *CodeRunner) Run(props *RunnerProps) (*RunnerOutput, error) {
+	plan := executionPlanFor(LangNameToLangMap[props.Lang], cr.sandboxImages)
+
+	if cr.sandboxRunner != nil {
+		return cr.runSandboxed(props, plan)
+	}
+
+	return cr.runLegacy(props, plan)
+}
+
+type executionPlan struct {
+	filename   string
+	compileCmd []string
+	runCmd     []string
+	image      string
+}
+
+func executionPlanFor(language Language, imageOverrides map[string]string) executionPlan {
 	filename := "run" + language.FileExtension
-	compileCmd := language.CompileCmd
-	if language.CompileCmd != nil {
+	compileCmd := append([]string{}, language.CompileCmd...)
+	if len(compileCmd) > 0 {
 		compileCmd = append(compileCmd, filename)
 	}
 
+	runCmd := append([]string{}, language.RunCmd...)
+	if len(compileCmd) == 0 {
+		runCmd = append(runCmd, "./"+filename)
+	}
+
+	image := language.SandboxImage
+	if imageOverrides != nil {
+		if override, ok := imageOverrides[language.Name]; ok && len(override) > 0 {
+			image = override
+		}
+	}
+
+	return executionPlan{
+		filename:   filename,
+		compileCmd: compileCmd,
+		runCmd:     runCmd,
+		image:      image,
+	}
+}
+
+func (cr *CodeRunner) runLegacy(props *RunnerProps, plan executionPlan) (*RunnerOutput, error) {
 	compileCommands := &runtime.RunProps{
-		RunArgs:   compileCmd,
+		RunArgs:   plan.compileCmd,
 		Timeout:   runtime.DefaultTimeout,
 		Nprocs:    runtime.DefaultNproc,
 		Fsize:     runtime.DefaultCompileFsize,
@@ -37,19 +84,14 @@ func (cr *CodeRunner) Run(props *RunnerProps) (*RunnerOutput, error) {
 	// Rust has large binaries, even for simple applications
 	//
 	// ... is there a better way to do this without switching on names?
-	switch language.Name {
+	switch props.Lang {
 	case "rust":
 		compileCommands.Fsize = 1 << 25 // 32 mB
 	}
 
-	runCommands := language.RunCmd
-	if language.CompileCmd == nil || len(language.CompileCmd) == 0 {
-		runCommands = append(runCommands, "./"+filename)
-	}
-
 	// TODO: actually use the right Uid and Gid and Nprocs????
 	runtimeProps := &runtime.RunProps{
-		RunArgs: runCommands,
+		RunArgs: plan.runCmd,
 		Timeout: runtime.DefaultTimeout,
 	}
 
@@ -57,7 +99,7 @@ func (cr *CodeRunner) Run(props *RunnerProps) (*RunnerOutput, error) {
 	print2.DebugPrintf("compile commands: %v", compileCommands.RunArgs)
 	print2.DebugPrintf("run commands: %v", runtimeProps.RunArgs)
 	runOut := cr.controller.SubmitRequest(&controller.Props{
-		Data:        writerremover.NewBlob([]byte(props.Source), filename),
+		Data:        writerremover.NewBlob([]byte(props.Source), plan.filename),
 		PreRunProps: compileCommands,
 		RunProps:    runtimeProps,
 	})
@@ -77,5 +119,30 @@ func (cr *CodeRunner) Run(props *RunnerProps) (*RunnerOutput, error) {
 		Stdout:       runOut.RunOutput.Stdout,
 		Stderr:       runOut.RunOutput.Stderr,
 		CommandError: runOut.CommandErr,
+	}, nil
+}
+
+func (cr *CodeRunner) runSandboxed(props *RunnerProps, plan executionPlan) (*RunnerOutput, error) {
+	steps := make([]sandbox.Command, 0, 2)
+	if len(plan.compileCmd) > 0 {
+		steps = append(steps, sandbox.Command{Args: plan.compileCmd})
+	}
+	steps = append(steps, sandbox.Command{Args: plan.runCmd})
+
+	out, err := cr.sandboxRunner.Run(context.Background(), sandbox.Job{
+		Image: plan.image,
+		Files: map[string][]byte{
+			plan.filename: []byte(props.Source),
+		},
+		Steps: steps,
+	}, cr.sandboxPolicy)
+	if out == nil {
+		return nil, err
+	}
+
+	return &RunnerOutput{
+		Stdout:       out.Stdout,
+		Stderr:       out.Stderr,
+		CommandError: err,
 	}, nil
 }

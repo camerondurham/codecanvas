@@ -101,6 +101,7 @@ func (ac *AsyncController) SubmitRequest(runprops *Props) *CtrlRunOutput {
 			}
 
 			if runprops.PreRunProps != nil {
+				preRunProps = runPropsWithRuntimeIdentity(preRunProps, agent)
 				preRunOut, commandErr := agent.SafeRunCmd(preRunProps)
 				if commandErr != nil {
 					print2.DebugPrintf("error preparing command: output=%v\n \nerror=%v", preRunOut, commandErr)
@@ -146,4 +147,14 @@ func (ac *AsyncController) SubmitRequest(runprops *Props) *CtrlRunOutput {
 		RunOutput:     nil,
 		CommandErr:    nil,
 	}
+}
+
+func runPropsWithRuntimeIdentity(props *runtime.RunProps, agent runtime.Runtime) *runtime.RunProps {
+	if props == nil {
+		return nil
+	}
+	propsWithIdentity := *props
+	propsWithIdentity.Uid = agent.RuntimeUid()
+	propsWithIdentity.Gid = agent.RuntimeGid()
+	return &propsWithIdentity
 }

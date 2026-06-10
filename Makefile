@@ -8,6 +8,7 @@ VERSION=v1
 MOCK_SERVER_NAME=mock-server
 SERVER_NAME=runner-server
 DEV_NAME=runner-dev
+SANDBOX_IMAGE=codecanvas-sandbox
 
 all:
 	@echo "runner Makefile targets"
@@ -28,6 +29,8 @@ all:
 	@echo ""
 	@echo "  dkr-server: build and run server using Docker"
 	@echo ""
+	@echo "  dkr-build-sandbox: build local all-tools sandbox image"
+	@echo ""
 	@echo "  dkr-stop-mock: stop and remove mock container"
 	@echo ""
 	@echo "  dkr-stop-server: stop and remove server container"
@@ -40,6 +43,9 @@ dkr-mock: dkr-build-mock
 dkr-server:
 	docker build -t ${SERVER_NAME}:${VERSION} -f docker/server-debian/Dockerfile .
 	docker run -d -p 10100:10100 -e DEBUG=1 --name ${SERVER_NAME} ${SERVER_NAME}:${VERSION}
+
+dkr-build-sandbox:
+	docker build -t ${SANDBOX_IMAGE}:local -f docker/sandbox/Dockerfile .
 
 dkr-stop-mock:
 	docker stop ${MOCK_SERVER_NAME}

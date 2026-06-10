@@ -1,12 +1,14 @@
 package v2
 
 import (
+	"context"
 	"errors"
 	"github.com/golang/mock/gomock"
 	"github.com/runner-x/runner-x/engine/controller"
 	mocks2 "github.com/runner-x/runner-x/engine/controller/mocks"
 	"github.com/runner-x/runner-x/engine/runtime"
 	"github.com/runner-x/runner-x/engine/runtime/mocks"
+	"github.com/runner-x/runner-x/engine/sandbox"
 	"github.com/runner-x/runner-x/util/files"
 	"os"
 	"reflect"
@@ -201,4 +203,63 @@ func TestNewCodeRunner(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestCodeRunnerRunSandboxed(t *testing.T) {
+	fake := &fakeSandboxRunner{
+		output: &sandbox.Output{
+			Stdout: "hello\n",
+		},
+	}
+	cr := NewCodeRunnerWithSandbox(SandboxConfig{
+		Runner: fake,
+		Policy: sandbox.Policy{
+			TimeoutSec: 3,
+		},
+		Images: map[string]string{
+			Cpp.Name: "codecanvas/cpp:test",
+		},
+	})
+
+	got, err := cr.Run(&RunnerProps{
+		Lang:   Cpp.Name,
+		Source: "int main() { return 0; }",
+	})
+	if err != nil {
+		t.Fatalf("Run() error = %v", err)
+	}
+	if got.Stdout != "hello\n" {
+		t.Fatalf("Run() stdout = %q, want hello", got.Stdout)
+	}
+	if fake.job.Image != "codecanvas/cpp:test" {
+		t.Fatalf("sandbox image = %q, want override", fake.job.Image)
+	}
+	if string(fake.job.Files["run.cpp"]) != "int main() { return 0; }" {
+		t.Fatalf("sandbox source file not populated")
+	}
+	if len(fake.job.Steps) != 2 {
+		t.Fatalf("sandbox steps = %d, want 2", len(fake.job.Steps))
+	}
+	if !reflect.DeepEqual(fake.job.Steps[0].Args, []string{"g++", "run.cpp"}) {
+		t.Fatalf("compile step = %v", fake.job.Steps[0].Args)
+	}
+	if !reflect.DeepEqual(fake.job.Steps[1].Args, []string{"./a.out"}) {
+		t.Fatalf("run step = %v", fake.job.Steps[1].Args)
+	}
+	if fake.policy.TimeoutSec != 3 {
+		t.Fatalf("sandbox policy timeout = %d, want 3", fake.policy.TimeoutSec)
+	}
+}
+
+type fakeSandboxRunner struct {
+	job    sandbox.Job
+	policy sandbox.Policy
+	output *sandbox.Output
+	err    error
+}
+
+func (f *fakeSandboxRunner) Run(ctx context.Context, job sandbox.Job, policy sandbox.Policy) (*sandbox.Output, error) {
+	f.job = job
+	f.policy = policy
+	return f.output, f.err
 }
