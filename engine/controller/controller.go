@@ -36,6 +36,7 @@ type AsyncController struct {
 
 type agentData struct {
 	rwmutex       sync.RWMutex
+	busy          bool
 	agent         runtime.Runtime
 	writerRemover writerremover.BlobWriterRemover
 }
@@ -59,6 +60,23 @@ func NewAsyncController(size uint, provider runtime.ArgProvider, parentWorkdir s
 	return &AsyncController{agents}
 }
 
+func (ad *agentData) reserveIfReady() bool {
+	ad.rwmutex.Lock()
+	defer ad.rwmutex.Unlock()
+
+	if ad.busy || !ad.agent.IsReady() {
+		return false
+	}
+	ad.busy = true
+	return true
+}
+
+func (ad *agentData) release() {
+	ad.rwmutex.Lock()
+	defer ad.rwmutex.Unlock()
+	ad.busy = false
+}
+
 var (
 	NoRunnerIsReady   = CtrlErr(errors.New("no runner available"))
 	InvalidInput      = CtrlErr(errors.New("invalid input"))
@@ -80,7 +98,8 @@ func (ac *AsyncController) SubmitRequest(runprops *Props) *CtrlRunOutput {
 	}
 
 	for _, agentData := range ac.agents {
-		if agentData.agent.IsReady() {
+		if agentData.reserveIfReady() {
+			defer agentData.release()
 
 			// unpack these, easier to reference below
 			agent := agentData.agent
