@@ -79,10 +79,49 @@ Default policy:
 - `--pids-limit 64`
 - `--tmpfs /tmp:rw,nosuid,nodev,size=64m`
 - `--pull never`
-- bind mount one job workspace to `/work`
+- bounded `/work` workspace; see [Required next iteration](#required-next-iteration-bound-workspace-writes)
 
 `CODECANVAS_SANDBOX_RUNTIME=runsc` switches Docker to gVisor after `runsc` is
 installed and registered with Docker/containerd.
+
+## Required Next Iteration: Bound Workspace Writes
+
+The first Docker backend implementation still bind-mounts a writable host
+directory to `/work`. That is not sufficient for public untrusted execution:
+`--read-only` protects the container root filesystem, but Docker bind mounts
+remain writable unless the mount itself is read-only. User code can therefore
+write unbounded data under `/work` and consume host disk.
+
+Before enabling this backend publicly, replace the writable host bind mount
+with a bounded container workspace.
+
+Target design:
+
+1. Create the container without starting it.
+2. Mount `/work` as Docker-managed tmpfs with an explicit size, for example:
+   `--tmpfs /work:rw,nosuid,nodev,size=16m`.
+3. Copy generated source files and `.codecanvas-run.sh` into the stopped
+   container with `docker cp`, or stream a tar archive into an initialization
+   command before execution.
+4. Start/attach to the container and capture stdout/stderr.
+5. Remove the container on success, failure, and timeout.
+
+This keeps untrusted writes off the host filesystem while preserving a writable
+workspace for compilers and interpreters.
+
+Add config:
+
+- `CODECANVAS_SANDBOX_WORKDIR_SIZE=16m`
+
+Acceptance tests:
+
+- Python can run from `/work` with the bounded tmpfs.
+- C++ can compile and run from `/work`.
+- `yes > /work/bigfile` fails when the workspace tmpfs fills.
+- A workspace-fill attempt does not grow a host directory.
+- Timeout cleanup removes the created container.
+- The Docker integration test asserts `--tmpfs /work:...size=<limit>` and no
+  writable host bind mount for `/work`.
 
 ## Configuration
 
@@ -97,6 +136,7 @@ installed and registered with Docker/containerd.
 - `CODECANVAS_SANDBOX_TIMEOUT=2`
 - `CODECANVAS_SANDBOX_USER=65532:65532`
 - `CODECANVAS_SANDBOX_NOFILE=64:64`
+- `CODECANVAS_SANDBOX_WORKDIR_SIZE=16m`
 - `CODECANVAS_SANDBOX_SECCOMP_PROFILE=<path>`
 - `CODECANVAS_SANDBOX_IMAGE=<fallback image>`
 - `CODECANVAS_SANDBOX_IMAGE_PYTHON3=<image>`
@@ -154,6 +194,7 @@ go run ./server
    - cannot see another request workspace
    - fork bomb hits `pids-limit`
    - memory bomb hits cgroup memory limit
+   - workspace write bomb hits `/work` tmpfs limit without host disk growth
    - infinite sleep hits wall timeout and leaves no container behind
    - output flood truncates without blocking
 5. Enable Docker backend in a non-public environment.
