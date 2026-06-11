@@ -3,6 +3,7 @@ package runtime
 import (
 	"context"
 	"os/exec"
+	"path/filepath"
 	"testing"
 )
 
@@ -71,8 +72,8 @@ func TestProcessorArgsProvider_Provide(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &ProcessorArgsProvider{}
 			got := p.Provide(tt.args.ctx, tt.args.runprops)
-			if got.Path != ProcessCommandName {
-				t.Errorf("Provide() path = %v, want %v", got.Path, ProcessCommandName)
+			if filepath.Base(got.Path) != ProcessCommandName {
+				t.Errorf("Provide() path = %v, want executable %v", got.Path, ProcessCommandName)
 			}
 			wantArgs := []string{
 				ProcessCommandName,
