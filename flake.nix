@@ -16,9 +16,8 @@
           devShells.default = mkShell {
             buildInputs = [
               go
-              earthly
               nixpkgs-fmt
-	      nodejs_18
+              nodejs_18
             ];
           };
         }

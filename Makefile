@@ -13,9 +13,13 @@ SANDBOX_IMAGE=codecanvas-sandbox
 all:
 	@echo "runner Makefile targets"
 	@echo ""
+	@echo "  ci: run the CI validation set"
+	@echo ""
 	@echo "  gen-mocks: create/recreate mocks for unit testing"
 	@echo ""
 	@echo "  test: run all tests in repo with coverage"
+	@echo ""
+	@echo "  vet: run go vet on the repository"
 	@echo ""
 	@echo "  fmt: run go fmt on the repository"
 	@echo ""
@@ -23,9 +27,17 @@ all:
 	@echo ""
 	@echo "  lint: run Docker golang-lint-ci for the repository"
 	@echo ""
+	@echo "  test-web: build the legacy webpack frontend"
+	@echo ""
+	@echo "  test-server-startup: smoke test server startup"
+	@echo ""
 	@echo "  install-hooks: install git-hooks in the cloned repo .git directory"
 	@echo ""
+	@echo "  dkr-build-mock: build mock server image using Docker"
+	@echo ""
 	@echo "  dkr-mock: build and run mock server using Docker"
+	@echo ""
+	@echo "  dkr-build-server: build server image using Docker"
 	@echo ""
 	@echo "  dkr-server: build and run server using Docker"
 	@echo ""
@@ -37,12 +49,16 @@ all:
 	@echo ""
 
 dkr-mock: dkr-build-mock
-	docker build -t ${MOCK_SERVER_NAME}:${VERSION} -f docker/mock-server/Dockerfile .
 	docker run -d -p 10100:10100 --name ${MOCK_SERVER_NAME} ${MOCK_SERVER_NAME}:${VERSION}
 
-dkr-server:
-	docker build -t ${SERVER_NAME}:${VERSION} -f docker/server-debian/Dockerfile .
+dkr-build-mock:
+	docker build -t ${MOCK_SERVER_NAME}:${VERSION} -f docker/mock-server/Dockerfile .
+
+dkr-server: dkr-build-server
 	docker run -d -p 10100:10100 -e DEBUG=1 --name ${SERVER_NAME} ${SERVER_NAME}:${VERSION}
+
+dkr-build-server:
+	docker build -t ${SERVER_NAME}:${VERSION} -f docker/server-debian/Dockerfile .
 
 dkr-build-sandbox:
 	docker build -t ${SANDBOX_IMAGE}:local -f docker/sandbox/Dockerfile .
@@ -69,7 +85,21 @@ build:
 	go build -v -o build/process ./engine/process/
 
 test: build
-	PATH=${PATH}:${PWD}/build go test -covermode=atomic ./...
+	UNIT_TEST=1 DEBUG=1 PATH="$(CURDIR)/build:${PATH}" go test -covermode=atomic ./...
+
+vet:
+	go vet ./...
+
+lint:
+	docker run --rm -v "$(CURDIR):/app" -w /app golangci/golangci-lint:v1.45.2 golangci-lint run ./... -v
+
+test-web:
+	cd web-frontend && npm ci && npm run build
+
+test-server-startup: build
+	cd server && PATH="$(CURDIR)/build:${PATH}" ./test_server_startup.sh
+
+ci: test vet lint test-server-startup dkr-build-server test-web
 
 fmt:
 	go fmt ./...
@@ -82,4 +112,4 @@ install-hooks:
 	cp ./hack/hooks/* .git/hooks/
 	@echo "done"
 
-.PHONY: build lint test
+.PHONY: all build ci clean dkr-build-mock dkr-build-sandbox dkr-build-server dkr-mock dkr-server dkr-stop-dev dkr-stop-mock dkr-stop-server fmt gen-mocks install-hooks lint test test-server-startup test-web vet
