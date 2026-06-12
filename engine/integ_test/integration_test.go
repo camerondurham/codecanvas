@@ -2,6 +2,7 @@ package integtest
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -19,6 +20,19 @@ func Test_ControllerRunMultipleRequests(t *testing.T) {
 	var wg sync.WaitGroup
 
 	asyncCtrl := ctrl.NewAsyncController(2, &runtime.NilProvider{}, "", "")
+	probe := &ctrl.Props{
+		RunProps: &runtime.RunProps{
+			RunArgs: []string{"echo", "probe"},
+			Timeout: 1,
+		},
+	}
+	probeOut := asyncCtrl.SubmitRequest(probe)
+	if probeOut.CommandErr != nil && isIsolationCapabilityErr(probeOut) {
+		t.Skipf("skipping integration test on host without sandbox isolation support: %v", probeOut.CommandErr)
+	}
+	if probeOut.CommandErr != nil {
+		t.Fatalf("unexpected probe command error: %v", probeOut.CommandErr)
+	}
 
 	sleepy := &ctrl.Props{
 		RunProps: &runtime.RunProps{
@@ -63,4 +77,22 @@ func runSafeCmdAndAssertControllerError(ac *ctrl.AsyncController, props *ctrl.Pr
 	} else if output.ControllerErr == nil && expect.ControllerErr != nil {
 		t.Errorf("expected controller error: \"%s\" but got: %v", expect.ControllerErr.Error(), output.ControllerErr)
 	}
+}
+
+func isIsolationCapabilityErr(out *ctrl.CtrlRunOutput) bool {
+	if out == nil {
+		return false
+	}
+	var msg string
+	if out.CommandErr != nil {
+		msg += out.CommandErr.Error() + " "
+	}
+	if out.RunOutput != nil {
+		msg += out.RunOutput.Stderr + " "
+	}
+	msg = strings.ToLower(msg)
+	return strings.Contains(msg, "operation not permitted") ||
+		strings.Contains(msg, "cannot open /proc/self/uid_map") ||
+		strings.Contains(msg, "unshare:") ||
+		strings.Contains(msg, "uid_map")
 }

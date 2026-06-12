@@ -8,6 +8,9 @@ import (
 	"sync"
 	"time"
 
+	linuxsandbox "github.com/runner-x/runner-x/engine/sandbox/linux"
+
+	"github.com/runner-x/runner-x/engine/sandbox"
 	"github.com/runner-x/runner-x/util/iohelpers"
 	"github.com/runner-x/runner-x/util/print"
 )
@@ -38,6 +41,7 @@ type RuntimeAgent struct {
 	Provider ArgProvider
 	Uid      int
 	Gid      int
+	Sandbox  sandbox.SandboxRunner
 
 	// workdir represents the directory where all commands should be run
 	workdir string
@@ -48,7 +52,13 @@ type RuntimeAgent struct {
 }
 
 func NewTimeoutRuntime(id string, provider ArgProvider) *RuntimeAgent {
-	return &RuntimeAgent{Id: id, Provider: provider, Uid: DefaultUid, Gid: DefaultGid}
+	return &RuntimeAgent{
+		Id:       id,
+		Provider: provider,
+		Uid:      DefaultUid,
+		Gid:      DefaultGid,
+		Sandbox:  linuxsandbox.NewRunner(),
+	}
 }
 
 func NewRuntimeAgentWithIds(idStr string, id int, provider ArgProvider, workdir string) *RuntimeAgent {
@@ -57,6 +67,7 @@ func NewRuntimeAgentWithIds(idStr string, id int, provider ArgProvider, workdir 
 		Provider: provider,
 		Uid:      id,
 		Gid:      id,
+		Sandbox:  linuxsandbox.NewRunner(),
 		workdir:  workdir,
 		state:    Ready,
 		rwmutex:  sync.RWMutex{},
@@ -72,6 +83,10 @@ func (r *RuntimeAgent) runCmd(props *RunProps) (*RunOutput, error) {
 	timeout := time.Second * time.Duration(props.Timeout)
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
+
+	if r.Sandbox != nil {
+		return r.runCmdSandbox(props)
+	}
 
 	var cmd *exec.Cmd
 
@@ -127,6 +142,33 @@ func (r *RuntimeAgent) runCmd(props *RunProps) (*RunOutput, error) {
 	return &RunOutput{
 		Stdout: stdoutAsString,
 		Stderr: stderrAsString,
+	}, err
+}
+
+func (r *RuntimeAgent) runCmdSandbox(props *RunProps) (*RunOutput, error) {
+	if props == nil || len(props.RunArgs) == 0 {
+		// Preserve legacy behavior: treat an empty command as a no-op.
+		return nil, nil
+	}
+	out, err := r.Sandbox.Run(sandbox.SandboxInput{
+		WorkDir: r.workdir,
+		Command: props.RunArgs,
+	}, sandbox.SandboxPolicy{
+		// CPU time semantics differ between legacy rlimit (seconds) and cgroup cpu quota.
+		// Wire CPU limits later when cgroup support is fully enabled.
+		CpuCores:     0,
+		MemoryBytes:  0,
+		PidsMax:      props.Nprocs,
+		TimeoutSec:   props.Timeout,
+		EnableNet:    false,
+		ReadonlyRoot: true,
+	})
+	if out == nil {
+		return nil, err
+	}
+	return &RunOutput{
+		Stdout: out.Stdout,
+		Stderr: out.Stderr,
 	}, err
 }
 
