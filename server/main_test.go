@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"reflect"
 	"strconv"
 	"syscall"
@@ -39,12 +40,11 @@ func Test_runHandler(t *testing.T) {
 		SomeKey string
 	}
 
-	tmpDir, err := os.MkdirTemp("/tmp", "runner")
+	tmpDir, err := os.MkdirTemp("", "runner")
 	errors.HandleErrors(err)
+	defer os.RemoveAll(tmpDir)
 
-	// defer files.RemovePath(tmpDir)
-
-	err = os.Mkdir(tmpDir+"/1", 0777)
+	err = os.Mkdir(filepath.Join(tmpDir, "1"), 0777)
 	errors.HandleErrors(err)
 
 	tests := []struct {

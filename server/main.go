@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -13,6 +14,8 @@ import (
 	print2 "github.com/runner-x/runner-x/util/print"
 
 	"github.com/runner-x/runner-x/engine/runtime"
+	"github.com/runner-x/runner-x/engine/sandbox"
+	sandboxdocker "github.com/runner-x/runner-x/engine/sandbox/docker"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -24,6 +27,7 @@ import (
 const (
 	API_PORT               = ":10100"
 	SERVER_REQUEST_TIMEOUT = 10
+	ExecutionBackendDocker = "docker"
 )
 
 type RunnerServer struct {
@@ -74,7 +78,7 @@ func (rs RunnerServer) runHandler(w http.ResponseWriter, r *http.Request) {
 		Lang:   res.Lang,
 	}
 
-	RunnerOutput, err := rs.coderunner.Run(&RunProps)
+	RunnerOutput, err := rs.coderunner.RunContext(r.Context(), &RunProps)
 
 	if err != nil {
 		rs.throwE400(w, "failed to run output: "+err.Error())
@@ -158,22 +162,125 @@ func optionHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateCodeRunner() *coderunner.CodeRunner {
-	var numRunners int
-	numRunnersStr := os.Getenv("NUM_RUNNERS")
-	numRunners, err := strconv.Atoi(numRunnersStr)
-	if err != nil {
-		print2.DebugPrintf("error reading NUM_RUNNERS, setting to default of 1")
-		numRunners = 1
+	numRunners := numRunnersFromEnv()
+
+	if os.Getenv("CODECANVAS_EXECUTION_BACKEND") == ExecutionBackendDocker {
+		parentDir := os.Getenv("CODECANVAS_SANDBOX_PARENT_DIR")
+		runner := sandboxdocker.NewRunner(parentDir)
+		if dockerPath := os.Getenv("CODECANVAS_SANDBOX_DOCKER"); len(dockerPath) > 0 {
+			runner.DockerPath = dockerPath
+		}
+
+		policy := sandboxPolicyFromEnv()
+		images := sandboxImageOverridesFromEnv()
+		if envBool("CODECANVAS_SANDBOX_PREFLIGHT", true) {
+			if err := runner.Preflight(context.Background(), policy, coderunner.SandboxImages(images)); err != nil {
+				panic(fmt.Sprintf("sandbox preflight failed: %v", err))
+			}
+		}
+
+		cr := coderunner.NewCodeRunnerWithSandbox(coderunner.SandboxConfig{
+			Runner:         runner,
+			Policy:         policy,
+			Images:         images,
+			MaxConcurrency: numRunners,
+		})
+		return &cr
 	}
 
-	parentDir := "/tmp"
+	parentDir := os.TempDir()
 	if _, ok := os.LookupEnv("UNIT_TEST"); ok {
-		parentDir, err = os.MkdirTemp("/tmp", "runner")
+		var err error
+		parentDir, err = os.MkdirTemp(os.TempDir(), "runner")
 		print2.DebugPrintf("err result making unit test tmp dir: %v", err)
 	}
 
 	cr := coderunner.NewCodeRunner(uint(numRunners), &runtime.ProcessorArgsProvider{}, parentDir, "runner")
 	return &cr
+}
+
+func sandboxPolicyFromEnv() sandbox.Policy {
+	return sandbox.Policy{
+		TimeoutSec:       envInt("CODECANVAS_SANDBOX_TIMEOUT", sandboxdocker.DefaultTimeoutSec),
+		CPUs:             envString("CODECANVAS_SANDBOX_CPUS", sandboxdocker.DefaultCPUs),
+		Memory:           envString("CODECANVAS_SANDBOX_MEMORY", sandboxdocker.DefaultMemory),
+		PidsLimit:        envInt("CODECANVAS_SANDBOX_PIDS", sandboxdocker.DefaultPidsLimit),
+		Runtime:          os.Getenv("CODECANVAS_SANDBOX_RUNTIME"),
+		User:             envString("CODECANVAS_SANDBOX_USER", sandboxdocker.DefaultUser),
+		WorkDirSize:      envString("CODECANVAS_SANDBOX_WORKDIR_SIZE", sandboxdocker.DefaultWorkDirSize),
+		NoFileLimit:      envString("CODECANVAS_SANDBOX_NOFILE", sandboxdocker.DefaultNoFileLimit),
+		SeccompProfile:   os.Getenv("CODECANVAS_SANDBOX_SECCOMP_PROFILE"),
+		OutputLimitBytes: int64(envInt("CODECANVAS_SANDBOX_OUTPUT_BYTES", sandboxdocker.DefaultOutputLimitBytes)),
+		PullPolicy:       envString("CODECANVAS_SANDBOX_PULL", sandboxdocker.DefaultPullPolicy),
+	}
+}
+
+func numRunnersFromEnv() int {
+	numRunnersStr := os.Getenv("NUM_RUNNERS")
+	numRunners, err := strconv.Atoi(numRunnersStr)
+	if err != nil {
+		print2.DebugPrintf("error reading NUM_RUNNERS, setting to default of 1")
+		return 1
+	}
+	return numRunners
+}
+
+func sandboxImageOverridesFromEnv() map[string]string {
+	images := map[string]string{}
+	fallback := os.Getenv("CODECANVAS_SANDBOX_IMAGE")
+	if len(fallback) > 0 {
+		for _, lang := range coderunner.SupportedLanguages {
+			images[lang] = fallback
+		}
+	}
+
+	setImageOverride(images, coderunner.Python3.Name, "CODECANVAS_SANDBOX_IMAGE_PYTHON3")
+	setImageOverride(images, coderunner.NodeJs.Name, "CODECANVAS_SANDBOX_IMAGE_NODEJS")
+	setImageOverride(images, coderunner.Cpp.Name, "CODECANVAS_SANDBOX_IMAGE_CPP")
+	setImageOverride(images, coderunner.Go.Name, "CODECANVAS_SANDBOX_IMAGE_GO")
+	setImageOverride(images, coderunner.Shell.Name, "CODECANVAS_SANDBOX_IMAGE_BASH")
+	setImageOverride(images, coderunner.Rust.Name, "CODECANVAS_SANDBOX_IMAGE_RUST")
+	return images
+}
+
+func setImageOverride(images map[string]string, lang string, envName string) {
+	if image := os.Getenv(envName); len(image) > 0 {
+		images[lang] = image
+	}
+}
+
+func envString(name string, defaultValue string) string {
+	value := os.Getenv(name)
+	if len(value) == 0 {
+		return defaultValue
+	}
+	return value
+}
+
+func envInt(name string, defaultValue int) int {
+	value := os.Getenv(name)
+	if len(value) == 0 {
+		return defaultValue
+	}
+	parsed, err := strconv.Atoi(value)
+	if err != nil {
+		print2.DebugPrintf("error reading %s=%q, using default %d", name, value, defaultValue)
+		return defaultValue
+	}
+	return parsed
+}
+
+func envBool(name string, defaultValue bool) bool {
+	value := os.Getenv(name)
+	if len(value) == 0 {
+		return defaultValue
+	}
+	parsed, err := strconv.ParseBool(value)
+	if err != nil {
+		print2.DebugPrintf("error reading %s=%q, using default %t", name, value, defaultValue)
+		return defaultValue
+	}
+	return parsed
 }
 
 func CreateServer(cr coderunner.CodeRunner) *RunnerServer {

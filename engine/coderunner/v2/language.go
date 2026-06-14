@@ -7,6 +7,7 @@ type Language struct {
 	FileExtension string
 	CompileCmd    []string
 	RunCmd        []string
+	SandboxImage  string
 }
 
 func createLangMaps(langs []Language) (map[string]Language, map[string]Language) {
@@ -20,42 +21,69 @@ func createLangMaps(langs []Language) (map[string]Language, map[string]Language)
 	return extToLang, nameToLang
 }
 
+func SandboxImages(imageOverrides map[string]string) []string {
+	images := []string{}
+	seen := map[string]bool{}
+
+	for _, language := range allLanguages {
+		image := language.SandboxImage
+		if imageOverrides != nil {
+			if override, ok := imageOverrides[language.Name]; ok && len(override) > 0 {
+				image = override
+			}
+		}
+		if seen[image] {
+			continue
+		}
+		seen[image] = true
+		images = append(images, image)
+	}
+
+	return images
+}
+
 var (
 	Python3 = Language{
 		Name:          "python3",
 		FileExtension: ".py",
 		CompileCmd:    nil,
 		RunCmd:        []string{"python3"},
+		SandboxImage:  "python:3-slim",
 	}
 	Shell = Language{
 		Name:          "bash",
 		FileExtension: ".sh",
 		CompileCmd:    nil,
 		RunCmd:        []string{"bash"},
+		SandboxImage:  "bash:5",
 	}
 	Cpp = Language{
 		Name:          "c++",
 		FileExtension: ".cpp",
 		CompileCmd:    []string{"g++"},
 		RunCmd:        []string{"./a.out"}, // TODO: shouldn't need to hardcode this
+		SandboxImage:  "gcc:14-bookworm",
 	}
 	Go = Language{
 		Name:          "go",
 		FileExtension: ".go",
 		CompileCmd:    []string{"go", "build"},
 		RunCmd:        []string{"./run"},
+		SandboxImage:  "golang:1-bookworm",
 	}
 	NodeJs = Language{
 		Name:          "nodejs",
 		FileExtension: ".js",
 		CompileCmd:    nil,
 		RunCmd:        []string{"node"},
+		SandboxImage:  "node:lts-bookworm-slim",
 	}
 	Rust = Language{
 		Name:          "rust",
 		FileExtension: ".rs",
 		CompileCmd:    []string{"rustc"},
 		RunCmd:        []string{"./run"},
+		SandboxImage:  "rust:1-bookworm",
 	}
 
 	SupportedLanguages = []string{

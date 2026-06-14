@@ -1,0 +1,5 @@
+.git
+.gocache
+build
+coverage.out
+web-frontend/node_modules

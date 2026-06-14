@@ -18,7 +18,7 @@ func TestWorkdirWriter_Write(t *testing.T) {
 		blob *Blob
 	}
 
-	dir, err := os.MkdirTemp("/tmp", "TestWorkdirWriter_Write")
+	dir, err := os.MkdirTemp("", "TestWorkdirWriter_Write")
 	HandleTestErr(err)
 	defer files.RemovePath(dir)
 
@@ -31,7 +31,7 @@ func TestWorkdirWriter_Write(t *testing.T) {
 		{
 			name: "Nil Blob Shouldn't Panic",
 			fields: fields{
-				Workdir: "",
+				Workdir: dir,
 				Perm:    0666,
 			},
 			args:    args{blob: nil},
@@ -40,7 +40,7 @@ func TestWorkdirWriter_Write(t *testing.T) {
 		{
 			name: "Simple Write Nothing",
 			fields: fields{
-				Workdir: "",
+				Workdir: dir,
 				Perm:    0666,
 			},
 			args: args{blob: &Blob{
@@ -52,7 +52,7 @@ func TestWorkdirWriter_Write(t *testing.T) {
 		{
 			name: "Simple Write Something",
 			fields: fields{
-				Workdir: "",
+				Workdir: dir,
 				Perm:    0666,
 			},
 			args: args{blob: &Blob{
@@ -64,7 +64,7 @@ func TestWorkdirWriter_Write(t *testing.T) {
 		{
 			name: "Simple Write Bigger FIle",
 			fields: fields{
-				Workdir: "",
+				Workdir: dir,
 				Perm:    0666,
 			},
 			args: args{blob: &Blob{
@@ -116,6 +116,10 @@ func TestWorkdirWriter_Remove(t *testing.T) {
 		perm    os.FileMode
 		written []string
 	}
+	dir, err := os.MkdirTemp("", "TestWorkdirWriter_Remove")
+	HandleTestErr(err)
+	defer files.RemovePath(dir)
+
 	tests := []struct {
 		name    string
 		fields  fields
@@ -124,7 +128,7 @@ func TestWorkdirWriter_Remove(t *testing.T) {
 		{
 			name: "Simple Remove None Test",
 			fields: fields{
-				workdir: "/tmp",
+				workdir: dir,
 				perm:    0644,
 				written: []string{},
 			},
@@ -133,7 +137,7 @@ func TestWorkdirWriter_Remove(t *testing.T) {
 		{
 			name: "Simple Remove One Test",
 			fields: fields{
-				workdir: "/tmp",
+				workdir: dir,
 				perm:    0644,
 				written: []string{"one"},
 			},
@@ -142,7 +146,7 @@ func TestWorkdirWriter_Remove(t *testing.T) {
 		{
 			name: "Simple Remove Two Test",
 			fields: fields{
-				workdir: "/tmp",
+				workdir: dir,
 				perm:    0644,
 				written: []string{"one", "two"},
 			},
@@ -151,7 +155,7 @@ func TestWorkdirWriter_Remove(t *testing.T) {
 		{
 			name: "Remove Non Existent Path Test",
 			fields: fields{
-				workdir: "/tmp",
+				workdir: dir,
 				perm:    0644,
 				written: []string{"/bad/path"},
 			},
@@ -199,10 +203,10 @@ func TestNewWorkdirWriter(t *testing.T) {
 		{
 			name: "Simple Create Workdir Writer",
 			args: args{
-				workdir: "/tmp",
+				workdir: os.TempDir(),
 				perm:    0644,
 			},
-			want: &WorkdirWriter{workdir: "/tmp", perm: 0644, written: []string{}},
+			want: &WorkdirWriter{workdir: os.TempDir(), perm: 0644, written: []string{}},
 		},
 	}
 	for _, tt := range tests {

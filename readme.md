@@ -159,47 +159,13 @@ commands to make development easier and more consistent.
 > in your repository's `.git/hooks` directory. This will install a pre-commit
 > hook that automatically formats your code with [gofmt](https://go.dev/blog/gofmt).
 
-### Using the Earthfile
-
-[Earthly](https://earthly.dev/) is a Go CLI that works with Docker. It is build tool that lets you run continuous
-integration and deployment actions locally. The reason it is being used here is to make CI/CD for this repo easier.
-
-For this repo in particular, we need some tests to run in a Dockerized Linux environment to
-be as close to our deployment image as possible. Earthly makes this really easy since it can
-can run tests as part of its build process.
-
-- [Earthly Website](https://earthly.dev/)
-- [Learn the basics](https://docs.earthly.dev/basics)
-
-#### Installing
-
-For macOS users:
-```shell
-brew install earthly/earthly/earthly && earthly bootstrap
-```
-
-For other users: [earthly.dev/get-earthly](https://earthly.dev/get-earthly)
-
-#### Using
-
-To use, just check the target you want to run in the `Earthfile`. It is effectively like a
-Makefile + Dockerfile and below are a few commands you may want to run during development.
-
-```shell
-# run all tests and lints, just like how they'll be run in CI when you open a PR
-earthly +run-ci
-
-# lint the sourcecode with the golangci lint tool
-earthly +lint
-
-# just test the go code with coverage
-earthly +test-go
-```
-
-### Using the Makefile
+### Using the Makefile and Docker
 
 By now, you are probably familiar with Makefiles. If not, this
 wiki provides a great summary: [cs104/wiki/makefile](https://bytes.usc.edu/cs104/wiki/makefile/) (written by Leif Wesche).
+
+The Makefile is the source of truth for local and CI validation. Docker is still used for image builds and for tools
+that should run in a Linux container, such as `golangci-lint`.
 
 Here's a quick summary of what the targets will do:
 
@@ -211,11 +177,17 @@ make
 # modified any of the interfaces in a `types.go` file
 make gen-mocks
 
-# run the API server (blocking, you can't use the terminal anymore)
-make run-api
+# run all CI checks: Go tests, vet, lint, server startup, server image build, and legacy frontend build
+make ci
 
 # run all tests in the repository
 make test
+
+# lint Go source using golangci-lint in Docker
+make lint
+
+# build the server Docker image
+make dkr-build-server
 
 # run go fmt on the repository to format your code
 make fmt

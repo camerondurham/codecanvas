@@ -34,8 +34,11 @@ type AsyncController struct {
 	agents map[uint]*agentData
 }
 
+const RuntimeUIDBase = 1000
+
 type agentData struct {
 	rwmutex       sync.RWMutex
+	busy          bool
 	agent         runtime.Runtime
 	writerRemover writerremover.BlobWriterRemover
 }
@@ -50,13 +53,31 @@ func NewAsyncController(size uint, provider runtime.ArgProvider, parentWorkdir s
 	for i := uint(0); i < size; i++ {
 		key := uint(i + 1)
 		workdir := filepath.Join(parentWorkdir, pattern+strconv.FormatInt(int64(key), 10))
+		runtimeID := RuntimeUIDBase + int(key)
 		agents[key] = &agentData{
 			rwmutex:       sync.RWMutex{},
-			agent:         runtime.NewRuntimeAgentWithIds("agent"+strconv.FormatInt(int64(key), 10), int(key), provider, workdir),
+			agent:         runtime.NewRuntimeAgentWithIds("agent"+strconv.FormatInt(int64(key), 10), runtimeID, provider, workdir),
 			writerRemover: writerremover.NewWorkdirWriter(workdir, 0644),
 		}
 	}
 	return &AsyncController{agents}
+}
+
+func (ad *agentData) reserveIfReady() bool {
+	ad.rwmutex.Lock()
+	defer ad.rwmutex.Unlock()
+
+	if ad.busy || !ad.agent.IsReady() {
+		return false
+	}
+	ad.busy = true
+	return true
+}
+
+func (ad *agentData) release() {
+	ad.rwmutex.Lock()
+	defer ad.rwmutex.Unlock()
+	ad.busy = false
 }
 
 var (
@@ -80,7 +101,8 @@ func (ac *AsyncController) SubmitRequest(runprops *Props) *CtrlRunOutput {
 	}
 
 	for _, agentData := range ac.agents {
-		if agentData.agent.IsReady() {
+		if agentData.reserveIfReady() {
+			defer agentData.release()
 
 			// unpack these, easier to reference below
 			agent := agentData.agent
@@ -101,6 +123,7 @@ func (ac *AsyncController) SubmitRequest(runprops *Props) *CtrlRunOutput {
 			}
 
 			if runprops.PreRunProps != nil {
+				preRunProps = runPropsWithRuntimeIdentity(preRunProps, agent)
 				preRunOut, commandErr := agent.SafeRunCmd(preRunProps)
 				if commandErr != nil {
 					print2.DebugPrintf("error preparing command: output=%v\n \nerror=%v", preRunOut, commandErr)
@@ -146,4 +169,14 @@ func (ac *AsyncController) SubmitRequest(runprops *Props) *CtrlRunOutput {
 		RunOutput:     nil,
 		CommandErr:    nil,
 	}
+}
+
+func runPropsWithRuntimeIdentity(props *runtime.RunProps, agent runtime.Runtime) *runtime.RunProps {
+	if props == nil {
+		return nil
+	}
+	propsWithIdentity := *props
+	propsWithIdentity.Uid = agent.RuntimeUid()
+	propsWithIdentity.Gid = agent.RuntimeGid()
+	return &propsWithIdentity
 }

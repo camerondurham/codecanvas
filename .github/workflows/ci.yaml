@@ -8,28 +8,19 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-      FORCE_COLOR: 1
     steps:
-      - uses: earthly/actions/setup-earthly@v1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
-          version: v0.7.0
-      - uses: actions/checkout@v3
-      - name: Put back the git branch into git (Earthly uses it for tagging)
-        run: |
-          branch=""
-          if [ -n "$GITHUB_HEAD_REF" ]; then
-            branch="$GITHUB_HEAD_REF"
-          else
-            branch="${GITHUB_REF##*/}"
-          fi
-          git checkout -b "$branch" || true
-      - name: Docker Login
-        run: docker login --username "$DOCKERHUB_USERNAME" --password "$DOCKERHUB_TOKEN"
-      - name: Runs golang tests, lints and web tests
-        run: earthly --ci +run-ci
+          go-version: "1.17"
+          cache: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web-frontend/package-lock.json
+      - name: Run CI checks
+        run: make ci
 
   frontend-v2:
     runs-on: ubuntu-latest
