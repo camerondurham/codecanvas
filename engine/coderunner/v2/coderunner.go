@@ -11,6 +11,7 @@ type CodeRunner struct {
 	sandboxRunner sandbox.Runner
 	sandboxPolicy sandbox.Policy
 	sandboxImages map[string]string
+	sandboxSlots  chan struct{}
 }
 
 type Runner interface {
@@ -29,7 +30,8 @@ type RunnerOutput struct {
 }
 
 type SandboxConfig struct {
-	Runner sandbox.Runner
-	Policy sandbox.Policy
-	Images map[string]string
+	Runner         sandbox.Runner
+	Policy         sandbox.Policy
+	Images         map[string]string
+	MaxConcurrency int
 }

@@ -78,38 +78,24 @@ Default policy:
 - `--memory-swap 128m`
 - `--pids-limit 64`
 - `--tmpfs /tmp:rw,nosuid,nodev,size=64m`
+- `--tmpfs /work:rw,nosuid,nodev,size=16m,mode=1777`
 - `--pull never`
-- bounded `/work` workspace; see [Required next iteration](#required-next-iteration-bound-workspace-writes)
+- no writable host bind mount for submitted code
 
 `CODECANVAS_SANDBOX_RUNTIME=runsc` switches Docker to gVisor after `runsc` is
 installed and registered with Docker/containerd.
 
-## Required Next Iteration: Bound Workspace Writes
+## Bounded Workspace Writes
 
-The first Docker backend implementation still bind-mounts a writable host
-directory to `/work`. That is not sufficient for public untrusted execution:
-`--read-only` protects the container root filesystem, but Docker bind mounts
-remain writable unless the mount itself is read-only. User code can therefore
-write unbounded data under `/work` and consume host disk.
+The Docker backend does not bind-mount a writable host directory into `/work`.
+For each request it mounts `/work` as Docker-managed tmpfs with an explicit
+size, streams a tar archive containing the submitted source and generated
+`.codecanvas-run.sh` over stdin, extracts that archive inside the container,
+and runs the generated script from `/work`.
 
-Before enabling this backend publicly, replace the writable host bind mount
-with a bounded container workspace.
-
-Target design:
-
-1. Create the container without starting it.
-2. Mount `/work` as Docker-managed tmpfs with an explicit size, for example:
-   `--tmpfs /work:rw,nosuid,nodev,size=16m`.
-3. Copy generated source files and `.codecanvas-run.sh` into the stopped
-   container with `docker cp`, or stream a tar archive into an initialization
-   command before execution.
-4. Start/attach to the container and capture stdout/stderr.
-5. Remove the container on success, failure, and timeout.
-
-This keeps untrusted writes off the host filesystem while preserving a writable
-workspace for compilers and interpreters.
-
-Add config:
+This keeps untrusted workspace writes off the host filesystem while preserving
+a writable directory for compilers and interpreters. The default workspace
+limit is `16m` and can be changed with:
 
 - `CODECANVAS_SANDBOX_WORKDIR_SIZE=16m`
 
@@ -120,8 +106,20 @@ Acceptance tests:
 - `yes > /work/bigfile` fails when the workspace tmpfs fills.
 - A workspace-fill attempt does not grow a host directory.
 - Timeout cleanup removes the created container.
-- The Docker integration test asserts `--tmpfs /work:...size=<limit>` and no
-  writable host bind mount for `/work`.
+- The Docker unit test asserts `--tmpfs /work:...size=<limit>` and no writable
+  host bind mount for `/work`.
+
+## Docker Backend Concurrency And Cancellation
+
+The Docker backend uses `NUM_RUNNERS` as a per-process container concurrency
+cap. When all slots are busy, it returns the same `NoRunnerIsReady` controller
+error as the legacy backend instead of queueing or starting unbounded
+containers.
+
+The HTTP handler passes the request context into sandbox execution. If the
+request times out or the client disconnects, that cancellation reaches the
+Docker command instead of leaving the container to run until the sandbox wall
+timeout.
 
 ## Configuration
 
@@ -168,7 +166,12 @@ The Docker backend runs startup preflight by default. It verifies:
 
 - Docker daemon access.
 - The requested Docker runtime exists, for example `runsc`.
-- Every sandbox image the server may use is available locally.
+- Every sandbox image the server may use is available locally when
+  `CODECANVAS_SANDBOX_PULL=never`.
+
+When `CODECANVAS_SANDBOX_PULL=missing` or `always`, preflight still verifies
+Docker daemon and runtime access, but image availability is left to Docker's
+configured pull behavior during `docker run`.
 
 Set `CODECANVAS_SANDBOX_PREFLIGHT=false` only for development workflows where
 you intentionally want first-request failure instead of startup failure.

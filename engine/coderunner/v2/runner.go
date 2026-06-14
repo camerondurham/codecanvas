@@ -19,18 +19,33 @@ func NewCodeRunner(numRunners uint, argProvider runtime.ArgProvider, parentDir, 
 }
 
 func NewCodeRunnerWithSandbox(config SandboxConfig) CodeRunner {
+	maxConcurrency := config.MaxConcurrency
+	if maxConcurrency <= 0 {
+		maxConcurrency = 1
+	}
+
+	var sandboxSlots chan struct{}
+	if config.Runner != nil {
+		sandboxSlots = make(chan struct{}, maxConcurrency)
+	}
+
 	return CodeRunner{
 		sandboxRunner: config.Runner,
 		sandboxPolicy: config.Policy,
 		sandboxImages: config.Images,
+		sandboxSlots:  sandboxSlots,
 	}
 }
 
 func (cr *CodeRunner) Run(props *RunnerProps) (*RunnerOutput, error) {
+	return cr.RunContext(context.Background(), props)
+}
+
+func (cr *CodeRunner) RunContext(ctx context.Context, props *RunnerProps) (*RunnerOutput, error) {
 	plan := executionPlanFor(LangNameToLangMap[props.Lang], cr.sandboxImages)
 
 	if cr.sandboxRunner != nil {
-		return cr.runSandboxed(props, plan)
+		return cr.runSandboxed(ctx, props, plan)
 	}
 
 	return cr.runLegacy(props, plan)
@@ -122,14 +137,19 @@ func (cr *CodeRunner) runLegacy(props *RunnerProps, plan executionPlan) (*Runner
 	}, nil
 }
 
-func (cr *CodeRunner) runSandboxed(props *RunnerProps, plan executionPlan) (*RunnerOutput, error) {
+func (cr *CodeRunner) runSandboxed(ctx context.Context, props *RunnerProps, plan executionPlan) (*RunnerOutput, error) {
+	if err := cr.reserveSandboxSlot(); err != nil {
+		return nil, err
+	}
+	defer cr.releaseSandboxSlot()
+
 	steps := make([]sandbox.Command, 0, 2)
 	if len(plan.compileCmd) > 0 {
 		steps = append(steps, sandbox.Command{Args: plan.compileCmd})
 	}
 	steps = append(steps, sandbox.Command{Args: plan.runCmd})
 
-	out, err := cr.sandboxRunner.Run(context.Background(), sandbox.Job{
+	out, err := cr.sandboxRunner.Run(ctx, sandbox.Job{
 		Image: plan.image,
 		Files: map[string][]byte{
 			plan.filename: []byte(props.Source),
@@ -145,4 +165,23 @@ func (cr *CodeRunner) runSandboxed(props *RunnerProps, plan executionPlan) (*Run
 		Stderr:       out.Stderr,
 		CommandError: err,
 	}, nil
+}
+
+func (cr *CodeRunner) reserveSandboxSlot() error {
+	if cr.sandboxSlots == nil {
+		return nil
+	}
+	select {
+	case cr.sandboxSlots <- struct{}{}:
+		return nil
+	default:
+		return controller.NoRunnerIsReady
+	}
+}
+
+func (cr *CodeRunner) releaseSandboxSlot() {
+	if cr.sandboxSlots == nil {
+		return
+	}
+	<-cr.sandboxSlots
 }

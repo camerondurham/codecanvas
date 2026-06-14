@@ -78,7 +78,7 @@ func (rs RunnerServer) runHandler(w http.ResponseWriter, r *http.Request) {
 		Lang:   res.Lang,
 	}
 
-	RunnerOutput, err := rs.coderunner.Run(&RunProps)
+	RunnerOutput, err := rs.coderunner.RunContext(r.Context(), &RunProps)
 
 	if err != nil {
 		rs.throwE400(w, "failed to run output: "+err.Error())
@@ -162,6 +162,8 @@ func optionHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateCodeRunner() *coderunner.CodeRunner {
+	numRunners := numRunnersFromEnv()
+
 	if os.Getenv("CODECANVAS_EXECUTION_BACKEND") == ExecutionBackendDocker {
 		parentDir := os.Getenv("CODECANVAS_SANDBOX_PARENT_DIR")
 		runner := sandboxdocker.NewRunner(parentDir)
@@ -178,23 +180,17 @@ func CreateCodeRunner() *coderunner.CodeRunner {
 		}
 
 		cr := coderunner.NewCodeRunnerWithSandbox(coderunner.SandboxConfig{
-			Runner: runner,
-			Policy: policy,
-			Images: images,
+			Runner:         runner,
+			Policy:         policy,
+			Images:         images,
+			MaxConcurrency: numRunners,
 		})
 		return &cr
 	}
 
-	var numRunners int
-	numRunnersStr := os.Getenv("NUM_RUNNERS")
-	numRunners, err := strconv.Atoi(numRunnersStr)
-	if err != nil {
-		print2.DebugPrintf("error reading NUM_RUNNERS, setting to default of 1")
-		numRunners = 1
-	}
-
 	parentDir := os.TempDir()
 	if _, ok := os.LookupEnv("UNIT_TEST"); ok {
+		var err error
 		parentDir, err = os.MkdirTemp(os.TempDir(), "runner")
 		print2.DebugPrintf("err result making unit test tmp dir: %v", err)
 	}
@@ -211,11 +207,22 @@ func sandboxPolicyFromEnv() sandbox.Policy {
 		PidsLimit:        envInt("CODECANVAS_SANDBOX_PIDS", sandboxdocker.DefaultPidsLimit),
 		Runtime:          os.Getenv("CODECANVAS_SANDBOX_RUNTIME"),
 		User:             envString("CODECANVAS_SANDBOX_USER", sandboxdocker.DefaultUser),
+		WorkDirSize:      envString("CODECANVAS_SANDBOX_WORKDIR_SIZE", sandboxdocker.DefaultWorkDirSize),
 		NoFileLimit:      envString("CODECANVAS_SANDBOX_NOFILE", sandboxdocker.DefaultNoFileLimit),
 		SeccompProfile:   os.Getenv("CODECANVAS_SANDBOX_SECCOMP_PROFILE"),
 		OutputLimitBytes: int64(envInt("CODECANVAS_SANDBOX_OUTPUT_BYTES", sandboxdocker.DefaultOutputLimitBytes)),
 		PullPolicy:       envString("CODECANVAS_SANDBOX_PULL", sandboxdocker.DefaultPullPolicy),
 	}
+}
+
+func numRunnersFromEnv() int {
+	numRunnersStr := os.Getenv("NUM_RUNNERS")
+	numRunners, err := strconv.Atoi(numRunnersStr)
+	if err != nil {
+		print2.DebugPrintf("error reading NUM_RUNNERS, setting to default of 1")
+		return 1
+	}
+	return numRunners
 }
 
 func sandboxImageOverridesFromEnv() map[string]string {

@@ -70,3 +70,39 @@ func TestRunnerDockerPreflightIntegration(t *testing.T) {
 		t.Fatalf("Preflight() error = %v", err)
 	}
 }
+
+func TestRunnerDockerWorkspaceLimitIntegration(t *testing.T) {
+	if os.Getenv("CODECANVAS_DOCKER_INTEGRATION") != "1" {
+		t.Skip("set CODECANVAS_DOCKER_INTEGRATION=1 to run Docker integration test")
+	}
+
+	image := os.Getenv("CODECANVAS_SANDBOX_IMAGE")
+	if len(image) == 0 {
+		image = "codecanvas-sandbox:local"
+	}
+
+	runner := NewRunner("")
+	out, err := runner.Run(context.Background(), sandbox.Job{
+		Image: image,
+		Files: map[string][]byte{
+			"run.py": []byte(`
+with open("bigfile", "wb") as f:
+    f.write(b"x" * (4 * 1024 * 1024))
+print("write-complete")
+`),
+		},
+		Steps: []sandbox.Command{
+			{Args: []string{"python3", "run.py"}},
+		},
+	}, sandbox.Policy{
+		TimeoutSec:  10,
+		PullPolicy:  "never",
+		WorkDirSize: "1m",
+	})
+	if err == nil {
+		t.Fatalf("Run() error = nil, want workspace write failure\nstdout=%s\nstderr=%s", out.Stdout, out.Stderr)
+	}
+	if strings.Contains(out.Stdout, "write-complete") {
+		t.Fatalf("stdout = %q, workspace write unexpectedly completed", out.Stdout)
+	}
+}

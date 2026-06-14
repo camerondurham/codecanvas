@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"archive/tar"
 	"bytes"
 	"context"
 	"crypto/rand"
@@ -8,7 +9,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
@@ -30,6 +30,7 @@ const (
 	DefaultNoFileLimit      = "64:64"
 	DefaultOutputLimitBytes = 128000
 	DefaultPullPolicy       = "never"
+	DefaultWorkDirSize      = "16m"
 	runnerScriptName        = ".codecanvas-run.sh"
 )
 
@@ -59,12 +60,14 @@ func (r *Runner) Preflight(ctx context.Context, policy sandbox.Policy, images []
 		}
 	}
 
-	for _, image := range uniqueStrings(images) {
-		if len(image) == 0 {
-			continue
-		}
-		if output, err := exec.CommandContext(ctx, docker, "image", "inspect", image).CombinedOutput(); err != nil {
-			return fmt.Errorf("sandbox image %q is unavailable locally: %w: %s", image, err, strings.TrimSpace(string(output)))
+	if shouldInspectImagesInPreflight(policy) {
+		for _, image := range uniqueStrings(images) {
+			if len(image) == 0 {
+				continue
+			}
+			if output, err := exec.CommandContext(ctx, docker, "image", "inspect", image).CombinedOutput(); err != nil {
+				return fmt.Errorf("sandbox image %q is unavailable locally: %w: %s", image, err, strings.TrimSpace(string(output)))
+			}
 		}
 	}
 
@@ -81,36 +84,18 @@ func (r *Runner) Run(ctx context.Context, job sandbox.Job, policy sandbox.Policy
 
 	policy = normalizePolicy(policy)
 
-	parentDir := r.ParentDir
-	if len(parentDir) == 0 {
-		parentDir = os.TempDir()
-	}
-
-	workdir, err := os.MkdirTemp(parentDir, "codecanvas-sandbox-*")
-	if err != nil {
-		return nil, err
-	}
-	defer os.RemoveAll(workdir)
-
-	// Numeric non-root users in the container need write access to the bind mount.
-	_ = os.Chmod(workdir, 0777)
-
-	for name, data := range job.Files {
-		if err := writeJobFile(workdir, name, data); err != nil {
-			return nil, err
-		}
-	}
-
 	script, err := scriptForSteps(job.Steps)
 	if err != nil {
 		return nil, err
 	}
-	if err := os.WriteFile(filepath.Join(workdir, runnerScriptName), []byte(script), 0755); err != nil {
+
+	archive, err := buildJobArchive(job, script, runnerScriptName)
+	if err != nil {
 		return nil, err
 	}
 
 	containerName := containerName(job.ID)
-	args := BuildDockerArgs(job, policy, workdir, runnerScriptName, containerName)
+	args := BuildDockerArgs(job, policy, runnerScriptName, containerName)
 
 	runCtx, cancel := context.WithTimeout(ctx, time.Duration(policy.TimeoutSec)*time.Second)
 	defer cancel()
@@ -121,6 +106,7 @@ func (r *Runner) Run(ctx context.Context, job sandbox.Job, policy sandbox.Policy
 	stderr.limit = policy.OutputLimitBytes
 
 	cmd := exec.CommandContext(runCtx, dockerPath(r), args...)
+	cmd.Stdin = bytes.NewReader(archive)
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
@@ -134,22 +120,26 @@ func (r *Runner) Run(ctx context.Context, job sandbox.Job, policy sandbox.Policy
 		StderrTruncated: stderr.truncated,
 	}
 
-	if out.TimedOut {
+	if runCtx.Err() != nil {
 		cleanupContainer(dockerPath(r), containerName)
+	}
+	if out.TimedOut {
 		return out, fmt.Errorf("sandbox timed out after %d seconds", policy.TimeoutSec)
 	}
 
 	return out, err
 }
 
-func BuildDockerArgs(job sandbox.Job, policy sandbox.Policy, hostWorkdir, scriptName, containerName string) []string {
+func BuildDockerArgs(job sandbox.Job, policy sandbox.Policy, scriptName, containerName string) []string {
 	policy = normalizePolicy(policy)
 	containerWorkDir := policy.WorkDir
 	scriptPath := path.Join(containerWorkDir, scriptName)
+	setupAndRun := fmt.Sprintf("tar -C %s -xf - && /bin/sh %s", shellQuote(containerWorkDir), shellQuote(scriptPath))
 
 	args := []string{
 		"run",
 		"--rm",
+		"--interactive",
 		"--init",
 		"--name", containerName,
 		"--label", "codecanvas.sandbox=true",
@@ -165,8 +155,8 @@ func BuildDockerArgs(job sandbox.Job, policy sandbox.Policy, hostWorkdir, script
 		"--cap-drop", "ALL",
 		"--security-opt", "no-new-privileges",
 		"--tmpfs", "/tmp:rw,nosuid,nodev,size=64m",
+		"--tmpfs", fmt.Sprintf("%s:rw,nosuid,nodev,size=%s,mode=1777", containerWorkDir, policy.WorkDirSize),
 		"--workdir", containerWorkDir,
-		"--mount", fmt.Sprintf("type=bind,source=%s,target=%s", hostWorkdir, containerWorkDir),
 		"--env", "HOME=/tmp",
 		"--env", "TMPDIR=/tmp",
 		"--env", "GOCACHE=/tmp/go-cache",
@@ -187,7 +177,7 @@ func BuildDockerArgs(job sandbox.Job, policy sandbox.Policy, hostWorkdir, script
 		args = append(args, "--read-only")
 	}
 
-	args = append(args, job.Image, "/bin/sh", scriptPath)
+	args = append(args, job.Image, "/bin/sh", "-c", setupAndRun)
 	return args
 }
 
@@ -210,6 +200,9 @@ func normalizePolicy(policy sandbox.Policy) sandbox.Policy {
 	if len(policy.WorkDir) == 0 {
 		policy.WorkDir = DefaultContainerWorkDir
 	}
+	if len(policy.WorkDirSize) == 0 {
+		policy.WorkDirSize = DefaultWorkDirSize
+	}
 	if len(policy.NoFileLimit) == 0 {
 		policy.NoFileLimit = DefaultNoFileLimit
 	}
@@ -220,6 +213,10 @@ func normalizePolicy(policy sandbox.Policy) sandbox.Policy {
 		policy.PullPolicy = DefaultPullPolicy
 	}
 	return policy
+}
+
+func shouldInspectImagesInPreflight(policy sandbox.Policy) bool {
+	return normalizePolicy(policy).PullPolicy == "never"
 }
 
 func ensureRuntimeAvailable(ctx context.Context, dockerPath, runtimeName string) error {
@@ -251,17 +248,76 @@ func uniqueStrings(values []string) []string {
 	return unique
 }
 
-func writeJobFile(workdir, name string, data []byte) error {
-	cleanName, err := cleanRelativePath(name)
-	if err != nil {
-		return err
+func buildJobArchive(job sandbox.Job, script string, scriptName string) ([]byte, error) {
+	var buf bytes.Buffer
+	writer := tar.NewWriter(&buf)
+	createdDirs := map[string]bool{}
+
+	for name, data := range job.Files {
+		cleanName, err := cleanRelativePath(name)
+		if err != nil {
+			_ = writer.Close()
+			return nil, err
+		}
+		if err := writeArchiveFile(writer, createdDirs, filepath.ToSlash(cleanName), data, 0644); err != nil {
+			_ = writer.Close()
+			return nil, err
+		}
 	}
 
-	fullPath := filepath.Join(workdir, cleanName)
-	if err := os.MkdirAll(filepath.Dir(fullPath), 0777); err != nil {
+	if err := writeArchiveFile(writer, createdDirs, scriptName, []byte(script), 0755); err != nil {
+		_ = writer.Close()
+		return nil, err
+	}
+	if err := writer.Close(); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func writeArchiveFile(writer *tar.Writer, createdDirs map[string]bool, name string, data []byte, mode int64) error {
+	if err := writeArchiveDirs(writer, createdDirs, path.Dir(name)); err != nil {
 		return err
 	}
-	return os.WriteFile(fullPath, data, 0644)
+	if err := writer.WriteHeader(&tar.Header{
+		Name: name,
+		Mode: mode,
+		Size: int64(len(data)),
+	}); err != nil {
+		return err
+	}
+	_, err := writer.Write(data)
+	return err
+}
+
+func writeArchiveDirs(writer *tar.Writer, createdDirs map[string]bool, dir string) error {
+	if dir == "." || len(dir) == 0 {
+		return nil
+	}
+	parts := strings.Split(dir, "/")
+	current := ""
+	for _, part := range parts {
+		if len(part) == 0 {
+			continue
+		}
+		if len(current) == 0 {
+			current = part
+		} else {
+			current = path.Join(current, part)
+		}
+		if createdDirs[current] {
+			continue
+		}
+		if err := writer.WriteHeader(&tar.Header{
+			Name:     current + "/",
+			Typeflag: tar.TypeDir,
+			Mode:     0755,
+		}); err != nil {
+			return err
+		}
+		createdDirs[current] = true
+	}
+	return nil
 }
 
 func cleanRelativePath(name string) (string, error) {

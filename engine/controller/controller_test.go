@@ -46,8 +46,9 @@ func TestNewAsyncController(t *testing.T) {
 				if !v.agent.IsReady() {
 					t.Errorf("found agent in new async controller in a non-ready state")
 				}
-				if v.agent.RuntimeUid() != int(k) || v.agent.RuntimeGid() != int(k) {
-					t.Errorf("found agent with invalid initialization of Uid or Gid: expected value = %d, got uid = %d, gid = %d", k, v.agent.RuntimeUid(), v.agent.RuntimeGid())
+				wantID := RuntimeUIDBase + int(k)
+				if v.agent.RuntimeUid() != wantID || v.agent.RuntimeGid() != wantID {
+					t.Errorf("found agent with invalid initialization of Uid or Gid: expected value = %d, got uid = %d, gid = %d", wantID, v.agent.RuntimeUid(), v.agent.RuntimeGid())
 				}
 			}
 		})

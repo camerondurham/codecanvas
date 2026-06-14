@@ -34,6 +34,8 @@ type AsyncController struct {
 	agents map[uint]*agentData
 }
 
+const RuntimeUIDBase = 1000
+
 type agentData struct {
 	rwmutex       sync.RWMutex
 	busy          bool
@@ -51,9 +53,10 @@ func NewAsyncController(size uint, provider runtime.ArgProvider, parentWorkdir s
 	for i := uint(0); i < size; i++ {
 		key := uint(i + 1)
 		workdir := filepath.Join(parentWorkdir, pattern+strconv.FormatInt(int64(key), 10))
+		runtimeID := RuntimeUIDBase + int(key)
 		agents[key] = &agentData{
 			rwmutex:       sync.RWMutex{},
-			agent:         runtime.NewRuntimeAgentWithIds("agent"+strconv.FormatInt(int64(key), 10), int(key), provider, workdir),
+			agent:         runtime.NewRuntimeAgentWithIds("agent"+strconv.FormatInt(int64(key), 10), runtimeID, provider, workdir),
 			writerRemover: writerremover.NewWorkdirWriter(workdir, 0644),
 		}
 	}

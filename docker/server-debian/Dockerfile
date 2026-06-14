@@ -1,4 +1,4 @@
-FROM golang:1.17.9 as builder
+FROM golang:1.17.9 AS builder
 #FROM public.ecr.aws/bitnami/golang:1.17.9 as builder
 WORKDIR /runner
 COPY . .
@@ -16,5 +16,5 @@ COPY docker/server-debian/entrypoint.sh /runner/entrypoint.sh
 RUN apt-get update \
     && apt-get install -y python3 nodejs rustc
 EXPOSE 10100
-ENV NUM_RUNNERS=${NUM_RUNNERS:-100}
+ENV NUM_RUNNERS=100
 ENTRYPOINT ["/runner/entrypoint.sh", "server"]

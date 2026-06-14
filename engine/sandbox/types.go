@@ -23,6 +23,7 @@ type Policy struct {
 	Runtime          string
 	User             string
 	WorkDir          string
+	WorkDirSize      string
 	NoFileLimit      string
 	SeccompProfile   string
 	OutputLimitBytes int64
