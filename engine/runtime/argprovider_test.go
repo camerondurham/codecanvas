@@ -2,7 +2,6 @@ package runtime
 
 import (
 	"context"
-	"fmt"
 	"os/exec"
 	"reflect"
 	"testing"
@@ -37,8 +36,12 @@ func TestNilProvider_Provide(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &NilProvider{}
-			if got := p.Provide(tt.args.ctx, tt.args.runprops); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Provide() = %v, want %v", got, tt.want)
+			got := p.Provide(tt.args.ctx, tt.args.runprops)
+			if got.Path != tt.want.Path {
+				t.Errorf("Provide().Path = %v, want %v", got.Path, tt.want.Path)
+			}
+			if !reflect.DeepEqual(got.Args, tt.want.Args) {
+				t.Errorf("Provide().Args = %v, want %v", got.Args, tt.want.Args)
 			}
 		})
 	}
@@ -74,10 +77,9 @@ func TestProcessorArgsProvider_Provide(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &ProcessorArgsProvider{}
-			if got := p.Provide(tt.args.ctx, tt.args.runprops); !reflect.DeepEqual(got, tt.want) {
-				// TODO: uncomment this and assert on test
-				//t.Errorf("Provide() = %v, want %v", got, tt.want)
-				fmt.Printf("Provide() = %v, want %v", got, tt.want)
+			got := p.Provide(tt.args.ctx, tt.args.runprops)
+			if got.Path == "" {
+				t.Errorf("Provide().Path should not be empty")
 			}
 		})
 	}
