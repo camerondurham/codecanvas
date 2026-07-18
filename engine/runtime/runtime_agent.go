@@ -112,10 +112,40 @@ func (r *RuntimeAgent) runCmd(props *RunProps) (*RunOutput, error) {
 		}
 	}
 
-	err := cmd.Run()
+	err := cmd.Start()
+	if err != nil {
+		_ = stdoutPipe.Close()
+		_ = stderrPipe.Close()
+		<-stdoutChannel
+		<-stderrChannel
+		return &RunOutput{}, err
+	}
 
-	stdoutAsString := <-stdoutChannel
-	stderrAsString := <-stderrChannel
+	var stdoutAsString, stderrAsString string
+	var stdoutDone, stderrDone bool
+	var waited bool
+	for !stdoutDone || !stderrDone {
+		select {
+		case stdoutAsString = <-stdoutChannel:
+			stdoutDone = true
+		case stderrAsString = <-stderrChannel:
+			stderrDone = true
+		case <-ctx.Done():
+			err = cmd.Wait()
+			waited = true
+			if !stdoutDone {
+				stdoutAsString = <-stdoutChannel
+			}
+			if !stderrDone {
+				stderrAsString = <-stderrChannel
+			}
+			stdoutDone = true
+			stderrDone = true
+		}
+	}
+	if !waited {
+		err = cmd.Wait()
+	}
 
 	if ctx.Err() == context.DeadlineExceeded {
 		print.DebugPrintf("command error: %v\n", err)

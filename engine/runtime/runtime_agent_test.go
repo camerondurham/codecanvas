@@ -67,6 +67,21 @@ func Test_RunCmd(t *testing.T) {
 	}
 }
 
+func Test_RunCmdCapturesShortLivedOutput(t *testing.T) {
+	runtimeAgent := NewTimeoutRuntime("test", &NilProvider{})
+
+	got, err := runtimeAgent.RunCmd(&RunProps{
+		RunArgs: []string{"sh", "-c", "(sleep 0.05; printf stdout; printf stderr >&2) &"},
+		Timeout: 1,
+	})
+	if err != nil {
+		t.Fatalf("RunCmd() error = %v", err)
+	}
+	if got.Stdout != "stdout" || got.Stderr != "stderr" {
+		t.Fatalf("RunCmd() output = %#v; want stdout and stderr", got)
+	}
+}
+
 // TODO: improve this test to avoid using sleeping
 func Test_SafeRunCmd(t *testing.T) {
 	runtimeAgent := NewRuntimeAgentWithIds("test", 1, &NilProvider{}, "/tmp")
