@@ -202,3 +202,33 @@ func TestNewCodeRunner(t *testing.T) {
 		})
 	}
 }
+
+func TestCodeRunnerRunAllowsCompilerStartupBeyondProgramLimit(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	mockController := mocks2.NewMockController(ctrl)
+	compilerKilled := errors.New("signal: killed")
+	var gotTimeout int
+	var gotCputime int
+
+	mockController.EXPECT().SubmitRequest(gomock.Any()).DoAndReturn(func(props *controller.Props) *controller.CtrlRunOutput {
+		gotTimeout = props.PreRunProps.Timeout
+		gotCputime = props.PreRunProps.Cputime
+		out := &controller.CtrlRunOutput{RunOutput: &runtime.RunOutput{}}
+		if gotTimeout <= runtime.DefaultTimeout || gotCputime <= runtime.DefaultCputime {
+			out.CommandErr = compilerKilled
+		}
+		return out
+	})
+
+	cr := CodeRunner{controller: mockController, numRunners: 1}
+	out, err := cr.Run(&RunnerProps{Lang: Rust.Name, Source: "fn main() {}"})
+	if err != nil {
+		t.Fatalf("Run() error = %v", err)
+	}
+	if out.CommandError != nil {
+		t.Fatalf("Rust compiler was killed with compile timeout=%ds CPU limit=%ds: %v", gotTimeout, gotCputime, out.CommandError)
+	}
+	if gotTimeout != 5 || gotCputime != 5 {
+		t.Fatalf("compile limits = timeout %ds, CPU %ds; want 5s each", gotTimeout, gotCputime)
+	}
+}

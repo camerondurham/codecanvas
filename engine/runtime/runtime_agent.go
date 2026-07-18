@@ -20,7 +20,14 @@ const (
 	DefaultFsize     = 131072 // default 0.125 MB (1/8)
 	DefaultStackSize = 131072 // default 0.125 MB (1/8)
 
-	// defaults are large only because even the basic Go "hello world" can be over 1.5MB
+	// Compilers need a larger startup budget than submitted programs. In
+	// particular, rustc, go, and g++ all exceed the one-second execution limit
+	// on a Fly shared-CPU machine before even invalid input can be diagnosed.
+	DefaultCompileTimeout = 5
+	DefaultCompileCputime = 5
+
+	// Compile outputs and compiler stacks also need more space than submitted
+	// programs; even a basic Go "hello world" binary is over 1.5 MB.
 	DefaultCompileFsize     = 2097152 // default 2.00 MB (1/4)
 	DefaultCompileStackSize = 2097152 // default 2.00 MB (1/4)
 
