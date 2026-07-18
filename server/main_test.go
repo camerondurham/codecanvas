@@ -196,6 +196,17 @@ func Test_CreateNewRouter(t *testing.T) {
 	// TODO: find out if it's possible to actually assert on router state for better testing
 }
 
+func TestCompileTimeoutFitsWithinRequestTimeout(t *testing.T) {
+	if runtime.DefaultCompileTimeout+runtime.DefaultTimeout >= SERVER_REQUEST_TIMEOUT {
+		t.Fatalf(
+			"compile and execution budgets (%ds + %ds) must fit inside the %ds server request timeout",
+			runtime.DefaultCompileTimeout,
+			runtime.DefaultTimeout,
+			SERVER_REQUEST_TIMEOUT,
+		)
+	}
+}
+
 func Test_setCORSOptionHandler(t *testing.T) {
 	r := chi.NewMux()
 	// trivial non-test for coverage for now, just make sure the function API works
