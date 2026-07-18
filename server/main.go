@@ -23,7 +23,7 @@ import (
 
 const (
 	API_PORT               = ":10100"
-	SERVER_REQUEST_TIMEOUT = 10
+	SERVER_REQUEST_TIMEOUT = 15
 )
 
 type RunnerServer struct {

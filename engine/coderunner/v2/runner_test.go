@@ -203,32 +203,47 @@ func TestNewCodeRunner(t *testing.T) {
 	}
 }
 
-func TestCodeRunnerRunAllowsCompilerStartupBeyondProgramLimit(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	mockController := mocks2.NewMockController(ctrl)
-	compilerKilled := errors.New("signal: killed")
-	var gotTimeout int
-	var gotCputime int
-
-	mockController.EXPECT().SubmitRequest(gomock.Any()).DoAndReturn(func(props *controller.Props) *controller.CtrlRunOutput {
-		gotTimeout = props.PreRunProps.Timeout
-		gotCputime = props.PreRunProps.Cputime
-		out := &controller.CtrlRunOutput{RunOutput: &runtime.RunOutput{}}
-		if gotTimeout <= runtime.DefaultTimeout || gotCputime <= runtime.DefaultCputime {
-			out.CommandErr = compilerKilled
-		}
-		return out
-	})
-
-	cr := CodeRunner{controller: mockController, numRunners: 1}
-	out, err := cr.Run(&RunnerProps{Lang: Rust.Name, Source: "fn main() {}"})
-	if err != nil {
-		t.Fatalf("Run() error = %v", err)
+func TestCodeRunnerRunUsesProductionCompilerBudget(t *testing.T) {
+	tests := []struct {
+		name          string
+		language      Language
+		source        string
+		minimumBudget int
+	}{
+		{name: "C++ compiler on Fly", language: Cpp, source: "int main() { return 0; }", minimumBudget: 10},
+		{name: "Go compiler on Fly", language: Go, source: "package main\nfunc main() {}", minimumBudget: 10},
+		{name: "Rust compiler on Fly", language: Rust, source: "fn main() {}", minimumBudget: 10},
 	}
-	if out.CommandError != nil {
-		t.Fatalf("Rust compiler was killed with compile timeout=%ds CPU limit=%ds: %v", gotTimeout, gotCputime, out.CommandError)
-	}
-	if gotTimeout != 5 || gotCputime != 5 {
-		t.Fatalf("compile limits = timeout %ds, CPU %ds; want 5s each", gotTimeout, gotCputime)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			mockController := mocks2.NewMockController(ctrl)
+			compilerKilled := errors.New("signal: killed")
+			var gotTimeout int
+			var gotCputime int
+
+			mockController.EXPECT().SubmitRequest(gomock.Any()).DoAndReturn(func(props *controller.Props) *controller.CtrlRunOutput {
+				gotTimeout = props.PreRunProps.Timeout
+				gotCputime = props.PreRunProps.Cputime
+				out := &controller.CtrlRunOutput{RunOutput: &runtime.RunOutput{}}
+				if gotTimeout < tt.minimumBudget || gotCputime < tt.minimumBudget {
+					out.CommandErr = compilerKilled
+				}
+				return out
+			})
+
+			cr := CodeRunner{controller: mockController, numRunners: 1}
+			out, err := cr.Run(&RunnerProps{Lang: tt.language.Name, Source: tt.source})
+			if err != nil {
+				t.Fatalf("Run() error = %v", err)
+			}
+			if out.CommandError != nil {
+				t.Fatalf("%s was killed with compile timeout=%ds CPU limit=%ds: %v", tt.language.Name, gotTimeout, gotCputime, out.CommandError)
+			}
+			if gotTimeout != tt.minimumBudget || gotCputime != tt.minimumBudget {
+				t.Fatalf("compile limits = timeout %ds, CPU %ds; want %ds each", gotTimeout, gotCputime, tt.minimumBudget)
+			}
+		})
 	}
 }
