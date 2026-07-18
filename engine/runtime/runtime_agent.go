@@ -20,10 +20,9 @@ const (
 	DefaultFsize     = 131072 // default 0.125 MB (1/8)
 	DefaultStackSize = 131072 // default 0.125 MB (1/8)
 
-	// Compilers need a larger startup budget than submitted programs. In
-	// particular, rustc, go, and g++ all exceed five seconds on a Fly shared-CPU
-	// machine when compiling even minimal programs.
-	DefaultCompileTimeout = 10
+	// Fly shared-CPU scheduling makes compiler wall time much longer than CPU
+	// time, so allow compilers to wait without increasing their CPU allowance.
+	DefaultCompileTimeout = 30
 	DefaultCompileCputime = 10
 
 	// Compile outputs and compiler stacks also need more space than submitted

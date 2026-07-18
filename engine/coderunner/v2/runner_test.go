@@ -203,16 +203,17 @@ func TestNewCodeRunner(t *testing.T) {
 	}
 }
 
-func TestCodeRunnerRunUsesProductionCompilerBudget(t *testing.T) {
+func TestCodeRunnerRunUsesSharedCPUCompilerBudget(t *testing.T) {
 	tests := []struct {
-		name          string
-		language      Language
-		source        string
-		minimumBudget int
+		name            string
+		language        Language
+		source          string
+		minimumWallTime int
+		maximumCPUTime  int
 	}{
-		{name: "C++ compiler on Fly", language: Cpp, source: "int main() { return 0; }", minimumBudget: 10},
-		{name: "Go compiler on Fly", language: Go, source: "package main\nfunc main() {}", minimumBudget: 10},
-		{name: "Rust compiler on Fly", language: Rust, source: "fn main() {}", minimumBudget: 10},
+		{name: "C++ compiler on Fly", language: Cpp, source: "int main() { return 0; }", minimumWallTime: 30, maximumCPUTime: 10},
+		{name: "Go compiler on Fly", language: Go, source: "package main\nfunc main() {}", minimumWallTime: 30, maximumCPUTime: 10},
+		{name: "Rust compiler on Fly", language: Rust, source: "fn main() {}", minimumWallTime: 30, maximumCPUTime: 10},
 	}
 
 	for _, tt := range tests {
@@ -227,7 +228,7 @@ func TestCodeRunnerRunUsesProductionCompilerBudget(t *testing.T) {
 				gotTimeout = props.PreRunProps.Timeout
 				gotCputime = props.PreRunProps.Cputime
 				out := &controller.CtrlRunOutput{RunOutput: &runtime.RunOutput{}}
-				if gotTimeout < tt.minimumBudget || gotCputime < tt.minimumBudget {
+				if gotTimeout < tt.minimumWallTime {
 					out.CommandErr = compilerKilled
 				}
 				return out
@@ -241,8 +242,8 @@ func TestCodeRunnerRunUsesProductionCompilerBudget(t *testing.T) {
 			if out.CommandError != nil {
 				t.Fatalf("%s was killed with compile timeout=%ds CPU limit=%ds: %v", tt.language.Name, gotTimeout, gotCputime, out.CommandError)
 			}
-			if gotTimeout != tt.minimumBudget || gotCputime != tt.minimumBudget {
-				t.Fatalf("compile limits = timeout %ds, CPU %ds; want %ds each", gotTimeout, gotCputime, tt.minimumBudget)
+			if gotTimeout != tt.minimumWallTime || gotCputime != tt.maximumCPUTime {
+				t.Fatalf("compile limits = wall timeout %ds, CPU %ds; want %ds wall and %ds CPU", gotTimeout, gotCputime, tt.minimumWallTime, tt.maximumCPUTime)
 			}
 		})
 	}
