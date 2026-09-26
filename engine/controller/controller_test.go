@@ -2,12 +2,13 @@ package controller
 
 import (
 	"errors"
-	mocks3 "github.com/runner-x/runner-x/engine/controller/writerremover/mocks"
 	"reflect"
 	"sync"
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/runner-x/runner-x/engine/controller/writerremover"
+	mocks3 "github.com/runner-x/runner-x/engine/controller/writerremover/mocks"
 	"github.com/runner-x/runner-x/engine/runtime"
 	"github.com/runner-x/runner-x/engine/runtime/mocks"
 )
@@ -348,6 +349,50 @@ func TestSubmitRequest(t *testing.T) {
 				t.Errorf("Run() got = %v, want = %v", got.RunOutput, tt.want.RunOutput)
 			}
 		})
+	}
+}
+
+func TestSubmitRequestRunsPreRunCommandAsAgent(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	runtimeMock := mocks.NewMockRuntime(ctrl)
+	writerRemoverMock := mocks3.NewMockBlobWriterRemover(ctrl)
+
+	preRunProps := &runtime.RunProps{
+		RunArgs: []string{"g++", "run.cpp"},
+		Timeout: runtime.DefaultCompileTimeout,
+		Nprocs:  runtime.DefaultNproc,
+		Fsize:   runtime.DefaultCompileFsize,
+	}
+	expectedPreRunProps := *preRunProps
+	expectedPreRunProps.Uid = 1234
+	expectedPreRunProps.Gid = 5678
+
+	runtimeMock.EXPECT().IsReady().Return(true)
+	runtimeMock.EXPECT().RuntimeUid().AnyTimes().Return(1234)
+	runtimeMock.EXPECT().RuntimeGid().AnyTimes().Return(5678)
+	writerRemoverMock.EXPECT().Write(gomock.Any()).Return(nil)
+	runtimeMock.EXPECT().SafeRunCmd(gomock.Eq(&expectedPreRunProps)).Return(&runtime.RunOutput{}, nil)
+	runtimeMock.EXPECT().SafeRunCmd(gomock.Any()).Return(&runtime.RunOutput{}, nil)
+	writerRemoverMock.EXPECT().Remove().Return(nil)
+
+	asyncController := NewAsyncControllerWithMap(map[uint]*agentData{
+		1: {
+			agent:         runtimeMock,
+			writerRemover: writerRemoverMock,
+		},
+	})
+
+	got := asyncController.SubmitRequest(&Props{
+		Data:        writerremover.NewBlob([]byte("int main() {}"), "run.cpp"),
+		PreRunProps: preRunProps,
+		RunProps:    &runtime.RunProps{RunArgs: []string{"./a.out"}},
+	})
+
+	if got.ControllerErr != nil || got.CommandErr != nil {
+		t.Fatalf("SubmitRequest() returned unexpected errors: controller=%v command=%v", got.ControllerErr, got.CommandErr)
+	}
+	if preRunProps.Uid != 0 || preRunProps.Gid != 0 {
+		t.Fatalf("SubmitRequest() mutated caller's pre-run credentials: uid=%d gid=%d", preRunProps.Uid, preRunProps.Gid)
 	}
 }
 

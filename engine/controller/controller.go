@@ -101,7 +101,12 @@ func (ac *AsyncController) SubmitRequest(runprops *Props) *CtrlRunOutput {
 			}
 
 			if runprops.PreRunProps != nil {
-				preRunOut, commandErr := agent.SafeRunCmd(preRunProps)
+				// Pre-run commands process attacker-controlled source too, so they
+				// must run with the same unprivileged credentials as the program.
+				safePreRunProps := *preRunProps
+				safePreRunProps.Uid = agent.RuntimeUid()
+				safePreRunProps.Gid = agent.RuntimeGid()
+				preRunOut, commandErr := agent.SafeRunCmd(&safePreRunProps)
 				if commandErr != nil {
 					print2.DebugPrintf("error preparing command: output=%v\n \nerror=%v", preRunOut, commandErr)
 					return &CtrlRunOutput{
